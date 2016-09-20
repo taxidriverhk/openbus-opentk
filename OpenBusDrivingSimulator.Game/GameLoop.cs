@@ -20,6 +20,7 @@ namespace OpenBusDrivingSimulator.Game
         {
             Screen.Initialize();
             Screen.Show();
+            Texture.LoadTestTextures();
             Renderer.Initialize();
             while(true)
             {
@@ -34,6 +35,7 @@ namespace OpenBusDrivingSimulator.Game
                 Renderer.RenderTest();
                 Screen.SwapBuffers();
             }
+            Texture.UnloadAllTextures();
             Screen.Destroy();
         }
     }

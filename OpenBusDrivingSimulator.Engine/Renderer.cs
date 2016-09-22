@@ -8,6 +8,7 @@ using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Input;
+using OpenBusDrivingSimulator.Core;
 
 namespace OpenBusDrivingSimulator.Engine
 {
@@ -20,8 +21,12 @@ namespace OpenBusDrivingSimulator.Engine
             GL.Enable(EnableCap.Texture2D);
         }
 
-        public static void RenderTest()
+        public static void RenderTest(Timer timer)
         {
+            while (timer.TimeElapsed < 1 / 60)
+                continue;
+            timer.Reset();
+
             GL.ClearColor(Color.Purple);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 

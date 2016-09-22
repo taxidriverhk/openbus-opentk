@@ -22,6 +22,7 @@ namespace OpenBusDrivingSimulator.Game
             Screen.Show();
             Texture.LoadTestTextures();
             Renderer.Initialize();
+            Timer testTimer = Timer.Initialize();
             while(true)
             {
                 if (Screen.Closed)
@@ -32,7 +33,7 @@ namespace OpenBusDrivingSimulator.Game
                 // Process inputs and update states
                 Screen.HandleEvents();
                 // Render the state
-                Renderer.RenderTest();
+                Renderer.RenderTest(testTimer);
                 Screen.SwapBuffers();
             }
             Texture.UnloadAllTextures();

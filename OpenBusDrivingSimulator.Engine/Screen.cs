@@ -15,6 +15,10 @@ namespace OpenBusDrivingSimulator.Engine
         #region Private Members
         private static bool closed;
         private static bool initialized;
+
+        private static int width;
+        private static int height;
+
         private static IntPtr windowHandle;
         private static IntPtr glContext;
         private static GraphicsContext graphicsContext;
@@ -29,6 +33,16 @@ namespace OpenBusDrivingSimulator.Engine
         public static bool Initialized
         {
             get { return initialized; }
+        }
+
+        public static int Width
+        {
+            get { return width; }
+        }
+
+        public static int Height
+        {
+            get { return height; }
         }
         #endregion
 
@@ -47,6 +61,9 @@ namespace OpenBusDrivingSimulator.Engine
             graphicsContext = new GraphicsContext(new ContextHandle(glContext),
                 SDL.SDL_GL_GetProcAddress,
                 () => new ContextHandle(SDL.SDL_GL_GetCurrentContext()));
+
+            width = Constants.DEFAULT_SCREEN_WIDTH;
+            height = Constants.DEFAULT_SCREEN_HEIGHT;
 
             closed = false;
             initialized = true;

@@ -3,32 +3,25 @@ using System.Diagnostics;
 
 namespace OpenBusDrivingSimulator.Core
 {
-    public class Timer
+    public static class Timer
     {
-        private Stopwatch stopWatch;
-        private long lastTime;
+        private static Stopwatch stopWatch;
+        private static long lastTime;
 
-        public static Timer Initialize()
+        public static void Start()
         {
-            Timer timer = new Timer();
-            timer.stopWatch = new Stopwatch();
-            timer.Reset();
-            return timer;
+            stopWatch = new Stopwatch();
+            stopWatch.Start();
+            lastTime = stopWatch.ElapsedMilliseconds;
         }
 
-        public void Reset()
-        {
-            this.stopWatch.Start();
-            this.lastTime = this.stopWatch.ElapsedMilliseconds;
-        }
-
-        public double TimeElapsed
+        public static double TimeElapsed
         {
             get
             {
-                long currentTime = this.stopWatch.ElapsedMilliseconds;
-                long diff = currentTime - this.lastTime;
-                this.lastTime = currentTime;
+                long currentTime = stopWatch.ElapsedMilliseconds;
+                long diff = currentTime - lastTime;
+                lastTime = currentTime;
                 return diff * 0.001;
             }
         }

@@ -18,21 +18,18 @@ namespace OpenBusDrivingSimulator.Engine
             get { return textureIds; }
         }
 
-        public static int LoadTextureFromFile(string filename)
+        public static int LoadTextureFromBitmap(Bitmap bitmap)
         {
-            if (string.IsNullOrEmpty(filename)
-                || !File.Exists(filename))
+            if (bitmap == null)
                 return -1;
 
             int id = GL.GenTexture();
             GL.BindTexture(TextureTarget.Texture2D, id);
 
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, 
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter,
                 (int)TextureMinFilter.Linear);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, 
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter,
                 (int)TextureMagFilter.Linear);
-
-            Bitmap bitmap = new Bitmap(filename);
 
             BitmapData bitmapData = bitmap.LockBits(new Rectangle(0, 0,
                 bitmap.Width, bitmap.Height), ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
@@ -45,16 +42,35 @@ namespace OpenBusDrivingSimulator.Engine
             return id;
         }
 
-        public static void LoadTestTextures()
+        public static int LoadTextureFromFile(string filename)
         {
-            LoadTextureFromFile(@"D:\Games\OMSI 2\Sceneryobjects\taxidriverhk_meifoo\texture\mf_mfmtr_1.bmp");
-            LoadTextureFromFile(@"D:\Games\OMSI 2\Sceneryobjects\taxidriverhk_meifoo\texture\mf_phase6_10.bmp");
+            if (string.IsNullOrEmpty(filename)
+                || !File.Exists(filename))
+                return -1;
+
+            Bitmap bitmap = new Bitmap(filename);
+            return LoadTextureFromBitmap(bitmap);
+        }
+
+        public static void UnloadTexture(int textureId)
+        {
+            if(textureIds.Contains(textureId))
+            {
+                GL.DeleteTexture(textureId);
+                textureIds.Remove(textureId);
+            }
         }
 
         public static void UnloadAllTextures()
         {
             foreach (int texture in textureIds)
                 GL.DeleteTexture(texture);
+        }
+
+        public static void LoadTestTextures()
+        {
+            LoadTextureFromFile(@"D:\Games\OMSI 2\Sceneryobjects\taxidriverhk_meifoo\texture\mf_mfmtr_1.bmp");
+            LoadTextureFromFile(@"D:\Games\OMSI 2\Sceneryobjects\taxidriverhk_meifoo\texture\mf_phase6_10.bmp");
         }
     }
 }

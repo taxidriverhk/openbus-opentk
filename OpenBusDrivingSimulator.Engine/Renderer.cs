@@ -14,26 +14,14 @@ namespace OpenBusDrivingSimulator.Engine
 {
     public static class Renderer
     {
-        private static double speed = 2.0;
-        private static double displacement = 0;
+        private static float speed = 2.0f;
+        private static float displacement = 0.0f;
 
-        private static float fieldOfAngle = MathHelper.PiOver4;
-        private static float zNear = 1, zFar = 10;
-        private static float aspect = 1;
-
-        private static Vector2 screenVect2;
         private static Bitmap textBmp;
 
         public static void Initialize()
         {
             GL.Enable(EnableCap.Texture2D);
-
-            aspect = Screen.Width / Screen.Height;
-
-            float widthOver2 = zFar * (float)System.Math.Tan(fieldOfAngle / 2),
-                  heightOver2 = widthOver2 / aspect;
-            screenVect2 = new Vector2(widthOver2, heightOver2);
-
             textBmp = new Bitmap(Screen.Width, Screen.Height, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
         }
 
@@ -58,10 +46,14 @@ namespace OpenBusDrivingSimulator.Engine
 
             GL.BindTexture(TextureTarget.Texture2D, textTextureId);
             GL.Begin(PrimitiveType.Quads);
-            GL.TexCoord2(0.0f, 1.0f); GL.Vertex2(-screenVect2.X, -screenVect2.Y);
-            GL.TexCoord2(1.0f, 1.0f); GL.Vertex2(screenVect2.X, -screenVect2.Y);
-            GL.TexCoord2(1.0f, 0.0f); GL.Vertex2(screenVect2.X, screenVect2.Y);
-            GL.TexCoord2(0.0f, 0.0f); GL.Vertex2(-screenVect2.X, screenVect2.Y);
+            GL.TexCoord2(1.0f, 1.0f);
+            GL.Vertex3(-Camera.PlaneWidth/2 + Camera.Target.X, -Camera.PlaneHeight/2 + Camera.Target.Y, Camera.PlaneZPosition);
+            GL.TexCoord2(0.0f, 1.0f); 
+            GL.Vertex3(Camera.PlaneWidth/2 + Camera.Target.X, -Camera.PlaneHeight/2 + Camera.Target.Y, Camera.PlaneZPosition);
+            GL.TexCoord2(0.0f, 0.0f); 
+            GL.Vertex3(Camera.PlaneWidth/2 + Camera.Target.X, Camera.PlaneHeight/2 + Camera.Target.Y, Camera.PlaneZPosition);
+            GL.TexCoord2(1.0f, 0.0f); 
+            GL.Vertex3(-Camera.PlaneWidth/2 + Camera.Target.X, Camera.PlaneHeight/2 + Camera.Target.Y, Camera.PlaneZPosition);
             GL.End();
 
             Texture.UnloadTexture(textTextureId);
@@ -73,45 +65,59 @@ namespace OpenBusDrivingSimulator.Engine
         }
 
         #region Test Functions
-        public static void MoveCameraTest()
-        {
-            Matrix4 lookAt = Matrix4.LookAt(0.0f, 0.0f, 10.0f,
-                0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
-            GL.MatrixMode(MatrixMode.Modelview);
-            GL.LoadMatrix(ref lookAt);
-
-            Matrix4 projection = Matrix4.CreatePerspectiveFieldOfView(fieldOfAngle, aspect, zNear, zFar);
-            GL.MatrixMode(MatrixMode.Projection);
-            GL.LoadMatrix(ref projection);
-        }
-
         public static void RenderTest(double timeElapsed)
         {
             GL.ClearColor(Color.Purple);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-            displacement += timeElapsed * speed;
-            GL.BindTexture(TextureTarget.Texture2D, Texture.TextureIds[0]);
-            GL.Begin(PrimitiveType.Quads);
-            GL.TexCoord2(0.0f, 1.0f); GL.Vertex2(displacement - 1.0f, -1.0f);
-            GL.TexCoord2(1.0f, 1.0f); GL.Vertex2(displacement + 1.0f, -1.0f);
-            GL.TexCoord2(1.0f, 0.0f); GL.Vertex2(displacement + 1.0f, 1.0f);
-            GL.TexCoord2(0.0f, 0.0f); GL.Vertex2(displacement - 1.0f, 1.0f);
-            GL.End();
-
-            GL.BindTexture(TextureTarget.Texture2D, Texture.TextureIds[1]);
-            GL.Begin(PrimitiveType.Quads);
-            GL.TexCoord2(0.0f, 1.0f); GL.Vertex2(displacement - 4.0f, -1.0f);
-            GL.TexCoord2(1.0f, 1.0f); GL.Vertex2(displacement - 3.0f, -1.0f);
-            GL.TexCoord2(1.0f, 0.0f); GL.Vertex2(displacement - 3.0f, 1.0f);
-            GL.TexCoord2(0.0f, 0.0f); GL.Vertex2(displacement - 4.0f, 1.0f);
-            GL.End();
-
+            displacement += (float)timeElapsed * speed;
+            DrawTestCube();
             if (displacement >= 5 || displacement <= -5)
             {
                 displacement = displacement < 0 ? -5 : 5;
                 speed *= -1;
             }
+        }
+
+        public static void DrawTestCube()
+        {
+            float zPosition = 10.0f;
+            Vector3[] vertices =
+            {
+                new Vector3(displacement - 1.0f - Camera.Eye.X, -1.0f - Camera.Eye.Y, zPosition - Camera.Eye.Z),
+                new Vector3(displacement + 1.0f - Camera.Eye.X, -1.0f - Camera.Eye.Y, zPosition - Camera.Eye.Z),
+                new Vector3(displacement + 1.0f - Camera.Eye.X, 1.0f - Camera.Eye.Y, zPosition - Camera.Eye.Z),
+                new Vector3(displacement - 1.0f - Camera.Eye.X, 1.0f - Camera.Eye.Y, zPosition - Camera.Eye.Z),
+                new Vector3(displacement - 1.0f - Camera.Eye.X, -1.0f - Camera.Eye.Y, zPosition + 2.0f - Camera.Eye.Z),
+                new Vector3(displacement + 1.0f - Camera.Eye.X, -1.0f - Camera.Eye.Y, zPosition + 2.0f - Camera.Eye.Z),
+                new Vector3(displacement + 1.0f - Camera.Eye.X, 1.0f - Camera.Eye.Y, zPosition + 2.0f - Camera.Eye.Z),
+                new Vector3(displacement - 1.0f - Camera.Eye.X, 1.0f - Camera.Eye.Y, zPosition + 2.0f - Camera.Eye.Z),
+            };
+
+            GL.BindTexture(TextureTarget.Texture2D, Texture.TextureIds[0]);
+            GL.Begin(PrimitiveType.Quads);
+
+            // Front
+            GL.TexCoord2(1.0f, 1.0f); 
+            GL.Vertex3(vertices[0]);
+            GL.TexCoord2(0.0f, 1.0f);
+            GL.Vertex3(vertices[1]);
+            GL.TexCoord2(0.0f, 0.0f);
+            GL.Vertex3(vertices[2]);
+            GL.TexCoord2(1.0f, 0.0f);
+            GL.Vertex3(vertices[3]);
+
+            // Back
+
+            // Top
+
+            // Bottom
+
+            // Left
+
+            // Right
+
+            GL.End();
         }
         #endregion
     }

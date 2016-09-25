@@ -27,7 +27,7 @@ namespace OpenBusDrivingSimulator.Game
             Renderer.Initialize();
 
             // Fixed camera poisition for now
-            Renderer.MoveCameraTest();
+            Camera.Initialize();
             while(true)
             {
                 // Timing calculation
@@ -37,6 +37,7 @@ namespace OpenBusDrivingSimulator.Game
                 {
                     Game.FrameRate = 1 / timeElapsed;
                     totalTimeElapsedForHud = 0;
+                    Camera.MoveBy(0, 0.01f, 0);
                 }
 
                 // Update inputs

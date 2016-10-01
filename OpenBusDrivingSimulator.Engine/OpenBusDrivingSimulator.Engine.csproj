@@ -60,6 +60,7 @@
     <Compile Include="Renderer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Texture.cs" />
+    <Compile Include="Vertex.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\OpenBusDrivingSimulator.Core\OpenBusDrivingSimulator.Core.csproj">

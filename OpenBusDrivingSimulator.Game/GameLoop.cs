@@ -25,8 +25,6 @@ namespace OpenBusDrivingSimulator.Game
             Texture.LoadTestTextures();
             Timer.Start();
             Renderer.Initialize();
-
-            // Fixed camera poisition for now
             Camera.Initialize();
             while(true)
             {
@@ -37,7 +35,6 @@ namespace OpenBusDrivingSimulator.Game
                 {
                     Game.FrameRate = 1 / timeElapsed;
                     totalTimeElapsedForHud = 0;
-                    Camera.MoveBy(0, 0.01f, 0);
                 }
 
                 // Update inputs
@@ -46,12 +43,15 @@ namespace OpenBusDrivingSimulator.Game
                 Screen.HandleEvents();
                 if (Screen.Closed)
                     break;
+                Camera.RotateYBy(0.5f);
+                Camera.UpdateCamera();
 
                 // Render the state
-                Renderer.RenderTest(timeElapsed);
+                Renderer.RenderTestScene(timeElapsed);
                 Renderer.DrawText(string.Format("{0:0.00} fps", Game.FrameRate), 0, 0);
                 Screen.SwapBuffers();
             }
+            Renderer.ClearBuffer();
             Texture.UnloadAllTextures();
             Screen.Destroy();
         }

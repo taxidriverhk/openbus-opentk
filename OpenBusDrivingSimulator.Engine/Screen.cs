@@ -52,11 +52,13 @@ namespace OpenBusDrivingSimulator.Engine
             if (SDL.SDL_InitSubSystem(SDL.SDL_INIT_VIDEO) != 0)
                 return false;
 
+            // Initialize the window
             SDL.SDL_WindowFlags flags = SDL.SDL_WindowFlags.SDL_WINDOW_OPENGL;
             windowHandle = SDL.SDL_CreateWindow(Constants.APPLICATION_NAME,
                 SDL.SDL_WINDOWPOS_CENTERED, SDL.SDL_WINDOWPOS_CENTERED,
                 Constants.DEFAULT_SCREEN_WIDTH, Constants.DEFAULT_SCREEN_HEIGHT, flags);
 
+            // Initialize the OpenGL context
             glContext = SDL.SDL_GL_CreateContext(windowHandle);
             graphicsContext = new GraphicsContext(new ContextHandle(glContext),
                 SDL.SDL_GL_GetProcAddress,

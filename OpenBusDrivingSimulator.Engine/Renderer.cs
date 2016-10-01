@@ -21,8 +21,8 @@ namespace OpenBusDrivingSimulator.Engine
 
         public static void Initialize()
         {
-            GL.Enable(EnableCap.Texture2D);
             textBmp = new Bitmap(Screen.Width, Screen.Height, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+            InitailizeBuffer();
         }
 
         public static void DrawText(string text, int x, int y, Color color)
@@ -41,22 +41,37 @@ namespace OpenBusDrivingSimulator.Engine
             int textTextureId = Texture.LoadTextureFromBitmap(textBmp);
 
             GL.Disable(EnableCap.DepthTest);
-            GL.Enable(EnableCap.Blend);
             GL.BlendFunc(BlendingFactorSrc.One, BlendingFactorDest.OneMinusSrcAlpha);
+            GL.Enable(EnableCap.Blend);
 
+            GL.MatrixMode(MatrixMode.Projection);
+            GL.PushMatrix();
+            GL.LoadIdentity();
+            GL.Ortho(0.0f, 0.0f, Screen.Width, Screen.Height, -1.0f, 1.0f);
+            GL.MatrixMode(MatrixMode.Modelview);
+            GL.PushMatrix();
+            GL.LoadIdentity();
+
+            GL.Enable(EnableCap.Texture2D);
             GL.BindTexture(TextureTarget.Texture2D, textTextureId);
             GL.Begin(PrimitiveType.Quads);
+            GL.TexCoord2(0.0f, 1.0f);
+            GL.Vertex2(-1.0f, -1.0f);
             GL.TexCoord2(1.0f, 1.0f);
-            GL.Vertex3(-Camera.PlaneWidth/2 + Camera.Target.X, -Camera.PlaneHeight/2 + Camera.Target.Y, Camera.PlaneZPosition);
-            GL.TexCoord2(0.0f, 1.0f); 
-            GL.Vertex3(Camera.PlaneWidth/2 + Camera.Target.X, -Camera.PlaneHeight/2 + Camera.Target.Y, Camera.PlaneZPosition);
-            GL.TexCoord2(0.0f, 0.0f); 
-            GL.Vertex3(Camera.PlaneWidth/2 + Camera.Target.X, Camera.PlaneHeight/2 + Camera.Target.Y, Camera.PlaneZPosition);
-            GL.TexCoord2(1.0f, 0.0f); 
-            GL.Vertex3(-Camera.PlaneWidth/2 + Camera.Target.X, Camera.PlaneHeight/2 + Camera.Target.Y, Camera.PlaneZPosition);
+            GL.Vertex2(1.0f, -1.0f);
+            GL.TexCoord2(1.0f, 0.0f);
+            GL.Vertex2(1.0f, 1.0f);
+            GL.TexCoord2(0.0f, 0.0f);
+            GL.Vertex2(-1.0f, 1.0f);
             GL.End();
-
             Texture.UnloadTexture(textTextureId);
+
+            GL.PopMatrix();
+            GL.MatrixMode(MatrixMode.Projection);
+            GL.PopMatrix();
+            GL.MatrixMode(MatrixMode.Modelview);
+            GL.PopMatrix();
+            GL.Disable(EnableCap.Blend);
         }
 
         public static void DrawText(string text, int x, int y)
@@ -65,13 +80,14 @@ namespace OpenBusDrivingSimulator.Engine
         }
 
         #region Test Functions
-        public static void RenderTest(double timeElapsed)
+        public static void RenderTestScene(double timeElapsed)
         {
-            GL.ClearColor(Color.Purple);
+            GL.Enable(EnableCap.DepthTest);
+            GL.ClearColor(Color.Black);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
             displacement += (float)timeElapsed * speed;
-            DrawTestCube();
+            DrawTestCubeWithBuffer();
             if (displacement >= 5 || displacement <= -5)
             {
                 displacement = displacement < 0 ? -5 : 5;
@@ -84,40 +100,90 @@ namespace OpenBusDrivingSimulator.Engine
             float zPosition = 10.0f;
             Vector3[] vertices =
             {
-                new Vector3(displacement - 1.0f - Camera.Eye.X, -1.0f - Camera.Eye.Y, zPosition - Camera.Eye.Z),
-                new Vector3(displacement + 1.0f - Camera.Eye.X, -1.0f - Camera.Eye.Y, zPosition - Camera.Eye.Z),
-                new Vector3(displacement + 1.0f - Camera.Eye.X, 1.0f - Camera.Eye.Y, zPosition - Camera.Eye.Z),
-                new Vector3(displacement - 1.0f - Camera.Eye.X, 1.0f - Camera.Eye.Y, zPosition - Camera.Eye.Z),
-                new Vector3(displacement - 1.0f - Camera.Eye.X, -1.0f - Camera.Eye.Y, zPosition + 2.0f - Camera.Eye.Z),
-                new Vector3(displacement + 1.0f - Camera.Eye.X, -1.0f - Camera.Eye.Y, zPosition + 2.0f - Camera.Eye.Z),
-                new Vector3(displacement + 1.0f - Camera.Eye.X, 1.0f - Camera.Eye.Y, zPosition + 2.0f - Camera.Eye.Z),
-                new Vector3(displacement - 1.0f - Camera.Eye.X, 1.0f - Camera.Eye.Y, zPosition + 2.0f - Camera.Eye.Z),
+                new Vector3(displacement - 2.0f - Camera.Eye.X, -1.0f - Camera.Eye.Y, zPosition - Camera.Eye.Z),
+                new Vector3(displacement + 2.0f - Camera.Eye.X, -1.0f - Camera.Eye.Y, zPosition - Camera.Eye.Z),
+                new Vector3(displacement + 2.0f - Camera.Eye.X, 1.0f - Camera.Eye.Y, zPosition - Camera.Eye.Z),
+                new Vector3(displacement - 2.0f - Camera.Eye.X, 1.0f - Camera.Eye.Y, zPosition - Camera.Eye.Z),
+                new Vector3(displacement - 2.0f - Camera.Eye.X, -1.0f - Camera.Eye.Y, zPosition + 2.0f - Camera.Eye.Z),
+                new Vector3(displacement + 2.0f - Camera.Eye.X, -1.0f - Camera.Eye.Y, zPosition + 2.0f - Camera.Eye.Z),
+                new Vector3(displacement + 2.0f - Camera.Eye.X, 1.0f - Camera.Eye.Y, zPosition + 2.0f - Camera.Eye.Z),
+                new Vector3(displacement - 2.0f - Camera.Eye.X, 1.0f - Camera.Eye.Y, zPosition + 2.0f - Camera.Eye.Z),
             };
 
             GL.BindTexture(TextureTarget.Texture2D, Texture.TextureIds[0]);
             GL.Begin(PrimitiveType.Quads);
 
             // Front
-            GL.TexCoord2(1.0f, 1.0f); 
+            GL.TexCoord2(1.0f, 1.0f);
             GL.Vertex3(vertices[0]);
+            GL.Normal3(0.0f, 0.0f, 1.0f);
             GL.TexCoord2(0.0f, 1.0f);
             GL.Vertex3(vertices[1]);
+            GL.Normal3(0.0f, 0.0f, 1.0f);
             GL.TexCoord2(0.0f, 0.0f);
             GL.Vertex3(vertices[2]);
+            GL.Normal3(0.0f, 0.0f, 1.0f);
             GL.TexCoord2(1.0f, 0.0f);
             GL.Vertex3(vertices[3]);
-
-            // Back
-
-            // Top
-
-            // Bottom
-
-            // Left
-
-            // Right
+            GL.Normal3(0.0f, 0.0f, 1.0f);
 
             GL.End();
+        }
+        #endregion
+
+        #region Vertex Buffer Object
+        // Buffer related fields
+        private static Vertex[] bufferVertices;
+        private static ushort[] bufferVertexIndices;
+        private static uint vertexBufferId;
+        private static uint indexBufferId;
+
+        private static void InitailizeBuffer()
+        {
+            float zPosition = 10.0f;
+            bufferVertices = new Vertex[]
+            {
+                new Vertex(-1, 1, zPosition, 0, 0, 1, 0, 0),
+                new Vertex(-1, -1, zPosition, 0, 0, 1, 0, 1),
+                new Vertex(1, -1, zPosition, 0, 0, 1, 1, 1),
+                new Vertex(1, 1, zPosition, 0, 0, 1, 1, 0)
+            };
+
+            GL.Enable(EnableCap.Normalize);
+
+            GL.GenBuffers(1, out vertexBufferId);
+            GL.BindBuffer(BufferTarget.ArrayBuffer, vertexBufferId);
+            GL.BufferData(BufferTarget.ArrayBuffer, new IntPtr(bufferVertices.Length * Vertex.Size), bufferVertices, BufferUsageHint.StaticDraw);
+
+            bufferVertexIndices = new ushort[] { 0, 1, 2, 3, 0, 2 };
+            GL.GenBuffers(1, out indexBufferId);
+            GL.BindBuffer(BufferTarget.ElementArrayBuffer, indexBufferId);
+            GL.BufferData(BufferTarget.ElementArrayBuffer, (IntPtr)(bufferVertexIndices.Length * sizeof(ushort)), bufferVertexIndices, BufferUsageHint.StaticDraw);
+        }
+
+        public static void ClearBuffer()
+        {
+            GL.DeleteBuffers(1, ref indexBufferId);
+            GL.DeleteBuffers(1, ref vertexBufferId);
+        }
+
+        public static void DrawTestCubeWithBuffer()
+        {
+            GL.BindBuffer(BufferTarget.ArrayBuffer, vertexBufferId);
+            GL.EnableClientState(ArrayCap.VertexArray);
+            GL.EnableClientState(ArrayCap.NormalArray);
+            GL.EnableClientState(ArrayCap.TextureCoordArray);
+
+            GL.BindTexture(TextureTarget.Texture2D, Texture.TextureIds[0]);
+            GL.VertexPointer(3, VertexPointerType.Float, Vertex.Size, 0);
+            GL.NormalPointer(NormalPointerType.Float, Vertex.Size, Vector3.SizeInBytes);
+            GL.TexCoordPointer(2, TexCoordPointerType.Float, Vertex.Size, Vector3.SizeInBytes * 2);
+
+            GL.BindBuffer(BufferTarget.ElementArrayBuffer, indexBufferId);
+            GL.DrawElements(BeginMode.Triangles, bufferVertexIndices.Length, DrawElementsType.UnsignedShort, 0);
+
+            GL.DisableClientState(ArrayCap.TextureCoordArray);
+            GL.DisableClientState(ArrayCap.VertexArray);
         }
         #endregion
     }

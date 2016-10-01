@@ -7,11 +7,11 @@ using System.Windows;
 // 組件的一般資訊是由下列的屬性集控制。
 // 變更這些屬性的值即可修改組件的相關
 // 資訊。
-[assembly: AssemblyTitle("OpenBusDrivingSimulator.GUI")]
+[assembly: AssemblyTitle("Open Bus Driving Simulator")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("OpenBusDrivingSimulator.GUI")]
+[assembly: AssemblyCompany("Alex Leung")]
+[assembly: AssemblyProduct("Open Bus Driving Simulator")]
 [assembly: AssemblyCopyright("Copyright ©  2016")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]

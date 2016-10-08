@@ -24,7 +24,7 @@ namespace OpenBusDrivingSimulator.Engine
         private static GraphicsContext graphicsContext;
         #endregion
 
-        #region Accessors
+        #region Properties
         public static bool Closed
         {
             get { return closed; }

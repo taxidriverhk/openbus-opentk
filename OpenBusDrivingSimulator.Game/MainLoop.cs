@@ -11,7 +11,7 @@ namespace OpenBusDrivingSimulator.Game
     /// <summary>
     /// Object that controls the game loop
     /// </summary>
-    public static class GameLoop
+    public static class MainLoop
     {
         /// <summary>
         /// Starts the game loop. 
@@ -21,11 +21,12 @@ namespace OpenBusDrivingSimulator.Game
             double totalTimeElapsedForHud = 0.0;
 
             Screen.Initialize();
+            Renderer.Initialize();
+            Camera.Initialize();
+
             Screen.Show();
             Texture.LoadTestTextures();
             Timer.Start();
-            Renderer.Initialize();
-            Camera.Initialize();
             while(true)
             {
                 // Timing calculation
@@ -43,15 +44,14 @@ namespace OpenBusDrivingSimulator.Game
                 Screen.HandleEvents();
                 if (Screen.Closed)
                     break;
-                Camera.RotateYBy(0.5f);
                 Camera.UpdateCamera();
 
                 // Render the state
                 Renderer.RenderTestScene(timeElapsed);
-                Renderer.DrawText(string.Format("{0:0.00} fps", Game.FrameRate), 0, 0);
+                Renderer.DrawText(string.Format("{0:0.00} fps", Game.FrameRate), 0, 95);
                 Screen.SwapBuffers();
             }
-            Renderer.ClearBuffer();
+            Renderer.Cleanup();
             Texture.UnloadAllTextures();
             Screen.Destroy();
         }

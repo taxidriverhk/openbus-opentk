@@ -65,9 +65,10 @@ namespace OpenBusDrivingSimulator.Engine
 
         public static void UpdateCamera()
         {
-            GL.PushMatrix();
+            // Projection
             GL.Viewport(0, 0, Screen.Width, Screen.Height);
             GL.MatrixMode(MatrixMode.Projection);
+            GL.PushMatrix();
             GL.LoadIdentity();
             Matrix4 projection = Matrix4.CreatePerspectiveFieldOfView(fieldOfView, aspect, zNear, zFar);
             GL.LoadMatrix(ref projection);
@@ -76,6 +77,7 @@ namespace OpenBusDrivingSimulator.Engine
             GL.MatrixMode(MatrixMode.Modelview);
             GL.LoadIdentity();
             
+            // Rotation about y-axis
             float sinTheta = (float)Math.Sin(angles.Y),
                   cosTheta = (float)Math.Cos(angles.Y);
             target.X = zFar * sinTheta;

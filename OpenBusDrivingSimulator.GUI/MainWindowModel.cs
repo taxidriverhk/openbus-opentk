@@ -14,11 +14,13 @@ namespace OpenBusDrivingSimulator.GUI
     {
         public string Title { get; set; }
         public string StartGame { get; set; }
+        public string VersionNumber { get; set; }
 
         public MainWindowModelStrings()
         {
             Title = Constants.APPLICATION_NAME;
             StartGame = Constants.START_GAME;
+            VersionNumber = Constants.VERSION_NUMBER;
         }
     }
 

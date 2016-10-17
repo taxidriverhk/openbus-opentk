@@ -20,9 +20,12 @@ namespace OpenBusDrivingSimulator.Game
         {
             double totalTimeElapsedForHud = 0.0;
 
-            Screen.Initialize();
+            Screen.Initialize(Constants.DEFAULT_SCREEN_WIDTH, 
+                Constants.DEFAULT_SCREEN_HEIGHT, Constants.APPLICATION_NAME);
             Renderer.Initialize();
             Camera.Initialize();
+
+            Mesh.LoadFromCollada(@"D:\下載\cube.dae");
 
             Screen.Show();
             Texture.LoadTestTextures();

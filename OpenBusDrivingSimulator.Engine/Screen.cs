@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Drawing;
 using System.Text;
-using OpenBusDrivingSimulator.Core;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
@@ -47,16 +46,16 @@ namespace OpenBusDrivingSimulator.Engine
         #endregion
 
         #region Public Methods
-        public static bool Initialize()
+        public static bool Initialize(int inputWidth, int inputHeight, string title)
         {
             if (SDL.SDL_InitSubSystem(SDL.SDL_INIT_VIDEO) != 0)
                 return false;
 
             // Initialize the window
             SDL.SDL_WindowFlags flags = SDL.SDL_WindowFlags.SDL_WINDOW_OPENGL;
-            windowHandle = SDL.SDL_CreateWindow(Constants.APPLICATION_NAME,
+            windowHandle = SDL.SDL_CreateWindow(title,
                 SDL.SDL_WINDOWPOS_CENTERED, SDL.SDL_WINDOWPOS_CENTERED,
-                Constants.DEFAULT_SCREEN_WIDTH, Constants.DEFAULT_SCREEN_HEIGHT, flags);
+                inputWidth, inputHeight, flags);
 
             // Initialize the OpenGL context
             glContext = SDL.SDL_GL_CreateContext(windowHandle);
@@ -64,8 +63,8 @@ namespace OpenBusDrivingSimulator.Engine
                 SDL.SDL_GL_GetProcAddress,
                 () => new ContextHandle(SDL.SDL_GL_GetCurrentContext()));
 
-            width = Constants.DEFAULT_SCREEN_WIDTH;
-            height = Constants.DEFAULT_SCREEN_HEIGHT;
+            width = inputWidth;
+            height = inputHeight;
 
             closed = false;
             initialized = true;

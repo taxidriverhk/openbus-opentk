@@ -10,5 +10,6 @@
     </Window.DataContext>
     <Grid>
         <Button Content="{Binding Strings.StartGame}" Command="{Binding StartGameCommand}" HorizontalAlignment="Left" Margin="194,141,0,0" VerticalAlignment="Top" Width="119" Height="53"/>
+        <Label Content="{Binding Strings.VersionNumber}" HorizontalAlignment="Left" Margin="10,282,0,0" VerticalAlignment="Top" Width="149" Background="Red" Foreground="White"/>
     </Grid>
 </Window>

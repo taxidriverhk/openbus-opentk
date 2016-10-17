@@ -10,8 +10,6 @@ namespace OpenBusDrivingSimulator.Engine
 {
     public static class Camera
     {
-        private const float MAX_ROTATION_RADIANS = 2 * MathHelper.Pi;
-        
         // Projection related members
         private static float zNear;
         private static float zFar;
@@ -52,15 +50,15 @@ namespace OpenBusDrivingSimulator.Engine
         public static void RotateYTo(float degrees)
         {
             angles.Y = MathHelper.DegreesToRadians(degrees);
-            if (angles.Y >= MAX_ROTATION_RADIANS)
-                angles.Y = angles.Y % MAX_ROTATION_RADIANS;
+            if (angles.Y >= MathHelper.TwoPi)
+                angles.Y = angles.Y % MathHelper.TwoPi;
         }
 
         public static void RotateYBy(float degrees)
         {
             angles.Y += MathHelper.DegreesToRadians(degrees);
-            if (angles.Y >= MAX_ROTATION_RADIANS)
-                angles.Y = angles.Y % MAX_ROTATION_RADIANS;
+            if (angles.Y >= MathHelper.TwoPi)
+                angles.Y = angles.Y % MathHelper.TwoPi;
         }
 
         public static void UpdateCamera()

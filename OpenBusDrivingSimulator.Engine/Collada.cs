@@ -66,7 +66,7 @@ namespace OpenBusDrivingSimulator.Engine
                         case "index_of_refraction":
                             float floatValue = Convert.ToSingle(phongNode.
                                 SelectSingleNode("collada:float", xmlNsMgr).InnerText);
-                            switch(phongNode.Name)
+                            switch (phongNode.Name)
                             {
                                 case "shininess":
                                     phongShading.Shininess = floatValue;
@@ -86,19 +86,19 @@ namespace OpenBusDrivingSimulator.Engine
             int geometryIndex = 0;
             XmlNodeList geometryNodes = root.SelectNodes("collada:library_geometries/collada:geometry", xmlNsMgr);
             collada.Geometries = new ColladaGeometry[geometryNodes.Count];
-            foreach(XmlNode geometryNode in geometryNodes)
+            foreach (XmlNode geometryNode in geometryNodes)
             {
                 collada.Geometries[geometryIndex] = new ColladaGeometry();
                 collada.Geometries[geometryIndex].Id = geometryNode.Attributes[0].Value;
                 collada.Geometries[geometryIndex].Name = geometryNode.Attributes[1].Value;
                 // Process float arrays
                 XmlNodeList floatArrayNodes = geometryNode.SelectNodes("//collada:float_array", xmlNsMgr);
-                foreach(XmlNode floatArrayNode in floatArrayNodes)
+                foreach (XmlNode floatArrayNode in floatArrayNodes)
                 {
                     string arrayId = floatArrayNode.Attributes[0].Value;
                     int arraySize = Convert.ToInt32(floatArrayNode.Attributes[1].Value);
                     string[] floatStrArray = floatArrayNode.InnerText.Split(ColladaGeometry.ARRAY_DELIM);
-                    if(arrayId.Contains("map"))
+                    if (arrayId.Contains("map"))
                     {
                         Vector2[] vectorArray = new Vector2[arraySize / ColladaGeometry.TWOD_ARRAY_SIZE];
                         for (int i = 0, j = 0;
@@ -117,9 +117,9 @@ namespace OpenBusDrivingSimulator.Engine
                             vectorArray[i] = new Vector3(Convert.ToSingle(floatStrArray[j]),
                                 Convert.ToSingle(floatStrArray[j + 1]),
                                 Convert.ToSingle(floatStrArray[j + 2]));
-                        if(arrayId.Contains("position"))
+                        if (arrayId.Contains("position"))
                             collada.Geometries[geometryIndex].Positions = vectorArray;
-                        else if(arrayId.Contains("normal"))
+                        else if (arrayId.Contains("normal"))
                             collada.Geometries[geometryIndex].Normals = vectorArray;
                     }
                 }
@@ -127,7 +127,7 @@ namespace OpenBusDrivingSimulator.Engine
                 // Process indices
                 XmlNodeList polyNodes = geometryNode.SelectNodes("//collada:polylist", xmlNsMgr);
                 collada.Geometries[geometryIndex].Indices = new Dictionary<string,int[]>();
-                foreach(XmlNode polyNode in polyNodes)
+                foreach (XmlNode polyNode in polyNodes)
                 {
                     string materialId = polyNode.Attributes[0].Value;
                     string[] indexStrArray = polyNode.SelectSingleNode("collada:p", xmlNsMgr)

@@ -9,15 +9,33 @@ using OpenTK.Graphics.OpenGL;
 
 namespace OpenBusDrivingSimulator.Engine
 {
+    /// <summary>
+    /// Manages all the texture data loaded into the memory.
+    /// </summary>
     public static class Texture
     {
-        private static List<int> textureIds = new List<int>();
+        /// <summary>
+        /// List of supported image format to load into.
+        /// </summary>
+        private static readonly string[] supportedFormats = { ".bmp" };
 
+        /// <summary>
+        /// List of IDs where each of them points to the data allocated to the graphics memory.
+        /// </summary>
+        private static List<int> textureIds = new List<int>();
         public static List<int> TextureIds
         {
             get { return textureIds; }
         }
 
+        /// <summary>
+        /// Loads a bitmap into the graphics memory.
+        /// </summary>
+        /// <param name="bitmap">The bitmap that contains the data of the image.</param>
+        /// <returns>
+        /// The texture ID allocated to the graphics memory.
+        /// -1 if the bitmap is null.
+        /// </returns>
         public static int LoadTextureFromBitmap(Bitmap bitmap)
         {
             if (bitmap == null)
@@ -42,35 +60,51 @@ namespace OpenBusDrivingSimulator.Engine
             return id;
         }
 
+        /// <summary>
+        /// Loads an image file into the graphics memory.
+        /// </summary>
+        /// <param name="filename">
+        /// The full absolute path of the image, without extension. This method will append the extension of every supported format and will use the first one that could be loaded.
+        /// </param>
+        /// <returns>
+        /// The texture ID allocated to the graphics memory.
+        /// -1 if the bitmap is null.
+        /// </returns>
         public static int LoadTextureFromFile(string filename)
         {
-            if (string.IsNullOrEmpty(filename)
-                || !File.Exists(filename))
-                return -1;
+            string fullPath = string.Empty;
+            foreach (string supportedFormat in supportedFormats)
+            {
+                fullPath = filename + supportedFormat;
+                if (string.IsNullOrEmpty(fullPath)
+                    || !File.Exists(fullPath))
+                    return -1;
+            }
 
-            Bitmap bitmap = new Bitmap(filename);
+            Bitmap bitmap = new Bitmap(fullPath);
             return LoadTextureFromBitmap(bitmap);
         }
 
+        /// <summary>
+        /// Unloads a texture data from the graphics memory.
+        /// </summary>
+        /// <param name="textureId">The texture ID allocated to the graphics memory.</param>
         public static void UnloadTexture(int textureId)
         {
-            if(textureIds.Contains(textureId))
+            if (textureIds.Contains(textureId))
             {
                 GL.DeleteTexture(textureId);
                 textureIds.Remove(textureId);
             }
         }
 
+        /// <summary>
+        /// Unloads all textures from the graphics memory.
+        /// </summary>
         public static void UnloadAllTextures()
         {
             foreach (int texture in textureIds)
                 GL.DeleteTexture(texture);
-        }
-
-        public static void LoadTestTextures()
-        {
-            LoadTextureFromFile(@"D:\Games\OMSI 2\Sceneryobjects\taxidriverhk_meifoo\texture\mf_mfmtr_1.bmp");
-            LoadTextureFromFile(@"D:\Games\OMSI 2\Sceneryobjects\taxidriverhk_meifoo\texture\mf_phase6_10.bmp");
         }
     }
 }

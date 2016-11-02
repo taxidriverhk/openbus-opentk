@@ -12,46 +12,42 @@ using OpenTK.Input;
 namespace OpenBusDrivingSimulator.Engine
 {
     /// <summary>
-    /// Responsible for drawing objects and texts for the screen to show
+    /// Responsible for drawing objects and texts for the screen to show.
     /// </summary>
     public static class Renderer
     {
-        private static float speed = 2.0f;
-        private static float displacement = 0.0f;
-
         /// <summary>
-        /// Bitmap used for converting strings into a picture for display
+        /// Bitmap used for converting strings into a picture for display.
         /// </summary>
         private static Bitmap textBmp;
 
         /// <summary>
-        /// Initialize the components of the renderer, should be called before the main loop
-        /// Cleanup function must also be called after the main loop to cleanup everything
+        /// Initialize the components of the renderer, should be called before the main loop.
+        /// Cleanup function must also be called after the main loop to cleanup everything.
         /// </summary>
         public static void Initialize()
         {
             textBmp = new Bitmap(Screen.Width, Screen.Height, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
-            InitailizeBuffer();
             InitializeMirrorBuffer();
         }
 
         /// <summary>
-        /// Cleans up the memory and components associated to this renderer
-        /// Must be called after the main loop to cleanup everything
+        /// Cleans up the memory and components associated to this renderer.
+        /// Must be called after the main loop to cleanup everything.
         /// </summary>
         public static void Cleanup()
         {
-            ClearBuffer();
             ClearMirrorBuffer();
+            RemoveAllMeshes();
         }
 
         /// <summary>
         /// Renders 2D text on the screen
         /// </summary>
         /// <param name="text">Text to be printed</param>
-        /// <param name="left">Left position percentage of the text relative to the screen, from 0 to 100</param>
-        /// <param name="top">Top position percentage of the text relative to the screen, from 0 to 100</param>
-        /// <param name="color">Foreground of the text to be printed</param>
+        /// <param name="left">Left position percentage of the text relative to the screen, from 0 to 100.</param>
+        /// <param name="top">Top position percentage of the text relative to the screen, from 0 to 100.</param>
+        /// <param name="color">Foreground of the text to be printed.</param>
         public static void DrawText(string text, int left, int top, Color color)
         {
             if (string.IsNullOrEmpty(text))
@@ -104,65 +100,162 @@ namespace OpenBusDrivingSimulator.Engine
         }
 
         /// <summary>
-        /// Renders 2D text in white color on the screen
+        /// Renders 2D text with white foreground and black thin border on the screen.
         /// </summary>
         public static void DrawText(string text, int left, int bottom)
         {
             DrawText(text, left, bottom, Color.White);
         }
 
-        #region Test Functions
-        public static void RenderTestScene(double timeElapsed)
+        /// <summary>
+        /// Number of meshes (not the number of vertex buffers) loaded.
+        /// </summary>
+        private static uint meshesLoaded = 0;
+        /// <summary>
+        /// List of vertex buffer IDs that are allocated to vertex buffers.
+        /// </summary>
+        private static List<uint> modelBufferIds = new List<uint>();
+        /// <summary>
+        /// Mapping of a mesh ID to its list of vertex buffer IDs.
+        /// </summary>
+        private static Dictionary<uint, List<uint>> meshIdMapping = new Dictionary<uint, List<uint>>();
+        /// <summary>
+        /// Mapping of a vertex buffer ID to its texture ID.
+        /// </summary>
+        private static Dictionary<uint, int> textureIdMapping = new Dictionary<uint, int>();
+        /// <summary>
+        /// Mapping of a vertex buffer ID to its index array buffer ID.
+        /// </summary>
+        private static Dictionary<uint, uint> indexBufferIdMapping = new Dictionary<uint, uint>();
+        /// <summary>
+        /// Mapping of an index array ID to its length (i.e. number of elements in the array).
+        /// </summary>
+        private static Dictionary<uint, int> indexBufferLengths = new Dictionary<uint, int>();
+
+        /// <summary>
+        /// Loads a mesh into the scene with its position in the world coordinates.
+        /// </summary>
+        /// <param name="mesh">The mesh to be loaded.</param>
+        /// <returns>
+        /// The mesh ID if the mesh was loaded successfully.
+        /// 0 if the mesh is null or is invalid.
+        /// </returns>
+        public static uint LoadMeshToScene(Mesh mesh)
+        {
+            if (mesh == null || !mesh.Validate())
+                return 0;
+
+            // Load vertices into the buffer for each material
+            List<uint> bufferIdList = new List<uint>();
+            for (int i = 0; i < mesh.Vertices.Length; i++)
+            {
+                uint bufferId = 0,
+                     indexBufferId = 0;
+
+                GL.Enable(EnableCap.Normalize);
+
+                GL.GenBuffers(1, out bufferId);
+                GL.BindBuffer(BufferTarget.ArrayBuffer, bufferId);
+                GL.BufferData(BufferTarget.ArrayBuffer, new IntPtr(mesh.Vertices[i].Length * Vertex.Size), mesh.Vertices[i], BufferUsageHint.StaticDraw);
+
+                GL.GenBuffers(1, out indexBufferId);
+                GL.BindBuffer(BufferTarget.ElementArrayBuffer, indexBufferId);
+                GL.BufferData(BufferTarget.ElementArrayBuffer, (IntPtr)(mesh.Indices[i].Length * sizeof(ushort)), mesh.Indices[i], BufferUsageHint.StaticDraw);
+
+                modelBufferIds.Add(bufferId);
+                bufferIdList.Add(bufferId);
+                textureIdMapping.Add(bufferId, mesh.Materials[i].TextureId);
+                indexBufferIdMapping.Add(bufferId, indexBufferId);
+                indexBufferLengths.Add(indexBufferId, mesh.Indices[i].Length);
+            }
+
+            meshesLoaded++;
+            meshIdMapping.Add(meshesLoaded, bufferIdList);
+
+            return meshesLoaded;
+        }
+
+        /// <summary>
+        /// Draws all meshes loaded to the scene.
+        /// </summary>
+        public static void DrawMeshes()
         {
             GL.Enable(EnableCap.DepthTest);
             GL.ClearColor(Color.Black);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-
-            displacement += (float)timeElapsed * speed;
-            DrawTestCubeWithBuffer();
-            if (displacement >= 5 || displacement <= -5)
+            foreach (uint meshId in meshIdMapping.Keys)
             {
-                displacement = displacement < 0 ? -5 : 5;
-                speed *= -1;
+                foreach (uint bufferId in meshIdMapping[meshId])
+                {
+                    int textureId = textureIdMapping[bufferId];
+                    uint indexArrayId = indexBufferIdMapping[bufferId];
+                    int indexArrayLength = indexBufferLengths[indexArrayId];
+
+                    GL.MatrixMode(MatrixMode.Modelview);
+
+                    GL.BindBuffer(BufferTarget.ArrayBuffer, bufferId);
+                    GL.EnableClientState(ArrayCap.VertexArray);
+                    GL.EnableClientState(ArrayCap.NormalArray);
+                    GL.EnableClientState(ArrayCap.TextureCoordArray);
+
+                    GL.BindTexture(TextureTarget.Texture2D, textureId);
+                    GL.VertexPointer(3, VertexPointerType.Float, Vertex.Size, 0);
+                    GL.NormalPointer(NormalPointerType.Float, Vertex.Size, Vector3.SizeInBytes);
+                    GL.TexCoordPointer(2, TexCoordPointerType.Float, Vertex.Size, Vector3.SizeInBytes * 2);
+
+                    GL.BindBuffer(BufferTarget.ElementArrayBuffer, indexArrayId);
+                    GL.DrawElements(BeginMode.Triangles, indexArrayLength, DrawElementsType.UnsignedShort, 0);
+
+                    GL.DisableClientState(ArrayCap.TextureCoordArray);
+                    GL.DisableClientState(ArrayCap.NormalArray);
+                    GL.DisableClientState(ArrayCap.VertexArray);
+                }
             }
-            DrawMirror();
         }
 
-        public static void DrawTestCube()
+        /// <summary>
+        /// Removes a mesh by its mesh ID.
+        /// </summary>
+        /// <param name="meshId">The identification number of the mesh loaded to the scene.</param>
+        /// <returns>
+        /// True if the mesh was removed successfully.
+        /// False if either of the following occurs:
+        /// 1. Mesh ID does not exist.
+        /// 2. Any of the vertex or index array buffers could not be cleared.
+        /// 3. Any of the textures could not be unloaded.
+        /// </returns>
+        public static bool RemoveMesh(uint meshId)
         {
-            float zPosition = 10.0f;
-            Vector3[] vertices =
+            if (!meshIdMapping.ContainsKey(meshId))
+                return false;
+
+            foreach(uint bufferId in meshIdMapping[meshId])
             {
-                new Vector3(displacement - 2.0f - Camera.Eye.X, -1.0f - Camera.Eye.Y, zPosition - Camera.Eye.Z),
-                new Vector3(displacement + 2.0f - Camera.Eye.X, -1.0f - Camera.Eye.Y, zPosition - Camera.Eye.Z),
-                new Vector3(displacement + 2.0f - Camera.Eye.X, 1.0f - Camera.Eye.Y, zPosition - Camera.Eye.Z),
-                new Vector3(displacement - 2.0f - Camera.Eye.X, 1.0f - Camera.Eye.Y, zPosition - Camera.Eye.Z),
-                new Vector3(displacement - 2.0f - Camera.Eye.X, -1.0f - Camera.Eye.Y, zPosition + 2.0f - Camera.Eye.Z),
-                new Vector3(displacement + 2.0f - Camera.Eye.X, -1.0f - Camera.Eye.Y, zPosition + 2.0f - Camera.Eye.Z),
-                new Vector3(displacement + 2.0f - Camera.Eye.X, 1.0f - Camera.Eye.Y, zPosition + 2.0f - Camera.Eye.Z),
-                new Vector3(displacement - 2.0f - Camera.Eye.X, 1.0f - Camera.Eye.Y, zPosition + 2.0f - Camera.Eye.Z),
-            };
+                uint targetBufferId = bufferId,
+                     targetIndexArrayId = indexBufferIdMapping[bufferId];
+                int textureId = textureIdMapping[bufferId];
+                GL.DeleteBuffers(1, ref targetBufferId);
+                GL.DeleteBuffers(1, ref targetIndexArrayId);
+                Texture.UnloadTexture(textureId);
 
-            GL.BindTexture(TextureTarget.Texture2D, Texture.TextureIds[1]);
-            GL.Begin(PrimitiveType.Quads);
+                indexBufferIdMapping.Remove(bufferId);
+                textureIdMapping.Remove(bufferId);
+                modelBufferIds.Remove(bufferId);
+            }
+            meshIdMapping.Remove(meshId);
 
-            // Front
-            GL.TexCoord2(1.0f, 1.0f);
-            GL.Vertex3(vertices[0]);
-            GL.Normal3(0.0f, 0.0f, 1.0f);
-            GL.TexCoord2(0.0f, 1.0f);
-            GL.Vertex3(vertices[1]);
-            GL.Normal3(0.0f, 0.0f, 1.0f);
-            GL.TexCoord2(0.0f, 0.0f);
-            GL.Vertex3(vertices[2]);
-            GL.Normal3(0.0f, 0.0f, 1.0f);
-            GL.TexCoord2(1.0f, 0.0f);
-            GL.Vertex3(vertices[3]);
-            GL.Normal3(0.0f, 0.0f, 1.0f);
-
-            GL.End();
+            return true;
         }
-        #endregion
+
+        /// <summary>
+        /// Removes all meshes loaded to the scene.
+        /// </summary>
+        public static void RemoveAllMeshes()
+        {
+            List<uint> targetMeshIds = meshIdMapping.Keys.ToList();
+            foreach (uint meshId in targetMeshIds)
+                RemoveMesh(meshId);
+        }
 
         #region Mirror
         private static uint frameBufferId;
@@ -221,7 +314,7 @@ namespace OpenBusDrivingSimulator.Engine
             GL.PushMatrix();
             Matrix4 lookAt = Matrix4.LookAt(new Vector3(0, 0, 0), new Vector3(0, 0, 20), Vector3.UnitY);
             GL.LoadMatrix(ref lookAt);
-            DrawTestCubeWithBuffer();
+            DrawMeshes();
             GL.PopMatrix();
             GL.MatrixMode(MatrixMode.Projection);
             GL.PopMatrix();
@@ -249,71 +342,6 @@ namespace OpenBusDrivingSimulator.Engine
             GL.Vertex3(vertices[3]);
             GL.Normal3(0.0f, 0.0f, 1.0f);
             GL.End();
-        }
-        #endregion
-
-        #region Vertex Buffer Object
-        // Buffer related fields
-        private static Vertex[] bufferVertices;
-        private static ushort[] bufferVertexIndices;
-        private static uint vertexBufferId;
-        private static uint indexBufferId;
-
-        private static void InitailizeBuffer()
-        {
-            float zPosition = 10.0f;
-            bufferVertices = new Vertex[]
-            {
-                new Vertex(-1.5f, 1, zPosition, 0, 0, 1, 0, 0),
-                new Vertex(-1.5f, -1, zPosition, 0, 0, 1, 0, 1),
-                new Vertex(1.5f, -1, zPosition, 0, 0, 1, 1, 1),
-                new Vertex(1.5f, 1, zPosition, 0, 0, 1, 1, 0)
-            };
-
-            GL.Enable(EnableCap.Normalize);
-
-            GL.GenBuffers(1, out vertexBufferId);
-            GL.BindBuffer(BufferTarget.ArrayBuffer, vertexBufferId);
-            GL.BufferData(BufferTarget.ArrayBuffer, new IntPtr(bufferVertices.Length * Vertex.Size), bufferVertices, BufferUsageHint.StaticDraw);
-
-            bufferVertexIndices = new ushort[] { 0, 1, 2, 3, 0, 2 };
-            GL.GenBuffers(1, out indexBufferId);
-            GL.BindBuffer(BufferTarget.ElementArrayBuffer, indexBufferId);
-            GL.BufferData(BufferTarget.ElementArrayBuffer, (IntPtr)(bufferVertexIndices.Length * sizeof(ushort)), bufferVertexIndices, BufferUsageHint.StaticDraw);
-        }
-
-        public static void ClearBuffer()
-        {
-            GL.DeleteBuffers(1, ref indexBufferId);
-            GL.DeleteBuffers(1, ref vertexBufferId);
-        }
-
-        public static void DrawTestCubeWithBuffer()
-        {
-            GL.MatrixMode(MatrixMode.Modelview);
-            GL.PushMatrix();
-            GL.Translate(displacement, 0, 0);
-
-            GL.BindBuffer(BufferTarget.ArrayBuffer, vertexBufferId);
-            GL.EnableClientState(ArrayCap.VertexArray);
-            GL.EnableClientState(ArrayCap.NormalArray);
-            GL.EnableClientState(ArrayCap.TextureCoordArray);
-
-            GL.PushAttrib(AttribMask.CurrentBit);
-            GL.Color4(1, 0, 0, 0.5);
-            GL.BindTexture(TextureTarget.Texture2D, Texture.TextureIds[0]);
-            GL.VertexPointer(3, VertexPointerType.Float, Vertex.Size, 0);
-            GL.NormalPointer(NormalPointerType.Float, Vertex.Size, Vector3.SizeInBytes);
-            GL.TexCoordPointer(2, TexCoordPointerType.Float, Vertex.Size, Vector3.SizeInBytes * 2);
-
-            GL.BindBuffer(BufferTarget.ElementArrayBuffer, indexBufferId);
-            GL.DrawElements(BeginMode.Triangles, bufferVertexIndices.Length, DrawElementsType.UnsignedShort, 0);
-
-            GL.DisableClientState(ArrayCap.TextureCoordArray);
-            GL.DisableClientState(ArrayCap.VertexArray);
-            GL.PopAttrib();
-
-            GL.PopMatrix();
         }
         #endregion
     }

@@ -1,5 +1,4 @@
-﻿// GameLoop.cs
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,7 +8,8 @@ using OpenBusDrivingSimulator.Engine;
 namespace OpenBusDrivingSimulator.Game
 {
     /// <summary>
-    /// Object that controls the game loop
+    /// Controls the main loop of a game.
+    /// This includes receiving inputs from the player, updating the game state, and drawing the scene.
     /// </summary>
     public static class MainLoop
     {
@@ -25,12 +25,12 @@ namespace OpenBusDrivingSimulator.Game
             Renderer.Initialize();
             Camera.Initialize();
 
-            Mesh.LoadFromCollada(@"D:\下載\cube.dae");
+            Mesh cube = Mesh.LoadFromCollada(@"D:\下載\sphere.dae");
+            Renderer.LoadMeshToScene(cube);
 
             Screen.Show();
-            Texture.LoadTestTextures();
             Timer.Start();
-            while(true)
+            while (true)
             {
                 // Timing calculation
                 double timeElapsed = Timer.TimeElapsed;
@@ -50,7 +50,9 @@ namespace OpenBusDrivingSimulator.Game
                 Camera.UpdateCamera();
 
                 // Render the state
-                Renderer.RenderTestScene(timeElapsed);
+                Renderer.DrawMeshes();
+                Renderer.DrawMirror();
+                //Renderer.RenderTestScene(timeElapsed);
                 Renderer.DrawText(string.Format("{0:0.00} fps", Game.FrameRate), 0, 95);
                 Screen.SwapBuffers();
             }

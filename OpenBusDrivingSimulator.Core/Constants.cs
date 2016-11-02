@@ -10,6 +10,8 @@ namespace OpenBusDrivingSimulator.Core
         public const int DEFAULT_SCREEN_WIDTH = 1280;
         public const int DEFAULT_SCREEN_HEIGHT = 720;
 
+        public const char PATH_DELIM = '\\';
+
         public const string APPLICATION_NAME = "Open Bus Driving Simulator (OpenDBS)";
         public static readonly string VERSION_NUMBER = System.Reflection.Assembly.GetEntryAssembly().GetName().Version.ToString();
 

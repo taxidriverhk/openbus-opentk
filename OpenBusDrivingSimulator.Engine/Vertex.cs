@@ -30,5 +30,12 @@ namespace OpenBusDrivingSimulator.Engine
             this.Normal = new Vector3(nx, ny, nz);
             this.UV = new Vector2(s, t);
         }
+
+        public void MoveBy(float x, float y, float z)
+        {
+            this.Position.X += x;
+            this.Position.Y += y;
+            this.Position.Z += z;
+        }
     }
 }

@@ -40,11 +40,13 @@ namespace OpenBusDrivingSimulator.Engine
         public static void MoveTo(float x, float y, float z)
         {
             eye.X = x; eye.Y = y; eye.Z = z;
+            target.X = x; target.Y = y;
         }
 
         public static void MoveBy(float x, float y, float z)
         {
             eye.X += x; eye.Y += y; eye.Z += z;
+            target.X += x; target.Y += y;
         }
 
         public static void RotateYTo(float degrees)
@@ -78,9 +80,9 @@ namespace OpenBusDrivingSimulator.Engine
             // Rotation about y-axis
             float sinTheta = (float)Math.Sin(angles.Y),
                   cosTheta = (float)Math.Cos(angles.Y);
-            target.X = zFar * sinTheta;
-            target.Z = zFar * cosTheta;
-            Matrix4 lookAt = Matrix4.LookAt(Vector3.Zero, target, up);
+            target.X += zFar * sinTheta;
+            target.Z += zFar * cosTheta;
+            Matrix4 lookAt = Matrix4.LookAt(eye, target, up);
             GL.LoadMatrix(ref lookAt);
         }
 
@@ -99,7 +101,7 @@ namespace OpenBusDrivingSimulator.Engine
         private static void InitializeWithDefaults()
         {
             zNear = 0.025f;
-            zFar = 20.0f;
+            zFar = 200.0f;
             aspect = (float)Screen.Width / Screen.Height;
             zoomFactor = 1.0f;
             fieldOfView = zoomFactor * MathHelper.PiOver4;

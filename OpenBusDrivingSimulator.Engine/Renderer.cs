@@ -181,8 +181,12 @@ namespace OpenBusDrivingSimulator.Engine
         public static void DrawMeshes()
         {
             GL.Enable(EnableCap.DepthTest);
-            GL.ClearColor(Color.Black);
+            GL.ClearColor(Color.SkyBlue);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+
+            GL.Enable(EnableCap.CullFace);
+            GL.CullFace(CullFaceMode.Front);
+
             foreach (uint meshId in meshIdMapping.Keys)
             {
                 foreach (uint bufferId in meshIdMapping[meshId])
@@ -211,6 +215,8 @@ namespace OpenBusDrivingSimulator.Engine
                     GL.DisableClientState(ArrayCap.VertexArray);
                 }
             }
+
+            GL.Disable(EnableCap.CullFace);
         }
 
         /// <summary>
@@ -255,6 +261,12 @@ namespace OpenBusDrivingSimulator.Engine
             List<uint> targetMeshIds = meshIdMapping.Keys.ToList();
             foreach (uint meshId in targetMeshIds)
                 RemoveMesh(meshId);
+
+            // Cleanup the mappings, just in case
+            meshIdMapping.Clear();
+            textureIdMapping.Clear();
+            indexBufferIdMapping.Clear();
+            indexBufferLengths.Clear();
         }
 
         #region Mirror

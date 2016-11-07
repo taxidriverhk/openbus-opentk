@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Drawing;
+using System.Diagnostics;
 using System.Text;
 using OpenTK;
 using OpenTK.Graphics;
@@ -73,7 +74,7 @@ namespace OpenBusDrivingSimulator.Engine
 
         public static void Destroy()
         {
-            if(initialized)
+            if (initialized)
             {
                 graphicsContext.Dispose();
                 SDL.SDL_GL_DeleteContext(glContext);
@@ -86,13 +87,21 @@ namespace OpenBusDrivingSimulator.Engine
         public static void HandleEvents()
         {
             SDL.SDL_Event eventTriggered;
-            while(SDL.SDL_PollEvent(out eventTriggered) != 0)
+            while (SDL.SDL_PollEvent(out eventTriggered) != 0)
             {
-                switch(eventTriggered.type)
+                switch (eventTriggered.type)
                 {
                     case SDL.SDL_EventType.SDL_WINDOWEVENT:
                         if (eventTriggered.window.windowEvent == SDL.SDL_WindowEventID.SDL_WINDOWEVENT_CLOSE)
                             closed = true;
+                        break;
+                    case SDL.SDL_EventType.SDL_KEYDOWN:
+                        Controller.AddControlToSequence(
+                            GetKeyCodeFromScanCode(eventTriggered.key.keysym.scancode));
+                        break;
+                    case SDL.SDL_EventType.SDL_KEYUP:
+                        Controller.RemoveControlFromSequence(
+                            GetKeyCodeFromScanCode(eventTriggered.key.keysym.scancode));
                         break;
                     default:
                         break;
@@ -108,6 +117,13 @@ namespace OpenBusDrivingSimulator.Engine
         public static void SwapBuffers()
         {
             SDL.SDL_GL_SwapWindow(windowHandle);
+        }
+        #endregion
+
+        #region Private Methods
+        private static KeyCode GetKeyCodeFromScanCode(SDL.SDL_Scancode scanCode)
+        {
+            return (KeyCode)scanCode;
         }
         #endregion
     }

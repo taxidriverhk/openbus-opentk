@@ -156,11 +156,13 @@ namespace OpenBusDrivingSimulator.Engine
 
                 GL.GenBuffers(1, out bufferId);
                 GL.BindBuffer(BufferTarget.ArrayBuffer, bufferId);
-                GL.BufferData(BufferTarget.ArrayBuffer, new IntPtr(mesh.Vertices[i].Length * Vertex.Size), mesh.Vertices[i], BufferUsageHint.StaticDraw);
+                GL.BufferData(BufferTarget.ArrayBuffer, new IntPtr(mesh.Vertices[i].Length * Vertex.Size), 
+                    mesh.Vertices[i], BufferUsageHint.StaticDraw);
 
                 GL.GenBuffers(1, out indexBufferId);
                 GL.BindBuffer(BufferTarget.ElementArrayBuffer, indexBufferId);
-                GL.BufferData(BufferTarget.ElementArrayBuffer, (IntPtr)(mesh.Indices[i].Length * sizeof(ushort)), mesh.Indices[i], BufferUsageHint.StaticDraw);
+                GL.BufferData(BufferTarget.ElementArrayBuffer, (IntPtr)(mesh.Indices[i].Length * sizeof(ushort)), 
+                    mesh.Indices[i], BufferUsageHint.StaticDraw);
 
                 modelBufferIds.Add(bufferId);
                 bufferIdList.Add(bufferId);
@@ -185,7 +187,7 @@ namespace OpenBusDrivingSimulator.Engine
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
             GL.Enable(EnableCap.CullFace);
-            GL.CullFace(CullFaceMode.Front);
+            GL.CullFace(CullFaceMode.Back);
 
             foreach (uint meshId in meshIdMapping.Keys)
             {
@@ -262,7 +264,7 @@ namespace OpenBusDrivingSimulator.Engine
             foreach (uint meshId in targetMeshIds)
                 RemoveMesh(meshId);
 
-            // Cleanup the mappings, just in case
+            // Cleanup the mappings
             meshIdMapping.Clear();
             textureIdMapping.Clear();
             indexBufferIdMapping.Clear();

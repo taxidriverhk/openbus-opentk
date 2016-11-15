@@ -7,7 +7,7 @@ using System.Xml;
 using System.Xml.Serialization;
 using OpenTK;
 
-namespace OpenBusDrivingSimulator.Engine
+namespace OpenBusDrivingSimulator.Engine.Assets
 {
     public static class ColladaXmlSerializer
     {
@@ -40,8 +40,10 @@ namespace OpenBusDrivingSimulator.Engine
                         case "ambient":
                         case "diffuse":
                         case "specular":
-                            string[] colorStr = phongNode.SelectSingleNode("collada:color", xmlNsMgr).
-                                InnerXml.Split(' ');
+                            XmlNode colorNode = phongNode.SelectSingleNode("collada:color", xmlNsMgr);
+                            if (colorNode == null)
+                                continue;
+                            string[] colorStr = colorNode.InnerXml.Split(' ');
                             Vector4 color = new Vector4(Convert.ToSingle(colorStr[0]),
                                 Convert.ToSingle(colorStr[1]),
                                 Convert.ToSingle(colorStr[2]),
@@ -85,10 +87,10 @@ namespace OpenBusDrivingSimulator.Engine
             // Finally get the geometries
             int geometryIndex = 0;
             XmlNodeList geometryNodes = root.SelectNodes("collada:library_geometries/collada:geometry", xmlNsMgr);
-            collada.Geometries = new ColladaGeometry[geometryNodes.Count];
+            collada.Geometries = new Collada.Geometry[geometryNodes.Count];
             foreach (XmlNode geometryNode in geometryNodes)
             {
-                collada.Geometries[geometryIndex] = new ColladaGeometry();
+                collada.Geometries[geometryIndex] = new Collada.Geometry();
                 collada.Geometries[geometryIndex].Id = geometryNode.Attributes[0].Value;
                 collada.Geometries[geometryIndex].Name = geometryNode.Attributes[1].Value;
                 // Process float arrays
@@ -97,26 +99,34 @@ namespace OpenBusDrivingSimulator.Engine
                 {
                     string arrayId = floatArrayNode.Attributes[0].Value;
                     int arraySize = Convert.ToInt32(floatArrayNode.Attributes[1].Value);
-                    string[] floatStrArray = floatArrayNode.InnerText.Split(ColladaGeometry.ARRAY_DELIM);
+                    string[] floatStrArray = floatArrayNode.InnerText.Split(Collada.Geometry.ARRAY_DELIM);
                     if (arrayId.Contains("map"))
                     {
-                        Vector2[] vectorArray = new Vector2[arraySize / ColladaGeometry.TWOD_ARRAY_SIZE];
+                        Vector2[] vectorArray = new Vector2[arraySize / Collada.Geometry.TWOD_ARRAY_SIZE];
                         for (int i = 0, j = 0;
-                            i < vectorArray.Length && j < floatStrArray.Length; 
-                            i++, j += ColladaGeometry.TWOD_ARRAY_SIZE)
+                            i < vectorArray.Length && j < floatStrArray.Length;
+                            i++, j += Collada.Geometry.TWOD_ARRAY_SIZE)
                             vectorArray[i] = new Vector2(Convert.ToSingle(floatStrArray[j]),
-                                Convert.ToSingle(floatStrArray[j + 1]));
+                                1 - Convert.ToSingle(floatStrArray[j + 1]));
                         collada.Geometries[geometryIndex].Map = vectorArray;
                     }
                     else
                     {
-                        Vector3[] vectorArray = new Vector3[arraySize / ColladaGeometry.THREED_ARRAY_SIZE];
+                        Vector3[] vectorArray = new Vector3[arraySize / Collada.Geometry.THREED_ARRAY_SIZE];
                         for (int i = 0, j = 0; 
-                            i < vectorArray.Length && j < floatStrArray.Length; 
-                            i++, j += ColladaGeometry.THREED_ARRAY_SIZE)
-                            vectorArray[i] = new Vector3(Convert.ToSingle(floatStrArray[j]),
-                                Convert.ToSingle(floatStrArray[j + 1]),
-                                Convert.ToSingle(floatStrArray[j + 2]));
+                            i < vectorArray.Length && j < floatStrArray.Length;
+                            i++, j += Collada.Geometry.THREED_ARRAY_SIZE)
+                        {
+                            if (collada.Metadata.UpDirection == Collada.Asset.UpAxis.Z_UP)
+                                vectorArray[i] = new Vector3(Convert.ToSingle(floatStrArray[j]),
+                                    Convert.ToSingle(floatStrArray[j + 2]),
+                                    -Convert.ToSingle(floatStrArray[j + 1]));
+                            else
+                                vectorArray[i] = new Vector3(Convert.ToSingle(floatStrArray[j]),
+                                    Convert.ToSingle(floatStrArray[j + 1]),
+                                    Convert.ToSingle(floatStrArray[j + 2]));
+                        }
+                            
                         if (arrayId.Contains("position"))
                             collada.Geometries[geometryIndex].Positions = vectorArray;
                         else if (arrayId.Contains("normal"))
@@ -131,7 +141,7 @@ namespace OpenBusDrivingSimulator.Engine
                 {
                     string materialId = polyNode.Attributes[0].Value;
                     string[] indexStrArray = polyNode.SelectSingleNode("collada:p", xmlNsMgr)
-                        .InnerText.Split(ColladaGeometry.ARRAY_DELIM);
+                        .InnerText.Split(Collada.Geometry.ARRAY_DELIM);
                     collada.Geometries[geometryIndex].Indices.Add(materialId, new int[indexStrArray.Length]);
                     for (int i = 0; i < indexStrArray.Length; i++)
                         collada.Geometries[geometryIndex].Indices[materialId][i] = Convert.ToInt32(indexStrArray[i]);
@@ -150,61 +160,82 @@ namespace OpenBusDrivingSimulator.Engine
     {
         public const string COLLADA_SCHEMA = "http://www.collada.org/2005/11/COLLADASchema";
 
+        public class Asset
+        {
+            public enum UpAxis
+            {
+                [XmlEnum(Name = "Y_UP")]
+                Y_UP,
+                [XmlEnum(Name = "Z_UP")]
+                Z_UP
+            }
+
+            public class Unit
+            {
+                [XmlAttribute("name")]
+                public string Name;
+                [XmlAttribute("meter")]
+                public int Meter;
+            }
+
+            [XmlElement("unit")]
+            public Unit MeasuringUnit;
+            [XmlElement("up_axis")]
+            public UpAxis UpDirection;
+        }
+
+        public class Image
+        {
+            [XmlAttribute("id")]
+            public string Id;
+            [XmlAttribute("name")]
+            public string Name;
+            [XmlElement("init_from")]
+            public string ImageFile;
+        }
+
+        public class Effect
+        {
+            [XmlAttribute("id")]
+            public string Id;
+            [XmlIgnore]
+            public PhongShading Shading;
+        }
+
+        public class Material
+        {
+            [XmlAttribute("id")]
+            public string Id;
+            [XmlAttribute("name")]
+            public string Name;
+        }
+
+        public class Geometry
+        {
+            public const char ARRAY_DELIM = ' ';
+            public const int TWOD_ARRAY_SIZE = 2;
+            public const int THREED_ARRAY_SIZE = 3;
+
+            public string Id;
+            public string Name;
+            public Vector3[] Positions;
+            public Vector3[] Normals;
+            public Vector2[] Map;
+            public Dictionary<string, int[]> Indices;
+        }
+
         [XmlElement("asset")]
-        public ColladaAsset Asset;
+        public Asset Metadata;
+        [XmlArray("library_images")]
+        [XmlArrayItem("image")]
+        public Image[] Images;
         [XmlArray("library_effects")]
         [XmlArrayItem("effect")]
-        public ColladaEffect[] Effects;
+        public Effect[] Effects;
         [XmlArray("library_materials")]
         [XmlArrayItem("material")]
-        public ColladaMaterial[] Materials;
+        public Material[] Materials;
         [XmlIgnore]
-        public ColladaGeometry[] Geometries;
-    }
-
-    public class ColladaAsset
-    {
-        [XmlElement("unit")]
-        public ColladaUnit Unit;
-        [XmlElement("up_axis")]
-        public string UpAxis;
-    }
-
-    public class ColladaUnit
-    {
-        [XmlAttribute("name")]
-        public string Name;
-        [XmlAttribute("meter")]
-        public int Meter;
-    }
-
-    public class ColladaEffect
-    {
-        [XmlAttribute("id")]
-        public string Id;
-        [XmlIgnore]
-        public PhongShading Shading;
-    }
-
-    public class ColladaMaterial
-    {
-        [XmlAttribute("id")]
-        public string Id;
-        [XmlAttribute("name")]
-        public string Name;
-    }
-
-    public class ColladaGeometry
-    {
-        public const char ARRAY_DELIM = ' ';
-        public const int TWOD_ARRAY_SIZE = 2;
-        public const int THREED_ARRAY_SIZE = 3;
-
-        public string Id;
-        public string Name;
-        public Vector3[] Positions;
-        public Vector3[] Normals;
-        public Vector2[] Map;
-        public Dictionary<string, int[]> Indices;
+        public Geometry[] Geometries;
     }
 }

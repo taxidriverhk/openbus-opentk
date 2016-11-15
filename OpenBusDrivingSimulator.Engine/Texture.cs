@@ -72,14 +72,17 @@ namespace OpenBusDrivingSimulator.Engine
         /// </returns>
         public static int LoadTextureFromFile(string filename)
         {
-            string fullPath = string.Empty;
-            foreach (string supportedFormat in supportedFormats)
-            {
-                fullPath = filename + supportedFormat;
-                if (string.IsNullOrEmpty(fullPath)
-                    || !File.Exists(fullPath))
-                    return -1;
-            }
+            string fullPath = filename;
+            if (!fullPath.Contains("."))
+                foreach (string supportedFormat in supportedFormats)
+                {
+                    fullPath = filename + supportedFormat;
+                    if (string.IsNullOrEmpty(fullPath)
+                        || !File.Exists(fullPath))
+                        return -1;
+                }
+            else if (!File.Exists(fullPath))
+                return -1;
 
             Bitmap bitmap = new Bitmap(fullPath);
             return LoadTextureFromBitmap(bitmap);

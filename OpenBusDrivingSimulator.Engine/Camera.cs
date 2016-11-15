@@ -39,13 +39,13 @@ namespace OpenBusDrivingSimulator.Engine
 
         public static void MoveTo(float x, float y, float z)
         {
-            eye.X = x; eye.Y = y; eye.Z = z;
+            eye.X = x; eye.Y = y; eye.Z = -z;
             target.X = x; target.Y = y;
         }
 
         public static void MoveBy(float x, float y, float z)
         {
-            eye.X += x; eye.Y += y; eye.Z += z;
+            eye.X += x; eye.Y += y; eye.Z -= z;
             target.X += x; target.Y += y;
         }
 
@@ -72,7 +72,6 @@ namespace OpenBusDrivingSimulator.Engine
             GL.LoadIdentity();
             Matrix4 projection = Matrix4.CreatePerspectiveFieldOfView(fieldOfView, aspect, zNear, zFar);
             GL.LoadMatrix(ref projection);
-            GL.Scale(-1.0f, 1.0f, 1.0f);
 
             GL.MatrixMode(MatrixMode.Modelview);
             GL.LoadIdentity();
@@ -81,7 +80,7 @@ namespace OpenBusDrivingSimulator.Engine
             float sinTheta = (float)Math.Sin(angles.Y),
                   cosTheta = (float)Math.Cos(angles.Y);
             target.X += zFar * sinTheta;
-            target.Z += zFar * cosTheta;
+            target.Z += -zFar * cosTheta;
             Matrix4 lookAt = Matrix4.LookAt(eye, target, up);
             GL.LoadMatrix(ref lookAt);
         }

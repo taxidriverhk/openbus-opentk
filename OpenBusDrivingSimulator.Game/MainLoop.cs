@@ -28,18 +28,11 @@ namespace OpenBusDrivingSimulator.Game
             ControlHandler.LoadControls();
 
             #region Test Calls
-            Camera.MoveBy(0, 0, -10);
-            for (int i = -10; i < 10; i++)
+            for (int i = -0; i < 1; i++)
             {
-                Mesh sphere;
-                if (i % 2 == 0)
-                    sphere = Mesh.LoadFromCollada(@"D:\下載\sphere.dae");
-                else
-                    sphere = Mesh.LoadFromCollada(@"D:\下載\cube.dae");
-                for (int j = 0; j < sphere.Vertices.Length; j++)
-                    for (int k = 0; k < sphere.Vertices[j].Length; k++)
-                        sphere.Vertices[j][k].MoveBy(i * 2, 2, 0);
-                Renderer.LoadMeshToScene(sphere);
+                Mesh building;
+                building = Mesh.LoadFromCollada(@"D:\下載\wuhu.dae");
+                Renderer.LoadMeshToScene(building);
             }
             #endregion
 
@@ -69,7 +62,8 @@ namespace OpenBusDrivingSimulator.Game
                 Renderer.DrawMeshes();
                 Renderer.DrawMirror();
 
-                Renderer.DrawText(string.Format("{0:0.00} fps", Game.FrameRate), 0, 95);
+                if (Game.ShowFrameRate)
+                    Renderer.DrawText(string.Format("{0:0.00} fps", Game.FrameRate), 0, 95);
                 Screen.SwapBuffers();
             }
             Renderer.Cleanup();

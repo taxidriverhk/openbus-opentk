@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using OpenTK;
 using OpenBusDrivingSimulator.Core;
+using OpenBusDrivingSimulator.Engine.Assets;
 
 namespace OpenBusDrivingSimulator.Engine
 {
@@ -38,12 +39,13 @@ namespace OpenBusDrivingSimulator.Engine
             {
                 resultMesh.Materials[i] = new Material();
                 resultMesh.Materials[i].Name = collada.Materials[i].Name;
-
-                resultMesh.Materials[i].TextureId = Texture.LoadTextureFromFile(resultMesh.texturePath 
-                    + Constants.PATH_DELIM + resultMesh.Materials[i].Name);
                 resultMesh.Materials[i].Shading = collada.Effects[i].Shading;
                 materialMapping.Add(collada.Materials[i].Id, i);
             }
+
+            for (int i = 0; i < collada.Images.Length && i < collada.Materials.Length; i++)
+                resultMesh.Materials[i].TextureId = Texture.LoadTextureFromFile(resultMesh.texturePath
+                    + Constants.PATH_DELIM + collada.Images[i].ImageFile);
 
             resultMesh.Vertices = new Vertex[resultMesh.Materials.Length][];
             for (int i = 0; i < collada.Geometries.Length; i++)

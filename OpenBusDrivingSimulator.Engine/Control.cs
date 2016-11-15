@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace OpenBusDrivingSimulator.Engine
+namespace OpenBusDrivingSimulator.Engine.Controls
 {
     public enum ControlType
     {
@@ -31,42 +31,73 @@ namespace OpenBusDrivingSimulator.Engine
         KEY_RIGHT = 79,
         KEY_LEFT = 80,
         KEY_UP = 81,
-        KEY_DOWN = 82
+        KEY_DOWN = 82,
+        KEY_F = 9
+    }
+
+    [Flags]
+    public enum KeyModifier
+    {
+        NONE = 0,
+        CTRL = 1,
+        ALT = 2,
+        SHIFT = 4
     }
 
     public class Control
     {
         public ControlSource Source;
         public KeyCode KeyCode;
+        public KeyModifier KeyModifierMask;
 
         public ControlType Type;
-        public ControlState State;
+        public ControlState DiscreteState;
+        public double ContinuousState;
         public double RepeatInterval;
 
         public Control()
         {
-            this.Type = ControlType.DISCRETE;
+            // This creates an invalid default control
             this.Source = ControlSource.INVALID;
             this.KeyCode = KeyCode.INVALID;
-            this.State = ControlState.RELEASED;
+            this.KeyModifierMask = KeyModifier.NONE;
+            this.Type = ControlType.DISCRETE;
+            this.DiscreteState = ControlState.RELEASED;
+            this.ContinuousState = 0.0;
             this.RepeatInterval = 0.0;
         }
 
         public Control(ControlSource source, KeyCode keyCode)
         {
-            this.Type = ControlType.DISCRETE;
             this.Source = source;
             this.KeyCode = keyCode;
-            this.State = ControlState.PRESSED;
+            // Default attributes, will be changed when this is being used
+            this.KeyModifierMask = KeyModifier.NONE;
+            this.Type = ControlType.DISCRETE;
+            this.DiscreteState = ControlState.PRESSED;
+            this.ContinuousState = 1.0;
             this.RepeatInterval = 0.0;
         }
 
         public Control(ControlType type, ControlSource source, KeyCode keyCode)
         {
-            this.Type = type;
             this.Source = source;
             this.KeyCode = keyCode;
-            this.State = ControlState.PRESSED;
+            this.KeyModifierMask = KeyModifier.NONE;
+            this.Type = type;
+            this.DiscreteState = ControlState.PRESSED;
+            this.ContinuousState = 1.0;
+            this.RepeatInterval = 0.0;
+        }
+
+        public Control(ControlType type, ControlSource source, KeyCode keyCode, KeyModifier modifierMask)
+        {
+            this.Source = source;
+            this.KeyCode = keyCode;
+            this.KeyModifierMask = modifierMask;
+            this.Type = type;
+            this.DiscreteState = ControlState.PRESSED;
+            this.ContinuousState = 1.0;
             this.RepeatInterval = 0.0;
         }
 
@@ -82,48 +113,6 @@ namespace OpenBusDrivingSimulator.Engine
         public override int GetHashCode()
         {
             return 0;
-        }
-    }
-
-    public class KeyInfo
-    {
-        public string Name;
-        public KeyCode KeyCode;
-
-        public KeyInfo()
-        {
-            this.Name = string.Empty;
-            this.KeyCode = KeyCode.INVALID;
-        }
-
-        public KeyInfo(string name, KeyCode keyCode)
-        {
-            this.Name = name;
-            this.KeyCode = keyCode;
-        }
-    }
-
-    public static class KeyCodeConvert
-    {
-        private static List<KeyInfo> keyInfoList;
-
-        static KeyCodeConvert()
-        {
-            keyInfoList = new List<KeyInfo>()
-            {
-                new KeyInfo("LEFT", KeyCode.KEY_LEFT),
-                new KeyInfo("RIGHT", KeyCode.KEY_RIGHT),
-                new KeyInfo("UP", KeyCode.KEY_UP),
-                new KeyInfo("DOWN", KeyCode.KEY_DOWN)
-            };
-        }
-
-        public static KeyCode GetKeyCode(string name)
-        {
-            foreach (KeyInfo keyInfo in keyInfoList)
-                if (keyInfo.Name == name)
-                    return keyInfo.KeyCode;
-            return KeyCode.INVALID;
         }
     }
 

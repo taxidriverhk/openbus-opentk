@@ -7,6 +7,7 @@ using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Platform;
 using SDL2;
+using OpenBusDrivingSimulator.Engine.Controls;
 
 namespace OpenBusDrivingSimulator.Engine
 {
@@ -91,6 +92,9 @@ namespace OpenBusDrivingSimulator.Engine
             {
                 switch (eventTriggered.type)
                 {
+                    case SDL.SDL_EventType.SDL_QUIT:
+                        closed = true;
+                        break;
                     case SDL.SDL_EventType.SDL_WINDOWEVENT:
                         if (eventTriggered.window.windowEvent == SDL.SDL_WindowEventID.SDL_WINDOWEVENT_CLOSE)
                             closed = true;

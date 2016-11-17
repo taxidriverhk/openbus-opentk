@@ -38,7 +38,7 @@ namespace OpenBusDrivingSimulator.Engine
         public static void Cleanup()
         {
             ClearMirrorBuffer();
-            RemoveAllMeshes();
+            RemoveAllStaticMeshes();
         }
 
         /// <summary>
@@ -107,80 +107,66 @@ namespace OpenBusDrivingSimulator.Engine
             DrawText(text, left, bottom, Color.White);
         }
 
-        /// <summary>
-        /// Number of meshes (not the number of vertex buffers) loaded.
-        /// </summary>
-        private static uint meshesLoaded = 0;
-        /// <summary>
-        /// List of vertex buffer IDs that are allocated to vertex buffers.
-        /// </summary>
-        private static List<uint> modelBufferIds = new List<uint>();
-        /// <summary>
-        /// Mapping of a mesh ID to its list of vertex buffer IDs.
-        /// </summary>
-        private static Dictionary<uint, List<uint>> meshIdMapping = new Dictionary<uint, List<uint>>();
-        /// <summary>
-        /// Mapping of a vertex buffer ID to its texture ID.
-        /// </summary>
-        private static Dictionary<uint, int> textureIdMapping = new Dictionary<uint, int>();
-        /// <summary>
-        /// Mapping of a vertex buffer ID to its index array buffer ID.
-        /// </summary>
-        private static Dictionary<uint, uint> indexBufferIdMapping = new Dictionary<uint, uint>();
-        /// <summary>
-        /// Mapping of an index array ID to its length (i.e. number of elements in the array).
-        /// </summary>
-        private static Dictionary<uint, int> indexBufferLengths = new Dictionary<uint, int>();
+        private static List<uint> staticMeshesBufferIds = new List<uint>();
+        private static List<uint> staticMeshesIndexIds = new List<uint>();
+        private static Dictionary<uint, List<int>> staticBufferTextureIdMapping = new Dictionary<uint, List<int>>();
+        private static Dictionary<int, KeyValuePair<int, int>> textureIndexArrayMapping = new Dictionary<int, KeyValuePair<int, int>>();
 
-        /// <summary>
-        /// Loads a mesh into the scene with its position in the world coordinates.
-        /// </summary>
-        /// <param name="mesh">The mesh to be loaded.</param>
-        /// <returns>
-        /// The mesh ID if the mesh was loaded successfully.
-        /// 0 if the mesh is null or is invalid.
-        /// </returns>
-        public static uint LoadMeshToScene(Mesh mesh)
+        public static int LoadStaticMeshesToScene(List<Mesh> meshes)
         {
-            if (mesh == null || !mesh.Validate())
-                return 0;
+            int meshesLoaded = 0;
+            uint bufferId = 0,
+                 indexBufferId = 0;
 
-            // Load vertices into the buffer for each material
-            List<uint> bufferIdList = new List<uint>();
-            for (int i = 0; i < mesh.Vertices.Length; i++)
+            GL.Enable(EnableCap.Normalize);
+            GL.GenBuffers(1, out bufferId);
+            GL.GenBuffers(1, out indexBufferId);
+
+            staticMeshesBufferIds.Add(bufferId);
+            staticMeshesIndexIds.Add(indexBufferId);
+
+            uint maxArraySize = UInt32.MaxValue;
+            List<int> textureIdsLoaded = new List<int>();
+            List<Vertex> verticesToBeLoaded = new List<Vertex>();
+            List<uint> indicesToBeLoaded = new List<uint>();
+
+            foreach (Mesh mesh in meshes)
             {
-                uint bufferId = 0,
-                     indexBufferId = 0;
-
-                GL.Enable(EnableCap.Normalize);
-
-                GL.GenBuffers(1, out bufferId);
-                GL.BindBuffer(BufferTarget.ArrayBuffer, bufferId);
-                GL.BufferData(BufferTarget.ArrayBuffer, new IntPtr(mesh.Vertices[i].Length * Vertex.Size), 
-                    mesh.Vertices[i], BufferUsageHint.StaticDraw);
-
-                GL.GenBuffers(1, out indexBufferId);
-                GL.BindBuffer(BufferTarget.ElementArrayBuffer, indexBufferId);
-                GL.BufferData(BufferTarget.ElementArrayBuffer, (IntPtr)(mesh.Indices[i].Length * sizeof(ushort)), 
-                    mesh.Indices[i], BufferUsageHint.StaticDraw);
-
-                modelBufferIds.Add(bufferId);
-                bufferIdList.Add(bufferId);
-                textureIdMapping.Add(bufferId, mesh.Materials[i].TextureId);
-                indexBufferIdMapping.Add(bufferId, indexBufferId);
-                indexBufferLengths.Add(indexBufferId, mesh.Indices[i].Length);
+                for (int i = 0; i < mesh.Vertices.Length; i++)
+                {
+                    uint startIndex = (uint)verticesToBeLoaded.Count;
+                    // Increment the indices to align with the index of the vertices
+                    for (int j = 0; j < mesh.Indices[i].Length; j++)
+                    {
+                        uint currentIndex = startIndex + mesh.Indices[i][j];
+                        // If the index array exceeds the max allowable size
+                        // Then return with the current mesh unloaded
+                        if (currentIndex >= maxArraySize)
+                            return meshesLoaded;
+                        indicesToBeLoaded.Add(currentIndex);
+                    }
+                    verticesToBeLoaded.AddRange(mesh.Vertices[i].ToList());
+                    textureIndexArrayMapping.Add(mesh.Materials[i].TextureId, 
+                        new KeyValuePair<int, int>((int)startIndex, mesh.Indices[i].Length));
+                    textureIdsLoaded.Add(mesh.Materials[i].TextureId);
+                }
+                meshesLoaded++;
             }
 
-            meshesLoaded++;
-            meshIdMapping.Add(meshesLoaded, bufferIdList);
+            // Finally load everything into the buffer
+            GL.BindBuffer(BufferTarget.ArrayBuffer, bufferId);
+            GL.BufferData(BufferTarget.ArrayBuffer, new IntPtr(verticesToBeLoaded.Count * Vertex.Size),
+                verticesToBeLoaded.ToArray(), BufferUsageHint.StaticDraw);
 
+            GL.BindBuffer(BufferTarget.ElementArrayBuffer, indexBufferId);
+            GL.BufferData(BufferTarget.ElementArrayBuffer, (IntPtr)(indicesToBeLoaded.Count * sizeof(uint)),
+                indicesToBeLoaded.ToArray(), BufferUsageHint.StaticDraw);
+
+            staticBufferTextureIdMapping.Add(bufferId, textureIdsLoaded);
             return meshesLoaded;
         }
 
-        /// <summary>
-        /// Draws all meshes loaded to the scene.
-        /// </summary>
-        public static void DrawMeshes()
+        public static void DrawStaticMeshes()
         {
             GL.Enable(EnableCap.DepthTest);
             GL.ClearColor(Color.SkyBlue);
@@ -189,28 +175,31 @@ namespace OpenBusDrivingSimulator.Engine
             GL.Enable(EnableCap.CullFace);
             GL.CullFace(CullFaceMode.Back);
 
-            foreach (uint meshId in meshIdMapping.Keys)
+            for (int i = 0; i < staticMeshesBufferIds.Count; i++)
             {
-                foreach (uint bufferId in meshIdMapping[meshId])
+                uint currentBufferId = staticMeshesBufferIds[i],
+                     currentIndexId = staticMeshesIndexIds[i];
+                List<int> bufferTextureIds = staticBufferTextureIdMapping[currentBufferId];
+                foreach (int bufferTextureId in bufferTextureIds)
                 {
-                    int textureId = textureIdMapping[bufferId];
-                    uint indexArrayId = indexBufferIdMapping[bufferId];
-                    int indexArrayLength = indexBufferLengths[indexArrayId];
+                    int indexArrayOffset = textureIndexArrayMapping[bufferTextureId].Key,
+                        indexArrayLength = textureIndexArrayMapping[bufferTextureId].Value;
 
                     GL.MatrixMode(MatrixMode.Modelview);
 
-                    GL.BindBuffer(BufferTarget.ArrayBuffer, bufferId);
+                    GL.BindBuffer(BufferTarget.ArrayBuffer, currentBufferId);
                     GL.EnableClientState(ArrayCap.VertexArray);
                     GL.EnableClientState(ArrayCap.NormalArray);
                     GL.EnableClientState(ArrayCap.TextureCoordArray);
 
-                    GL.BindTexture(TextureTarget.Texture2D, textureId);
+                    GL.BindTexture(TextureTarget.Texture2D, bufferTextureId);
                     GL.VertexPointer(3, VertexPointerType.Float, Vertex.Size, 0);
                     GL.NormalPointer(NormalPointerType.Float, Vertex.Size, Vector3.SizeInBytes);
                     GL.TexCoordPointer(2, TexCoordPointerType.Float, Vertex.Size, Vector3.SizeInBytes * 2);
 
-                    GL.BindBuffer(BufferTarget.ElementArrayBuffer, indexArrayId);
-                    GL.DrawElements(BeginMode.Triangles, indexArrayLength, DrawElementsType.UnsignedShort, 0);
+                    GL.BindBuffer(BufferTarget.ElementArrayBuffer, currentIndexId);
+                    GL.DrawElements(BeginMode.Triangles, indexArrayLength, DrawElementsType.UnsignedInt, 
+                        indexArrayOffset * sizeof(uint));
 
                     GL.DisableClientState(ArrayCap.TextureCoordArray);
                     GL.DisableClientState(ArrayCap.NormalArray);
@@ -221,54 +210,24 @@ namespace OpenBusDrivingSimulator.Engine
             GL.Disable(EnableCap.CullFace);
         }
 
-        /// <summary>
-        /// Removes a mesh by its mesh ID.
-        /// </summary>
-        /// <param name="meshId">The identification number of the mesh loaded to the scene.</param>
-        /// <returns>
-        /// True if the mesh was removed successfully.
-        /// False if either of the following occurs:
-        /// 1. Mesh ID does not exist.
-        /// 2. Any of the vertex or index array buffers could not be cleared.
-        /// 3. Any of the textures could not be unloaded.
-        /// </returns>
-        public static bool RemoveMesh(uint meshId)
-        {
-            if (!meshIdMapping.ContainsKey(meshId))
-                return false;
 
-            foreach(uint bufferId in meshIdMapping[meshId])
+        /// <summary>
+        /// Removes all static meshes loaded to the world block.
+        /// </summary>
+        public static void RemoveAllStaticMeshes()
+        {
+            for (int i = 0; i < staticMeshesBufferIds.Count; i++)
             {
-                uint targetBufferId = bufferId,
-                     targetIndexArrayId = indexBufferIdMapping[bufferId];
-                int textureId = textureIdMapping[bufferId];
+                uint targetBufferId = staticMeshesBufferIds[i],
+                     targetIndexId = staticMeshesIndexIds[i];
                 GL.DeleteBuffers(1, ref targetBufferId);
-                GL.DeleteBuffers(1, ref targetIndexArrayId);
-                Texture.UnloadTexture(textureId);
-
-                indexBufferIdMapping.Remove(bufferId);
-                textureIdMapping.Remove(bufferId);
-                modelBufferIds.Remove(bufferId);
+                GL.DeleteBuffers(1, ref targetIndexId);
             }
-            meshIdMapping.Remove(meshId);
 
-            return true;
-        }
-
-        /// <summary>
-        /// Removes all meshes loaded to the scene.
-        /// </summary>
-        public static void RemoveAllMeshes()
-        {
-            List<uint> targetMeshIds = meshIdMapping.Keys.ToList();
-            foreach (uint meshId in targetMeshIds)
-                RemoveMesh(meshId);
-
-            // Cleanup the mappings
-            meshIdMapping.Clear();
-            textureIdMapping.Clear();
-            indexBufferIdMapping.Clear();
-            indexBufferLengths.Clear();
+            staticMeshesBufferIds.Clear();
+            staticMeshesIndexIds.Clear();
+            staticBufferTextureIdMapping.Clear();
+            textureIndexArrayMapping.Clear();
         }
 
         #region Mirror
@@ -328,7 +287,7 @@ namespace OpenBusDrivingSimulator.Engine
             GL.PushMatrix();
             Matrix4 lookAt = Matrix4.LookAt(new Vector3(0, 0, 0), new Vector3(0, 0, 20), Vector3.UnitY);
             GL.LoadMatrix(ref lookAt);
-            DrawMeshes();
+            //DrawMeshes();
             GL.PopMatrix();
             GL.MatrixMode(MatrixMode.Projection);
             GL.PopMatrix();

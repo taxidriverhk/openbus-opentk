@@ -11,11 +11,11 @@ namespace OpenBusDrivingSimulator.Engine
     public class Mesh
     {
         // TODO: make the path of the texture file configurable
-        private string texturePath = @"D:\下載\texture";
+        private string texturePath = @"D:\Downloads\texture";
 
         public Material[] Materials;
         public Vertex[][] Vertices; 
-        public ushort[][] Indices;
+        public uint[][] Indices;
 
         public static Mesh LoadFromCollada(string path)
         {
@@ -66,11 +66,11 @@ namespace OpenBusDrivingSimulator.Engine
                 }
             }
 
-            resultMesh.Indices = new ushort[resultMesh.Vertices.Length][];
+            resultMesh.Indices = new uint[resultMesh.Vertices.Length][];
             for (int i = 0; i < resultMesh.Vertices.Length; i++)
             {
-                List<ushort> indexList = new List<ushort>();
-                for (ushort j = 0; j < resultMesh.Vertices[i].Length; j++)
+                List<uint> indexList = new List<uint>();
+                for (uint j = 0; j < resultMesh.Vertices[i].Length; j++)
                     indexList.Add(j);
                 resultMesh.Indices[i] = indexList.ToArray();
             }

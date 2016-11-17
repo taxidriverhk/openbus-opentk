@@ -28,11 +28,13 @@ namespace OpenBusDrivingSimulator.Engine.Controls
     public enum KeyCode
     {
         INVALID = -1,
+        KEY_A = 4,
+        KEY_F = 9,
+        KEY_Z = 29,
         KEY_RIGHT = 79,
         KEY_LEFT = 80,
         KEY_UP = 81,
-        KEY_DOWN = 82,
-        KEY_F = 9
+        KEY_DOWN = 82
     }
 
     [Flags]

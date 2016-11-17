@@ -28,12 +28,11 @@ namespace OpenBusDrivingSimulator.Game
             ControlHandler.LoadControls();
 
             #region Test Calls
-            for (int i = -0; i < 1; i++)
+            Renderer.LoadStaticMeshesToScene(new List<Mesh>()
             {
-                Mesh building;
-                building = Mesh.LoadFromCollada(@"D:\下載\wuhu.dae");
-                Renderer.LoadMeshToScene(building);
-            }
+                Mesh.LoadFromCollada(@"D:\Downloads\grandwaterfront.dae"),
+                Mesh.LoadFromCollada(@"D:\Downloads\wuhu.dae")
+            });
             #endregion
 
             Screen.Show();
@@ -59,8 +58,8 @@ namespace OpenBusDrivingSimulator.Game
                 Camera.UpdateCamera();
 
                 // Render the state
-                Renderer.DrawMeshes();
-                Renderer.DrawMirror();
+                Renderer.DrawStaticMeshes();
+                //Renderer.DrawMirror();
 
                 if (Game.ShowFrameRate)
                     Renderer.DrawText(string.Format("{0:0.00} fps", Game.FrameRate), 0, 95);

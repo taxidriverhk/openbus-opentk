@@ -100,7 +100,7 @@ namespace OpenBusDrivingSimulator.Engine
         private static void InitializeWithDefaults()
         {
             zNear = 0.025f;
-            zFar = 200.0f;
+            zFar = 500.0f;
             aspect = (float)Screen.Width / Screen.Height;
             zoomFactor = 1.0f;
             fieldOfView = zoomFactor * MathHelper.PiOver4;

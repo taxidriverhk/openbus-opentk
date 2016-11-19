@@ -58,7 +58,7 @@ namespace OpenBusDrivingSimulator.Game
                 Camera.UpdateCamera();
 
                 // Render the state
-                Renderer.DrawStaticMeshes();
+                Renderer.DrawStaticScene();
                 //Renderer.DrawMirror();
 
                 if (Game.ShowFrameRate)

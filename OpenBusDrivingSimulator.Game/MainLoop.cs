@@ -28,11 +28,10 @@ namespace OpenBusDrivingSimulator.Game
             ControlHandler.LoadControls();
 
             #region Test Calls
-            Renderer.LoadStaticMeshesToScene(new List<Mesh>()
-            {
-                Mesh.LoadFromCollada(@"D:\Downloads\grandwaterfront.dae"),
-                Mesh.LoadFromCollada(@"D:\Downloads\wuhu.dae")
-            });
+            Renderer.LoadSkyBox(
+                Mesh.LoadFromCollada(GameEnvironment.RootPath + @"objects\sky.dae"),
+                450.0f, GameEnvironment.RootPath + @"objects\texture\sky.bmp");
+            Game.LoadMap(GameEnvironment.RootPath + @"map\test.map");
             #endregion
 
             Screen.Show();
@@ -56,10 +55,8 @@ namespace OpenBusDrivingSimulator.Game
                     break;
                 ControlHandler.ProcessControls();
                 Camera.UpdateCamera();
-
                 // Render the state
-                Renderer.DrawStaticScene();
-                //Renderer.DrawMirror();
+                Renderer.DrawScene();
 
                 if (Game.ShowFrameRate)
                     Renderer.DrawText(string.Format("{0:0.00} fps", Game.FrameRate), 0, 95);

@@ -7,8 +7,8 @@
     <ProjectGuid>{C96185D1-B950-4D13-A768-AAC7844CEE04}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>OpenBusDrivingSimulator.Scripting</RootNamespace>
-    <AssemblyName>OpenBusDrivingSimulator.Scripting</AssemblyName>
+    <RootNamespace>OpenBusDrivingSimulator.Config</RootNamespace>
+    <AssemblyName>OpenBusDrivingSimulator.Config</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
@@ -21,7 +21,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <DocumentationFile>bin\Debug\OpenBusDrivingSimulator.Scripting.XML</DocumentationFile>
+    <DocumentationFile>bin\Debug\OpenBusDrivingSimulator.Config.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -42,7 +42,16 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Configuration.cs" />
+    <Compile Include="Helper.cs" />
+    <Compile Include="Map.cs" />
+    <Compile Include="Object.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\OpenBusDrivingSimulator.Core\OpenBusDrivingSimulator.Core.csproj">
+      <Project>{bbda98e6-a972-4f60-8eed-83430d24845b}</Project>
+      <Name>OpenBusDrivingSimulator.Core</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

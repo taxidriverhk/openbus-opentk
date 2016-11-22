@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Serialization;
 
 namespace OpenBusDrivingSimulator.Core
 {
@@ -13,8 +14,11 @@ namespace OpenBusDrivingSimulator.Core
     /// </summary>
     public struct Vector3f
     {
+        [XmlAttribute("x")]
         public float X;
+        [XmlAttribute("y")]
         public float Y;
+        [XmlAttribute("z")]
         public float Z;
 
         public Vector3f(float x, float y, float z)
@@ -54,7 +58,9 @@ namespace OpenBusDrivingSimulator.Core
 
     public struct Vector2f
     {
+        [XmlAttribute("x")]
         public float X;
+        [XmlAttribute("y")]
         public float Y;
 
         public Vector2f(float x, float y)

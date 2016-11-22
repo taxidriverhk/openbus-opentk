@@ -11,7 +11,7 @@ namespace OpenBusDrivingSimulator.Engine
     public class Mesh
     {
         // TODO: make the path of the texture file configurable
-        private string texturePath = @"D:\Downloads\texture";
+        private string texturePath = @"D:\Downloads\OpenBDS\objects\texture";
 
         public Material[] Materials;
         public Vertex[][] Vertices; 
@@ -76,6 +76,32 @@ namespace OpenBusDrivingSimulator.Engine
             }
 
             return resultMesh;
+        }
+
+        public void Translate(float x, float y, float z)
+        {
+            for (int i = 0; i < Vertices.Length; i++)
+                for (int j = 0; j < Vertices[i].Length; j++)
+                {
+                    Vertices[i][j].Position.X += x;
+                    Vertices[i][j].Position.Y += y;
+                    Vertices[i][j].Position.Z += z;
+                }
+        }
+
+        public void RotateY(float degrees)
+        {
+            float radians = MathHelper.DegreesToRadians(degrees),
+                  cosTheta = (float)Math.Cos(radians),
+                  sinTheta = (float)Math.Sin(radians);
+            for (int i = 0; i < Vertices.Length; i++)
+                for (int j = 0; j < Vertices[i].Length; j++)
+                {
+                    float x = Vertices[i][j].Position.X,
+                          z = Vertices[i][j].Position.Z;
+                    Vertices[i][j].Position.X = x * cosTheta - z * sinTheta;
+                    Vertices[i][j].Position.Z = z * cosTheta + x * sinTheta;
+                }
         }
 
         public bool Validate()

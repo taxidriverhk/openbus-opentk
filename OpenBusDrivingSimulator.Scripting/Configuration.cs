@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace OpenBusDrivingSimulator.Scripting
+namespace OpenBusDrivingSimulator.Config
 {
     public class Configuration
     {

@@ -148,9 +148,6 @@ namespace OpenBusDrivingSimulator.Engine
         internal void DrawMeshes()
         {
             GL.Enable(EnableCap.DepthTest);
-            GL.ClearColor(Color.SkyBlue);
-            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-
             GL.Enable(EnableCap.CullFace);
             GL.CullFace(CullFaceMode.Back);
             for (int i = 0; i < bufferIds.Count; i++)
@@ -281,6 +278,7 @@ namespace OpenBusDrivingSimulator.Engine
         private Vector3 up;
         private float viewableDistance;
 
+        private StaticBufferObject staticScene;
         private uint mirrorBufferId;
         private uint mirrorIndexId;
         private int mirrorIndexArrayLength;
@@ -295,8 +293,8 @@ namespace OpenBusDrivingSimulator.Engine
         internal MirrorBufferObject()
         {
             viewableDistance = 20.0f;
-            position = Vector3.Zero;
-            target = new Vector3(0, 0, viewableDistance);
+            position = new Vector3(0, 5, -20.0f);
+            target = new Vector3(0, 5, viewableDistance);
             up = Vector3.UnitY; 
         }
 
@@ -304,7 +302,8 @@ namespace OpenBusDrivingSimulator.Engine
         /// 
         /// </summary>
         /// <param name="mirrorMesh"></param>
-        internal void InitializeMirror(Mesh mirrorMesh)
+        /// <param name="scene"></param>
+        internal void InitializeMirror(Mesh mirrorMesh, StaticBufferObject scene)
         {
             // Create the frame buffer and the texture
             GL.GenFramebuffers(1, out frameBufferId);
@@ -343,6 +342,7 @@ namespace OpenBusDrivingSimulator.Engine
             GL.BufferData(BufferTarget.ElementArrayBuffer, (IntPtr)(mirrorMesh.Indices[0].Length * sizeof(uint)),
                 mirrorMesh.Indices[0], BufferUsageHint.StaticDraw);
             mirrorIndexArrayLength = mirrorMesh.Indices[0].Length;
+            staticScene = scene;
 
             // Set the current frame back to the screen
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
@@ -355,7 +355,6 @@ namespace OpenBusDrivingSimulator.Engine
         {
             // Render the scene to texture
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, frameBufferId);
-            GL.ClearColor(Color.Yellow);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
             GL.MatrixMode(MatrixMode.Projection);
             GL.PushMatrix();
@@ -367,17 +366,20 @@ namespace OpenBusDrivingSimulator.Engine
             GL.PushMatrix();
             Matrix4 lookAt = Matrix4.LookAt(position, target, up);
             GL.LoadMatrix(ref lookAt);
-
-            // Draw the mirror mesh with the rendered texture
-            BufferObjectHelper.BindAndDrawBuffer(mirrorBufferId, mirrorIndexId, 
-                mirrorTextureId, 0, mirrorIndexArrayLength);
-
+            // Draw the scene
+            staticScene.DrawMeshes();
             GL.PopMatrix(); // Pops the current modelview matrix
             GL.MatrixMode(MatrixMode.Projection);
             GL.PopMatrix();
 
             // Set the current frame back to the screen
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
+            // Draw the mirror mesh with the rendered texture
+            GL.Enable(EnableCap.CullFace);
+            GL.CullFace(CullFaceMode.Back);
+            BufferObjectHelper.BindAndDrawBuffer(mirrorBufferId, mirrorIndexId,
+                mirrorTextureId, 0, mirrorIndexArrayLength);
+            GL.Disable(EnableCap.CullFace);
         }
 
         /// <summary>
@@ -390,5 +392,69 @@ namespace OpenBusDrivingSimulator.Engine
             GL.DeleteTexture(mirrorTextureId);
             GL.DeleteFramebuffers(1, ref frameBufferId);
         }
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    internal class SkyBoxObject
+    {
+        private int textureId;
+        private uint bufferId;
+        private uint indexArrayId;
+        private int indexArrayLength;
+
+        internal void LoadSkyBox(Mesh skyBoxMesh, Vector3 scale, string textureFile)
+        {
+            // Enlarge the skybox
+            for (int i = 0; i < skyBoxMesh.Vertices[0].Length; i++)
+            {
+                skyBoxMesh.Vertices[0][i].Position.X *= scale.X;
+                skyBoxMesh.Vertices[0][i].Position.Y *= scale.Y;
+                skyBoxMesh.Vertices[0][i].Position.Z *= scale.Z;
+            }
+
+            // Create the buffer and texture neededfor the skybox
+            textureId = Texture.LoadTextureFromFile(textureFile);
+            BufferObjectHelper.CreateBuffers(out bufferId, out indexArrayId);
+            GL.BindBuffer(BufferTarget.ArrayBuffer, bufferId);
+            GL.BufferData(BufferTarget.ArrayBuffer, new IntPtr(skyBoxMesh.Vertices[0].Length * Vertex.Size),
+                skyBoxMesh.Vertices[0], BufferUsageHint.StaticDraw);
+            GL.BindBuffer(BufferTarget.ElementArrayBuffer, indexArrayId);
+            GL.BufferData(BufferTarget.ElementArrayBuffer, (IntPtr)(skyBoxMesh.Indices[0].Length * sizeof(uint)),
+                skyBoxMesh.Indices[0], BufferUsageHint.StaticDraw);
+            indexArrayLength = skyBoxMesh.Indices[0].Length;
+        }
+
+        internal void ReplaceTextures(string textureFile)
+        {
+            Texture.UnloadTexture(textureId);
+            textureId = Texture.LoadTextureFromFile(textureFile);
+        }
+
+        internal void DrawSkyBox()
+        {
+            GL.Disable(EnableCap.DepthTest);
+            GL.Enable(EnableCap.CullFace);
+            GL.CullFace(CullFaceMode.Back);
+            GL.MatrixMode(MatrixMode.Modelview);
+            GL.PushMatrix();
+            GL.Translate(Camera.Eye);
+            BufferObjectHelper.BindAndDrawBuffer(bufferId, indexArrayId, textureId, 0, indexArrayLength);
+            GL.PopMatrix();
+            GL.Disable(EnableCap.CullFace);
+            GL.Enable(EnableCap.DepthTest);
+        }
+
+        internal void Cleanup()
+        {
+            Texture.UnloadTexture(textureId);
+            BufferObjectHelper.DeleteBuffers(bufferId, indexArrayId);
+        }
+    }
+
+    internal class TerrainBufferObject
+    {
+
     }
 }

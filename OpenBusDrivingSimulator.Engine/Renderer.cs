@@ -19,6 +19,7 @@ namespace OpenBusDrivingSimulator.Engine
         private static StaticBufferObject staticBuffer;
         private static List<MirrorBufferObject> mirrorBuffers;
         private static OverlayTextObject overlayText;
+        private static SkyBoxObject skyBox;
 
         /// <summary>
         /// Initialize the components of the renderer, should be called before the main loop.
@@ -29,6 +30,7 @@ namespace OpenBusDrivingSimulator.Engine
             staticBuffer = new StaticBufferObject();
             overlayText = new OverlayTextObject();
             mirrorBuffers = new List<MirrorBufferObject>();
+            skyBox = new SkyBoxObject();
         }
 
         /// <summary>
@@ -40,6 +42,7 @@ namespace OpenBusDrivingSimulator.Engine
             staticBuffer.Cleanup();
             foreach (MirrorBufferObject mirrorBuffer in mirrorBuffers)
                 mirrorBuffer.Cleanup();
+            skyBox.Cleanup();
         }
 
         /// <summary>
@@ -78,13 +81,29 @@ namespace OpenBusDrivingSimulator.Engine
         /// <param name="mirrorMesh"></param>
         public static void LoadMirror(Mesh mirrorMesh)
         {
+            MirrorBufferObject mirrorBuffer = new MirrorBufferObject();
+            mirrorBuffer.InitializeMirror(mirrorMesh, staticBuffer);
+            mirrorBuffers.Add(mirrorBuffer);
+        }
 
+        public static void LoadSkyBox(Mesh skyBoxMesh, float scale, string textureFile)
+        {
+            skyBox.LoadSkyBox(skyBoxMesh, new Vector3(scale), textureFile);
+        }
+
+        public static void DrawScene()
+        {
+            GL.ClearColor(Color.Black);
+            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+            DrawSkyBox();
+            DrawStaticScene();
+            DrawMirrors();
         }
 
         /// <summary>
         /// 
         /// </summary>
-        public static void DrawStaticScene()
+        private static void DrawStaticScene()
         {
             staticBuffer.DrawMeshes();
         }
@@ -92,9 +111,15 @@ namespace OpenBusDrivingSimulator.Engine
         /// <summary>
         /// 
         /// </summary>
-        public static void DrawMirror()
+        private static void DrawMirrors()
         {
+            foreach (MirrorBufferObject mirrorBuffer in mirrorBuffers)
+                mirrorBuffer.DrawMirror();
+        }
 
+        private static void DrawSkyBox()
+        {
+            skyBox.DrawSkyBox();
         }
     }
 }

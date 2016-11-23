@@ -20,6 +20,7 @@ namespace OpenBusDrivingSimulator.Engine
         private static List<MirrorBufferObject> mirrorBuffers;
         private static OverlayTextObject overlayText;
         private static SkyBoxObject skyBox;
+        private static TerrainBufferObject terrain;
 
         /// <summary>
         /// Initialize the components of the renderer, should be called before the main loop.
@@ -31,6 +32,7 @@ namespace OpenBusDrivingSimulator.Engine
             overlayText = new OverlayTextObject();
             mirrorBuffers = new List<MirrorBufferObject>();
             skyBox = new SkyBoxObject();
+            terrain = new TerrainBufferObject();
         }
 
         /// <summary>
@@ -43,6 +45,7 @@ namespace OpenBusDrivingSimulator.Engine
             foreach (MirrorBufferObject mirrorBuffer in mirrorBuffers)
                 mirrorBuffer.Cleanup();
             skyBox.Cleanup();
+            terrain.Cleanup();
         }
 
         /// <summary>
@@ -70,9 +73,9 @@ namespace OpenBusDrivingSimulator.Engine
         /// </summary>
         /// <param name="meshes"></param>
         /// <returns></returns>
-        public static int LoadStaticMeshesToScene(List<Mesh> meshes)
+        public static int LoadStaticEntitiesToScene(List<Entity> entities)
         {
-            return staticBuffer.LoadMeshes(meshes);
+            return staticBuffer.LoadEntities(entities);
         }
 
         /// <summary>
@@ -88,7 +91,14 @@ namespace OpenBusDrivingSimulator.Engine
 
         public static void LoadSkyBox(Mesh skyBoxMesh, float scale, string textureFile)
         {
-            skyBox.LoadSkyBox(skyBoxMesh, new Vector3(scale), textureFile);
+            int textureId = Texture.LoadTextureFromFile(textureFile);
+            skyBox.LoadSkyBox(skyBoxMesh, new Vector3(scale), textureId);
+        }
+
+        public static void LoadTerrain(int x, int y, int size, float[][] heights, string textureFile, float u, float v)
+        {
+            int textureId = Texture.LoadTextureFromFile(textureFile);
+            terrain.InitializeTerrain(new Vector2(x, y), size, heights, textureId, new Vector2(u, v));
         }
 
         public static void DrawScene()
@@ -98,6 +108,8 @@ namespace OpenBusDrivingSimulator.Engine
             DrawSkyBox();
             DrawStaticScene();
             DrawMirrors();
+            DrawTerrain();
+
         }
 
         /// <summary>
@@ -105,7 +117,7 @@ namespace OpenBusDrivingSimulator.Engine
         /// </summary>
         private static void DrawStaticScene()
         {
-            staticBuffer.DrawMeshes();
+            staticBuffer.DrawEntities();
         }
 
         /// <summary>
@@ -117,9 +129,20 @@ namespace OpenBusDrivingSimulator.Engine
                 mirrorBuffer.DrawMirror();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         private static void DrawSkyBox()
         {
             skyBox.DrawSkyBox();
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private static void DrawTerrain()
+        {
+            terrain.DrawTerrain();
         }
     }
 }

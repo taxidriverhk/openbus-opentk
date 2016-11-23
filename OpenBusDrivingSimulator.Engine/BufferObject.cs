@@ -13,6 +13,12 @@ namespace OpenBusDrivingSimulator.Engine
     /// </summary>
     internal static class BufferObjectHelper
     {
+        internal static void CreateBuffers(out uint bufferId)
+        {
+            GL.Enable(EnableCap.Normalize);
+            GL.GenBuffers(1, out bufferId);
+        }
+
         /// <summary>
         /// 
         /// </summary>
@@ -25,6 +31,29 @@ namespace OpenBusDrivingSimulator.Engine
             GL.GenBuffers(1, out indexBufferId);
         }
 
+        internal static void LoadDataIntoBuffers(uint bufferId, Vertex[] vertices)
+        {
+            GL.BindBuffer(BufferTarget.ArrayBuffer, bufferId);
+            GL.BufferData(BufferTarget.ArrayBuffer, new IntPtr(vertices.Length * Vertex.Size),
+                vertices, BufferUsageHint.StaticDraw);
+        }
+
+        internal static void LoadDataIntoBuffers(uint bufferId, Vertex[] vertices, uint indexBufferId, uint[] indices)
+        {
+            GL.BindBuffer(BufferTarget.ArrayBuffer, bufferId);
+            GL.BufferData(BufferTarget.ArrayBuffer, new IntPtr(vertices.Length * Vertex.Size),
+                vertices, BufferUsageHint.StaticDraw);
+
+            GL.BindBuffer(BufferTarget.ElementArrayBuffer, indexBufferId);
+            GL.BufferData(BufferTarget.ElementArrayBuffer, (IntPtr)(indices.Length * sizeof(uint)),
+                indices, BufferUsageHint.StaticDraw);
+        }
+
+        internal static void DeleteBuffers(uint bufferId)
+        {
+            GL.DeleteBuffers(1, ref bufferId);
+        }
+
         /// <summary>
         /// 
         /// </summary>
@@ -34,6 +63,41 @@ namespace OpenBusDrivingSimulator.Engine
         {
             GL.DeleteBuffers(1, ref bufferId);
             GL.DeleteBuffers(1, ref indexBufferId);
+        }
+
+        internal static void BindAndDrawBuffer(uint bufferId, int textureId, int startIndex, int length)
+        {
+            GL.MatrixMode(MatrixMode.Modelview);
+
+            GL.BindBuffer(BufferTarget.ArrayBuffer, bufferId);
+            GL.EnableClientState(ArrayCap.VertexArray);
+            GL.EnableClientState(ArrayCap.NormalArray);
+            GL.EnableClientState(ArrayCap.TextureCoordArray);
+
+            GL.BindTexture(TextureTarget.Texture2D, textureId);
+            GL.VertexPointer(3, VertexPointerType.Float, Vertex.Size, 0);
+            GL.NormalPointer(NormalPointerType.Float, Vertex.Size, Vector3.SizeInBytes);
+            GL.TexCoordPointer(2, TexCoordPointerType.Float, Vertex.Size, Vector3.SizeInBytes * 2);
+
+            GL.DrawArrays(PrimitiveType.Triangles, startIndex * Vertex.Size, length);
+
+            GL.DisableClientState(ArrayCap.TextureCoordArray);
+            GL.DisableClientState(ArrayCap.NormalArray);
+            GL.DisableClientState(ArrayCap.VertexArray);
+        }
+
+        internal static void BindAndDrawBuffer(uint bufferId, int textureId, int startIndex, int length,
+            Vector3 translation, Vector3 rotation, Vector3 scale)
+        {
+            GL.MatrixMode(MatrixMode.Modelview);
+            GL.PushMatrix();
+            // Scaling -> Rotation (both about the origin) -> Translation
+            // (so the matrix would be translate * rotation * scaling)
+            GL.Translate(translation);
+            GL.Rotate(rotation.Y, Vector3.UnitY);
+            GL.Scale(scale);
+            BindAndDrawBuffer(bufferId, textureId, startIndex, length);
+            GL.PopMatrix();
         }
 
         /// <summary>
@@ -66,6 +130,20 @@ namespace OpenBusDrivingSimulator.Engine
             GL.DisableClientState(ArrayCap.NormalArray);
             GL.DisableClientState(ArrayCap.VertexArray);
         }
+
+        internal static void BindAndDrawBuffer(uint bufferId, uint indexId, int textureId, int indexArrayStart, int indexArrayLength,
+            Vector3 translation, Vector3 rotation, Vector3 scale)
+        {
+            GL.MatrixMode(MatrixMode.Modelview);
+            GL.PushMatrix();
+            // Scaling -> Rotation (both about the origin) -> Translation
+            // (so the matrix would be translate * rotation * scaling)
+            GL.Translate(translation);
+            GL.Rotate(rotation.Y, Vector3.UnitY);
+            GL.Scale(scale);
+            BindAndDrawBuffer(bufferId, indexId, textureId, indexArrayStart, indexArrayLength);
+            GL.PopMatrix();
+        }
     }
 
     /// <summary>
@@ -73,25 +151,28 @@ namespace OpenBusDrivingSimulator.Engine
     /// </summary>
     internal class StaticBufferObject
     {
+        private List<Entity> entities;
         private List<uint> bufferIds;
-        private List<uint> indexIds;
-        private Dictionary<uint, List<int>> bufferTextureIdMapping;
+        private Dictionary<uint, uint> bufferIndexIdMapping;
+        private Dictionary<int, uint> textureIdBufferMapping;
+        private Dictionary<Mesh, List<int>> meshTextureIdMapping;
         private Dictionary<int, KeyValuePair<int, int>> textureIndexMapping;
 
         internal StaticBufferObject()
         {
             bufferIds = new List<uint>();
-            indexIds = new List<uint>();
-            bufferTextureIdMapping = new Dictionary<uint, List<int>>();
+            bufferIndexIdMapping = new Dictionary<uint, uint>();
+            textureIdBufferMapping = new Dictionary<int, uint>();
+            meshTextureIdMapping = new Dictionary<Mesh, List<int>>();
             textureIndexMapping = new Dictionary<int, KeyValuePair<int, int>>();
         }
 
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="meshes"></param>
+        /// <param name="entities"></param>
         /// <returns></returns>
-        internal int LoadMeshes(List<Mesh> meshes)
+        internal int LoadEntities(List<Entity> entitiesToBeLoaded)
         {
             int meshesLoaded = 0;
             uint bufferId = 0,
@@ -99,14 +180,20 @@ namespace OpenBusDrivingSimulator.Engine
 
             BufferObjectHelper.CreateBuffers(out bufferId, out indexBufferId);
             bufferIds.Add(bufferId);
-            indexIds.Add(indexBufferId);
+            bufferIndexIdMapping.Add(bufferId, indexBufferId);
 
             uint maxArraySize = UInt32.MaxValue;
             List<int> textureIdsLoaded = new List<int>();
             List<Vertex> verticesToBeLoaded = new List<Vertex>();
             List<uint> indicesToBeLoaded = new List<uint>();
 
-            foreach (Mesh mesh in meshes)
+            // Get the unique meshes for all the entites
+            entities = entitiesToBeLoaded;
+            HashSet<Mesh> meshesToBeLoaded = new HashSet<Mesh>();
+            foreach (Entity entity in entities)
+                meshesToBeLoaded.Add(entity.Mesh);
+
+            foreach (Mesh mesh in meshesToBeLoaded)
             {
                 for (int i = 0; i < mesh.Vertices.Length; i++)
                 {
@@ -124,43 +211,41 @@ namespace OpenBusDrivingSimulator.Engine
                     verticesToBeLoaded.AddRange(mesh.Vertices[i].ToList());
                     textureIndexMapping.Add(mesh.Materials[i].TextureId,
                         new KeyValuePair<int, int>((int)startIndex, mesh.Indices[i].Length));
+                    textureIdBufferMapping.Add(mesh.Materials[i].TextureId, bufferId);
                     textureIdsLoaded.Add(mesh.Materials[i].TextureId);
                 }
+                meshTextureIdMapping.Add(mesh, textureIdsLoaded);
                 meshesLoaded++;
+                textureIdsLoaded = new List<int>();
             }
 
             // Finally load everything into the buffer
-            GL.BindBuffer(BufferTarget.ArrayBuffer, bufferId);
-            GL.BufferData(BufferTarget.ArrayBuffer, new IntPtr(verticesToBeLoaded.Count * Vertex.Size),
-                verticesToBeLoaded.ToArray(), BufferUsageHint.StaticDraw);
+            BufferObjectHelper.LoadDataIntoBuffers(bufferId, verticesToBeLoaded.ToArray(),
+                indexBufferId, indicesToBeLoaded.ToArray());
 
-            GL.BindBuffer(BufferTarget.ElementArrayBuffer, indexBufferId);
-            GL.BufferData(BufferTarget.ElementArrayBuffer, (IntPtr)(indicesToBeLoaded.Count * sizeof(uint)),
-                indicesToBeLoaded.ToArray(), BufferUsageHint.StaticDraw);
-
-            bufferTextureIdMapping.Add(bufferId, textureIdsLoaded);
             return meshesLoaded;
         }
 
         /// <summary>
         /// 
         /// </summary>
-        internal void DrawMeshes()
+        internal void DrawEntities()
         {
             GL.Enable(EnableCap.DepthTest);
             GL.Enable(EnableCap.CullFace);
             GL.CullFace(CullFaceMode.Back);
-            for (int i = 0; i < bufferIds.Count; i++)
+            foreach (Entity entity in entities)
             {
-                uint currentBufferId = bufferIds[i],
-                     currentIndexId = indexIds[i];
-                List<int> bufferTextureIds = bufferTextureIdMapping[currentBufferId];
-                foreach (int bufferTextureId in bufferTextureIds)
+                List<int> textureIds = meshTextureIdMapping[entity.Mesh];
+                foreach (int textureId in textureIds)
                 {
-                    int indexArrayOffset = textureIndexMapping[bufferTextureId].Key,
-                        indexArrayLength = textureIndexMapping[bufferTextureId].Value;
-                    BufferObjectHelper.BindAndDrawBuffer(currentBufferId, currentIndexId, 
-                        bufferTextureId, indexArrayOffset, indexArrayLength);
+                    uint bufferId = textureIdBufferMapping[textureId],
+                         indexArrayId = bufferIndexIdMapping[bufferId];
+                    int indexArrayOffset = textureIndexMapping[textureId].Key,
+                        indexArrayLength = textureIndexMapping[textureId].Value;
+                    BufferObjectHelper.BindAndDrawBuffer(bufferId, indexArrayId,
+                        textureId, indexArrayOffset, indexArrayLength,
+                        entity.Translation, entity.Rotation, Vector3.One);
                 }
             }
             GL.Disable(EnableCap.CullFace);
@@ -174,13 +259,15 @@ namespace OpenBusDrivingSimulator.Engine
             for (int i = 0; i < bufferIds.Count; i++)
             {
                 uint targetBufferId = bufferIds[i],
-                     targetIndexId = indexIds[i];
+                     targetIndexId = bufferIndexIdMapping[targetBufferId];
                 BufferObjectHelper.DeleteBuffers(targetBufferId, targetIndexId);
             }
 
             bufferIds.Clear();
-            indexIds.Clear();
-            bufferTextureIdMapping.Clear();
+            bufferIndexIdMapping.Clear();
+            entities.Clear();
+            textureIdBufferMapping.Clear();
+            meshTextureIdMapping.Clear();
             textureIndexMapping.Clear();
         }
     }
@@ -367,7 +454,7 @@ namespace OpenBusDrivingSimulator.Engine
             Matrix4 lookAt = Matrix4.LookAt(position, target, up);
             GL.LoadMatrix(ref lookAt);
             // Draw the scene
-            staticScene.DrawMeshes();
+            staticScene.DrawEntities();
             GL.PopMatrix(); // Pops the current modelview matrix
             GL.MatrixMode(MatrixMode.Projection);
             GL.PopMatrix();
@@ -401,10 +488,9 @@ namespace OpenBusDrivingSimulator.Engine
     {
         private int textureId;
         private uint bufferId;
-        private uint indexArrayId;
-        private int indexArrayLength;
+        private int vertexCount;
 
-        internal void LoadSkyBox(Mesh skyBoxMesh, Vector3 scale, string textureFile)
+        internal void LoadSkyBox(Mesh skyBoxMesh, Vector3 scale, int skyBoxTextureId)
         {
             // Enlarge the skybox
             for (int i = 0; i < skyBoxMesh.Vertices[0].Length; i++)
@@ -414,16 +500,13 @@ namespace OpenBusDrivingSimulator.Engine
                 skyBoxMesh.Vertices[0][i].Position.Z *= scale.Z;
             }
 
-            // Create the buffer and texture neededfor the skybox
-            textureId = Texture.LoadTextureFromFile(textureFile);
-            BufferObjectHelper.CreateBuffers(out bufferId, out indexArrayId);
+            // Create the buffer and texture needed for the skybox
+            textureId = skyBoxTextureId;
+            BufferObjectHelper.CreateBuffers(out bufferId);
             GL.BindBuffer(BufferTarget.ArrayBuffer, bufferId);
             GL.BufferData(BufferTarget.ArrayBuffer, new IntPtr(skyBoxMesh.Vertices[0].Length * Vertex.Size),
                 skyBoxMesh.Vertices[0], BufferUsageHint.StaticDraw);
-            GL.BindBuffer(BufferTarget.ElementArrayBuffer, indexArrayId);
-            GL.BufferData(BufferTarget.ElementArrayBuffer, (IntPtr)(skyBoxMesh.Indices[0].Length * sizeof(uint)),
-                skyBoxMesh.Indices[0], BufferUsageHint.StaticDraw);
-            indexArrayLength = skyBoxMesh.Indices[0].Length;
+            vertexCount = skyBoxMesh.Vertices[0].Length;
         }
 
         internal void ReplaceTextures(string textureFile)
@@ -437,11 +520,8 @@ namespace OpenBusDrivingSimulator.Engine
             GL.Disable(EnableCap.DepthTest);
             GL.Enable(EnableCap.CullFace);
             GL.CullFace(CullFaceMode.Back);
-            GL.MatrixMode(MatrixMode.Modelview);
-            GL.PushMatrix();
-            GL.Translate(Camera.Eye);
-            BufferObjectHelper.BindAndDrawBuffer(bufferId, indexArrayId, textureId, 0, indexArrayLength);
-            GL.PopMatrix();
+            BufferObjectHelper.BindAndDrawBuffer(bufferId, textureId, 0, vertexCount, 
+                Camera.Eye, Vector3.Zero, Vector3.One);
             GL.Disable(EnableCap.CullFace);
             GL.Enable(EnableCap.DepthTest);
         }
@@ -449,12 +529,76 @@ namespace OpenBusDrivingSimulator.Engine
         internal void Cleanup()
         {
             Texture.UnloadTexture(textureId);
-            BufferObjectHelper.DeleteBuffers(bufferId, indexArrayId);
+            BufferObjectHelper.DeleteBuffers(bufferId);
         }
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
     internal class TerrainBufferObject
     {
+        private Vector2 position;
+        private uint bufferId;
+        private uint indexArrayId;
+        private int terrainTextureId;
+        private int indexArrayLength;
 
+        internal void InitializeTerrain(Vector2 grid, int size, float[][] heights, int textureId, Vector2 uv)
+        {
+            position = grid;
+            terrainTextureId = textureId;
+            // Generate the vertices for the terrain based on the inputs
+            float sliceU = uv.X / size,
+                  sliceV = uv.Y / size;
+            Vertex[] vertices = new Vertex[size * size];
+            for (int i = 0; i < size; i++)
+                for (int j = 0; j < size; j++)
+                {
+                    int currentIndex = i * size + j;
+                    vertices[currentIndex] = new Vertex(
+                        new Vector3(i, heights[i][j], -j),
+                        new Vector3(0.0f, 1.0f, 0.0f),
+                        new Vector2(i * sliceU, j * sliceV));
+                }
+
+            uint[] indices = new uint[6 * (size-1) * (size-1)];
+            int pointIndex = 0;
+            for (uint i = 0; i < size - 1; i++)
+                for (uint j = 0; j < size - 1; j++)
+                {
+                    uint topLeft = (i + 1) * (uint)size + j,
+                         topRight = topLeft + 1,
+                         bottomLeft = i * (uint)size + j,
+                         bottomRight = bottomLeft + 1;
+                    indices[pointIndex++] = bottomLeft;
+                    indices[pointIndex++] = topLeft;
+                    indices[pointIndex++] = bottomRight;
+                    indices[pointIndex++] = bottomRight;
+                    indices[pointIndex++] = topLeft;
+                    indices[pointIndex++] = topRight;
+                }
+
+            indexArrayLength = indices.Length;
+            // Load the data into the buffer
+            BufferObjectHelper.CreateBuffers(out bufferId, out indexArrayId);
+            BufferObjectHelper.LoadDataIntoBuffers(bufferId, vertices, indexArrayId, indices);
+        }
+
+        internal void DrawTerrain()
+        {
+            GL.Enable(EnableCap.DepthTest);
+            GL.Enable(EnableCap.CullFace);
+            GL.CullFace(CullFaceMode.Back);
+            BufferObjectHelper.BindAndDrawBuffer(bufferId, indexArrayId, terrainTextureId, 0, indexArrayLength,
+                new Vector3(position.X, 0, position.Y), Vector3.Zero, Vector3.One);
+            GL.Disable(EnableCap.CullFace);
+        }
+
+        internal void Cleanup()
+        {
+            Texture.UnloadTexture(terrainTextureId);
+            BufferObjectHelper.DeleteBuffers(bufferId);
+        }
     }
 }

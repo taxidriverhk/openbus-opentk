@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using OpenTK;
@@ -8,11 +9,26 @@ using OpenBusDrivingSimulator.Engine.Assets;
 
 namespace OpenBusDrivingSimulator.Engine
 {
+    public struct Entity
+    {
+        public Mesh Mesh;
+        public Vector3 Translation;
+        public Vector3 Rotation;
+
+        public Entity(Mesh mesh, float tx, float ty, float tz, float rx, float ry, float rz)
+        {
+            Mesh = mesh;
+            Translation = new Vector3(tx, ty, tz);
+            Rotation = new Vector3(rx, ry, rz);
+        }
+    }
+
     public class Mesh
     {
         // TODO: make the path of the texture file configurable
         private string texturePath = @"D:\Downloads\OpenBDS\objects\texture";
 
+        public string Name;
         public Material[] Materials;
         public Vertex[][] Vertices; 
         public uint[][] Indices;
@@ -32,6 +48,8 @@ namespace OpenBusDrivingSimulator.Engine
             }
             
             Mesh resultMesh = new Mesh();
+            // Get the name of the mesh
+            resultMesh.Name = path.Replace(GameEnvironment.RootPath, "");
             // Used for mapping the material id to the array index
             Dictionary<string, int> materialMapping = new Dictionary<string, int>();
             resultMesh.Materials = new Material[collada.Materials.Length];
@@ -78,36 +96,24 @@ namespace OpenBusDrivingSimulator.Engine
             return resultMesh;
         }
 
-        public void Translate(float x, float y, float z)
-        {
-            for (int i = 0; i < Vertices.Length; i++)
-                for (int j = 0; j < Vertices[i].Length; j++)
-                {
-                    Vertices[i][j].Position.X += x;
-                    Vertices[i][j].Position.Y += y;
-                    Vertices[i][j].Position.Z += z;
-                }
-        }
-
-        public void RotateY(float degrees)
-        {
-            float radians = MathHelper.DegreesToRadians(degrees),
-                  cosTheta = (float)Math.Cos(radians),
-                  sinTheta = (float)Math.Sin(radians);
-            for (int i = 0; i < Vertices.Length; i++)
-                for (int j = 0; j < Vertices[i].Length; j++)
-                {
-                    float x = Vertices[i][j].Position.X,
-                          z = Vertices[i][j].Position.Z;
-                    Vertices[i][j].Position.X = x * cosTheta - z * sinTheta;
-                    Vertices[i][j].Position.Z = z * cosTheta + x * sinTheta;
-                }
-        }
-
         public bool Validate()
         {
             // TODO: implement this function
             return true;
+        }
+
+        public override bool Equals(object obj)
+        {
+            Mesh other = obj as Mesh;
+            if (other == null)
+                return false;
+            else
+                return this.Name == other.Name;
+        }
+
+        public override int GetHashCode()
+        {
+            return 0;
         }
 
         private Mesh()

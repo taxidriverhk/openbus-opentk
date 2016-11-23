@@ -2,15 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using OpenBusDrivingSimulator.Core;
 using OpenBusDrivingSimulator.Config;
+using OpenBusDrivingSimulator.Engine;
 
 namespace OpenBusDrivingSimulator.Game
 {
-    public static class GameEnvironment
-    {
-        public static string RootPath = @"D:\Downloads\OpenBDS\";
-    }
-
     public static class Game
     {
         private static Map world;
@@ -38,9 +35,12 @@ namespace OpenBusDrivingSimulator.Game
                 #region Test Code
                 // TODO: load the starting block according to the config
                 MapEx.BlockInfo blockInfo = mapLoaded.Blocks[0];
-                MapBlockEx block = XmlDeserializeHelper<MapBlockEx>.DeserializeFromFile(GameEnvironment.RootPath + "map\\" + blockInfo.Path);
-                if (block != null)
-                    world.LoadBlock(block);
+                MapBlockEx block = XmlDeserializeHelper<MapBlockEx>.DeserializeFromFile(
+                    GameEnvironment.RootPath + "map\\" + blockInfo.Path);
+                TerrainEx terrain = XmlDeserializeHelper<TerrainEx>.DeserializeFromFile(
+                    GameEnvironment.RootPath + "map\\" + blockInfo.TerrainPath);
+                if (block != null && terrain != null)
+                    world.LoadBlock(blockInfo.Position.X, blockInfo.Position.Y, block, terrain);
                 #endregion
             }
         }

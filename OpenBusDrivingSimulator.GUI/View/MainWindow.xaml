@@ -1,15 +1,15 @@
-﻿<Window x:Class="OpenBusDrivingSimulator.GUI.MainWindow"
+﻿<Window x:Class="OpenBusDrivingSimulator.GUI.View.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:local="clr-namespace:OpenBusDrivingSimulator.GUI"
-        Title="{Binding Strings.Title}" Height="350" Width="525"
+        xmlns:model="clr-namespace:OpenBusDrivingSimulator.GUI.ViewModel"
+        Title="{Binding Strings.Title}"  Width="{Binding ScreenSize.Width}" Height="{Binding ScreenSize.Height}"
         Visibility="{Binding IsVisible, Mode=TwoWay, Converter={StaticResource boolToVisibilityConverter}}"
         WindowStartupLocation="CenterScreen" ResizeMode="CanMinimize">
     <Window.DataContext>
-        <local:MainWindowModel />
+        <model:MainWindowModel />
     </Window.DataContext>
     <Grid>
-        <Button Content="{Binding Strings.StartGame}" Command="{Binding StartGameCommand}" HorizontalAlignment="Left" Margin="194,141,0,0" VerticalAlignment="Top" Width="119" Height="53"/>
-        <Label Content="{Binding Strings.VersionNumber}" HorizontalAlignment="Left" Margin="10,282,0,0" VerticalAlignment="Top" Width="149" Background="Red" Foreground="White"/>
+        <Button Content="{Binding Strings.StartGame}" Command="{Binding StartGameCommand}" HorizontalAlignment="Center" Margin="0,10,0,0" VerticalAlignment="Top" Width="119" Height="53"/>
+        <Label Content="{Binding Strings.VersionNumber}" HorizontalAlignment="Left" Margin="10,0,0,10" VerticalAlignment="Bottom" Width="149" Background="Red" Foreground="White"/>
     </Grid>
 </Window>

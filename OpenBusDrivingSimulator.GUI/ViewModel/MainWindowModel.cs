@@ -7,8 +7,9 @@ using System.Windows;
 using System.Windows.Input;
 using OpenBusDrivingSimulator.Core;
 using OpenBusDrivingSimulator.Game;
+using OpenBusDrivingSimulator.GUI.View;
 
-namespace OpenBusDrivingSimulator.GUI
+namespace OpenBusDrivingSimulator.GUI.ViewModel
 {
     public class MainWindowModelStrings
     {
@@ -24,17 +25,36 @@ namespace OpenBusDrivingSimulator.GUI
         }
     }
 
+    public class MainWindowSize
+    {
+        public int Width { get; set; }
+        public int Height { get; set; }
+
+        public MainWindowSize()
+        {
+            Width = Constants.DEFAULT_SCREEN_WIDTH;
+            Height = Constants.DEFAULT_SCREEN_HEIGHT;
+        }
+    }
+
     public class MainWindowModel : WindowModel
     {
         public MainWindowModel()
         {
             strings = new MainWindowModelStrings();
+            size = new MainWindowSize();
         }
 
         private MainWindowModelStrings strings;
         public MainWindowModelStrings Strings
         {
             get { return strings; }
+        }
+
+        private MainWindowSize size;
+        public MainWindowSize ScreenSize
+        {
+            get { return size; }
         }
 
         private ICommand startGameCommand;

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using OpenBusDrivingSimulator.Core;
 using OpenBusDrivingSimulator.Engine;
@@ -19,9 +21,13 @@ namespace OpenBusDrivingSimulator.Game
         public static void Start()
         {
             double totalTimeElapsedForHud = 0.0;
+            string iconPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) 
+                +"\\" + Constants.APPLICATION_ICON;
+            if (!File.Exists(iconPath))
+                iconPath = string.Empty;
 
-            Screen.Initialize(Constants.DEFAULT_SCREEN_WIDTH, 
-                Constants.DEFAULT_SCREEN_HEIGHT, Constants.APPLICATION_NAME);
+            Screen.Initialize(Constants.DEFAULT_SCREEN_WIDTH,
+                Constants.DEFAULT_SCREEN_HEIGHT, Constants.APPLICATION_NAME, iconPath);
             Renderer.Initialize();
             Camera.Initialize();
 

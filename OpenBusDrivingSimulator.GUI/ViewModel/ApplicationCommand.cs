@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Input;
 
-namespace OpenBusDrivingSimulator.GUI
+namespace OpenBusDrivingSimulator.GUI.ViewModel
 {
     public class ApplicationCommand : ICommand
     {

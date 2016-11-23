@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.Diagnostics;
 using System.Text;
 using OpenTK;
@@ -13,6 +14,13 @@ namespace OpenBusDrivingSimulator.Engine
 {
     public static class Screen
     {
+        private class IconData
+        {
+            public Bitmap IconBmp;
+            public BitmapData IconBmpData;
+            public IntPtr IconSurface;
+        }
+
         #region Private Members
         private static bool closed;
         private static bool initialized;
@@ -23,6 +31,7 @@ namespace OpenBusDrivingSimulator.Engine
         private static IntPtr windowHandle;
         private static IntPtr glContext;
         private static GraphicsContext graphicsContext;
+        private static IconData iconData;
         #endregion
 
         #region Properties
@@ -48,7 +57,7 @@ namespace OpenBusDrivingSimulator.Engine
         #endregion
 
         #region Public Methods
-        public static bool Initialize(int inputWidth, int inputHeight, string title)
+        public static bool Initialize(int inputWidth, int inputHeight, string title, string iconPath)
         {
             if (SDL.SDL_InitSubSystem(SDL.SDL_INIT_VIDEO) != 0)
                 return false;
@@ -64,6 +73,18 @@ namespace OpenBusDrivingSimulator.Engine
             graphicsContext = new GraphicsContext(new ContextHandle(glContext),
                 SDL.SDL_GL_GetProcAddress,
                 () => new ContextHandle(SDL.SDL_GL_GetCurrentContext()));
+
+            // Add icon to the window
+            if (!string.IsNullOrEmpty(iconPath))
+            {
+                iconData = new IconData();
+                iconData.IconBmp = new Bitmap(iconPath);
+                iconData.IconBmpData = iconData.IconBmp.LockBits(new Rectangle(0, 0, iconData.IconBmp.Width, iconData.IconBmp.Height),
+                    ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+                iconData.IconSurface = SDL.SDL_CreateRGBSurfaceFrom(iconData.IconBmpData.Scan0, iconData.IconBmp.Width, iconData.IconBmp.Height,
+                    32, iconData.IconBmpData.Stride, 0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000);
+                SDL.SDL_SetWindowIcon(windowHandle, iconData.IconSurface);
+            }
 
             width = inputWidth;
             height = inputHeight;
@@ -81,6 +102,11 @@ namespace OpenBusDrivingSimulator.Engine
                 SDL.SDL_GL_DeleteContext(glContext);
                 SDL.SDL_DestroyWindow(windowHandle);
                 SDL.SDL_QuitSubSystem(SDL.SDL_INIT_VIDEO);
+                if (iconData != null)
+                {
+                    SDL.SDL_FreeSurface(iconData.IconSurface);
+                    iconData.IconBmp.UnlockBits(iconData.IconBmpData);
+                }
                 initialized = false;
             }
         }

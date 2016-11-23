@@ -5,7 +5,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 
-namespace OpenBusDrivingSimulator.GUI
+namespace OpenBusDrivingSimulator.GUI.ViewModel
 {
     public abstract class WindowModel : INotifyPropertyChanged
     {

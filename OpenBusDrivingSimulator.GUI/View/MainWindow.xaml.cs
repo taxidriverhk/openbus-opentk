@@ -1,7 +1,7 @@
 ﻿using System.Windows;
 using OpenBusDrivingSimulator.Game;
 
-namespace OpenBusDrivingSimulator.GUI
+namespace OpenBusDrivingSimulator.GUI.View
 {
     /// <summary>
     /// 

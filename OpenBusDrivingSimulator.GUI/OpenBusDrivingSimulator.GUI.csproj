@@ -161,7 +161,8 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>copy "$(SolutionDir)OpenBusDrivingSimulator.Engine\Referenced Libraries\*.dll" $(ProjectDir)$(OutDir)</PostBuildEvent>
+    <PostBuildEvent>copy "$(SolutionDir)OpenBusDrivingSimulator.Engine\Referenced Libraries\*.dll" "$(ProjectDir)$(OutDir)"
+copy "$(SolutionDir)OpenBusDrivingSimulator.GUI\Images\favicon.ico" "$(ProjectDir)$(OutDir)"</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

@@ -55,6 +55,7 @@
     <Compile Include="Game.cs" />
     <Compile Include="MainLoop.cs" />
     <Compile Include="Map.cs" />
+    <Compile Include="Object.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="UserControl.cs" />
   </ItemGroup>

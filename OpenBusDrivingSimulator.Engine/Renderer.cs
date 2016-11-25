@@ -1,13 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.Drawing;
-using System.Threading.Tasks;
 using OpenTK;
-using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
-using OpenTK.Input;
 
 namespace OpenBusDrivingSimulator.Engine
 {
@@ -16,6 +10,7 @@ namespace OpenBusDrivingSimulator.Engine
     /// </summary>
     public static class Renderer
     {
+        private static List<Entity> loadedEntities;
         private static StaticBufferObject staticBuffer;
         private static List<MirrorBufferObject> mirrorBuffers;
         private static OverlayTextObject overlayText;
@@ -28,6 +23,7 @@ namespace OpenBusDrivingSimulator.Engine
         /// </summary>
         public static void Initialize()
         {
+            loadedEntities = new List<Entity>();
             staticBuffer = new StaticBufferObject();
             overlayText = new OverlayTextObject();
             mirrorBuffers = new List<MirrorBufferObject>();
@@ -41,6 +37,7 @@ namespace OpenBusDrivingSimulator.Engine
         /// </summary>
         public static void Cleanup()
         {
+            loadedEntities.Clear();
             staticBuffer.Cleanup();
             foreach (MirrorBufferObject mirrorBuffer in mirrorBuffers)
                 mirrorBuffer.Cleanup();
@@ -69,13 +66,63 @@ namespace OpenBusDrivingSimulator.Engine
         }
 
         /// <summary>
+        /// Draws a red line from a point to another point
+        /// </summary>
+        /// <param name="startX"></param>
+        /// <param name="startY"></param>
+        /// <param name="startZ"></param>
+        /// <param name="endX"></param>
+        /// <param name="endY"></param>
+        /// <param name="endZ"></param>
+        public static void DrawLine(float startX, float startY, float startZ,
+            float endX, float endY, float endZ)
+        {
+            GL.LineWidth(2.0f);
+            GL.Color3(Vector3.UnitX);
+            GL.Begin(PrimitiveType.Lines);
+            GL.Vertex3(startX, startY, startZ);
+            GL.Vertex3(endX, endY, endZ);
+            GL.End();
+            GL.Color3(Vector3.One);
+        }
+
+        /// <summary>
+        /// Draws the mouse ray created by a mouse click
+        /// (This function should be used for debugging purpose only)
+        /// </summary>
+        public static void DrawMouseRay()
+        {
+            Ray mouseRay = Screen.MouseRay;
+            if (mouseRay != null)
+                DrawLine(mouseRay.StartPoint.X, mouseRay.StartPoint.Y, mouseRay.StartPoint.Z, 
+                    mouseRay.EndPoint.X, mouseRay.EndPoint.Y, mouseRay.EndPoint.Z);
+        }
+
+        /// <summary>
+        /// Gets the entity that was hit by the mouse cursor position
+        /// </summary>
+        /// <param name="mouseLocation"></param>
+        /// <returns></returns>
+        public static Entity GetHitEntity(Vector2 mouseLocation)
+        {
+            GL.ClearColor(Color.White);
+            GL.Clear(ClearBufferMask.ColorBufferBit);
+            GL.Disable(EnableCap.DepthTest);
+            staticBuffer.DrawEntities(true);
+            Vector3 color = GraphicsHelper.GetColorOfScreen(new Vector3(mouseLocation.X, mouseLocation.Y, 0.0f));
+            GL.Enable(EnableCap.DepthTest);
+            return loadedEntities.Find(e => e.Color == color);
+        }
+
+        /// <summary>
         /// 
         /// </summary>
         /// <param name="meshes"></param>
         /// <returns></returns>
-        public static int LoadStaticEntitiesToScene(List<Entity> entities)
+        public static int LoadStaticEntitiesToScene(List<Entity> entities, ISet<Mesh> meshes)
         {
-            return staticBuffer.LoadEntities(entities);
+            loadedEntities = new List<Entity>(entities);
+            return staticBuffer.LoadEntities(entities, meshes);
         }
 
         /// <summary>
@@ -91,25 +138,23 @@ namespace OpenBusDrivingSimulator.Engine
 
         public static void LoadSkyBox(Mesh skyBoxMesh, float scale, string textureFile)
         {
-            int textureId = Texture.LoadTextureFromFile(textureFile);
-            skyBox.LoadSkyBox(skyBoxMesh, new Vector3(scale), textureId);
+            skyBox.LoadSkyBox(skyBoxMesh, new Vector3(scale), skyBoxMesh.Materials[0].TextureId);
         }
 
         public static void LoadTerrain(int x, int y, int size, float[][] heights, string textureFile, float u, float v)
         {
-            int textureId = Texture.LoadTextureFromFile(textureFile);
+            int textureId = Texture.LoadTexture(textureFile);
             terrain.InitializeTerrain(new Vector2(x, y), size, heights, textureId, new Vector2(u, v));
         }
 
         public static void DrawScene()
         {
-            GL.ClearColor(Color.Black);
+            GL.ClearColor(Color.White);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
             DrawSkyBox();
             DrawStaticScene();
             DrawMirrors();
             DrawTerrain();
-
         }
 
         /// <summary>
@@ -117,7 +162,26 @@ namespace OpenBusDrivingSimulator.Engine
         /// </summary>
         private static void DrawStaticScene()
         {
+            // !!WARNING!!
+            // Although the code below is able to draw entities with transparent texture
+            // while retaining the depth buffer, such operation is expensive.
+            // Should find a better way to draw.
+            GL.Enable(EnableCap.AlphaTest);
+            GL.Enable(EnableCap.DepthTest);
+            GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
+
+            GL.Disable(EnableCap.Blend);
+            GL.AlphaFunc(AlphaFunction.Equal, 1.0f);
             staticBuffer.DrawEntities();
+
+            GL.Enable(EnableCap.Blend);
+            GL.DepthMask(false);
+            GL.AlphaFunc(AlphaFunction.Less, 1.0f);
+            staticBuffer.DrawEntities();
+
+            GL.DepthMask(true);
+            GL.Disable(EnableCap.AlphaTest);
+            GL.Disable(EnableCap.Blend);
         }
 
         /// <summary>

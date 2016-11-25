@@ -19,10 +19,19 @@ namespace OpenBusDrivingSimulator.Engine
         /// </summary>
         private static readonly string[] supportedFormats = { ".bmp" };
 
+        private static ISet<int> alphaTextureIds = new HashSet<int>();
+        /// <summary>
+        /// 
+        /// </summary>
+        public static ISet<int> AlphaTextureIds
+        {
+            get { return alphaTextureIds; }
+        }
+
+        private static List<int> textureIds = new List<int>();
         /// <summary>
         /// List of IDs where each of them points to the data allocated to the graphics memory.
         /// </summary>
-        private static List<int> textureIds = new List<int>();
         public static List<int> TextureIds
         {
             get { return textureIds; }
@@ -36,7 +45,7 @@ namespace OpenBusDrivingSimulator.Engine
         /// The texture ID allocated to the graphics memory.
         /// -1 if the bitmap is null.
         /// </returns>
-        public static int LoadTextureFromBitmap(Bitmap bitmap)
+        public static int LoadTexture(Bitmap bitmap, bool hasAlpha)
         {
             if (bitmap == null)
                 return -1;
@@ -57,7 +66,14 @@ namespace OpenBusDrivingSimulator.Engine
             bitmap.UnlockBits(bitmapData);
 
             textureIds.Add(id);
+            if (hasAlpha)
+                alphaTextureIds.Add(id);
             return id;
+        }
+
+        public static int LoadTexture(Bitmap bitmap)
+        {
+            return LoadTexture(bitmap, false);
         }
 
         /// <summary>
@@ -66,11 +82,13 @@ namespace OpenBusDrivingSimulator.Engine
         /// <param name="filename">
         /// The full absolute path of the image, without extension. This method will append the extension of every supported format and will use the first one that could be loaded.
         /// </param>
+        /// <param name="hasAlpha">
+        /// </param>
         /// <returns>
         /// The texture ID allocated to the graphics memory.
         /// -1 if the bitmap is null.
         /// </returns>
-        public static int LoadTextureFromFile(string filename)
+        public static int LoadTexture(string filename, bool hasAlpha)
         {
             string fullPath = filename;
             if (!fullPath.Contains("."))
@@ -85,7 +103,25 @@ namespace OpenBusDrivingSimulator.Engine
                 return -1;
 
             Bitmap bitmap = new Bitmap(fullPath);
-            return LoadTextureFromBitmap(bitmap);
+            if (hasAlpha && bitmap.PixelFormat != System.Drawing.Imaging.PixelFormat.Format32bppArgb)
+            {
+                Rectangle rect = new Rectangle(0, 0, bitmap.Width, bitmap.Height);
+                Bitmap bitmapWithAlpha = new Bitmap(bitmap.Width, bitmap.Height, 
+                    System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+                using (Graphics gfx = Graphics.FromImage(bitmapWithAlpha))
+                    gfx.DrawImage(bitmap, rect, rect, GraphicsUnit.Pixel);
+                bitmapWithAlpha.MakeTransparent();
+                bitmap = bitmapWithAlpha;
+            }
+            int textureId = LoadTexture(bitmap);
+            if (hasAlpha)
+                alphaTextureIds.Add(textureId);
+            return textureId;
+        }
+
+        public static int LoadTexture(string filename)
+        {
+            return LoadTexture(filename, false);
         }
 
         /// <summary>

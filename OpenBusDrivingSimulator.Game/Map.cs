@@ -8,42 +8,6 @@ using OpenBusDrivingSimulator.Engine;
 
 namespace OpenBusDrivingSimulator.Game
 {
-    public class MapObject
-    {
-        private Vector3f position;
-        private Vector3f rotations;
-        private string[] meshes;
-        private string path;
-
-        public string Path
-        {
-            get { return path; }
-        }
-
-        public Vector3f Position
-        {
-            get { return position; }
-        }
-
-        public Vector3f Rotations
-        {
-            get { return rotations; }
-        }
-
-        public string[] Meshes
-        {
-            get { return meshes; }
-        }
-
-        public MapObject(Vector3f position, Vector3f rotations, string[] meshes, string path)
-        {
-            this.position = position;
-            this.rotations = rotations;
-            this.meshes = meshes;
-            this.path = path;
-        }
-    }
-
     public class Terrain
     {
         public class TerrainDisplacement
@@ -99,14 +63,14 @@ namespace OpenBusDrivingSimulator.Game
 
         private bool loaded;
         private Vector2f position;
-        private List<MapObject> objects;
+        private List<Object> objects;
 
         public bool Loaded
         {
             get { return loaded; }
         }
 
-        public List<MapObject> Objects
+        public List<Object> Objects
         {
             get { return objects; }
         }
@@ -122,15 +86,22 @@ namespace OpenBusDrivingSimulator.Game
             MapBlock block = new MapBlock();
             block.loaded = false;
             block.position = new Vector2f();
-            block.objects = new List<MapObject>();
+            block.objects = new List<Object>();
             foreach (ObjectInfo objectInfo in blockEx.Objects)
             {
                 ObjectEx objectEx = XmlDeserializeHelper<ObjectEx>.DeserializeFromFile(GameEnvironment.RootPath + objectInfo.Path);
                 string[] meshPaths = new string[objectEx.Meshes.Length];
+                ObjectTexture[] alphaTextures = null;
+                if (objectEx.AlphaTextures != null)
+                    alphaTextures = new ObjectTexture[objectEx.AlphaTextures.Length];
                 for (int i = 0; i < objectEx.Meshes.Length; i++)
                     meshPaths[i] = objectEx.Meshes[i].Path;
-                block.objects.Add(new MapObject(objectInfo.Position,
-                    objectInfo.Rotations, meshPaths, objectInfo.Path));
+                if (alphaTextures != null)
+                    for (int i = 0; i < objectEx.AlphaTextures.Length; i++)
+                        alphaTextures[i] = new ObjectTexture(objectEx.AlphaTextures[i].Path,
+                            (ObjectTextureAlphaMode)objectEx.AlphaTextures[i].Mode);
+                block.objects.Add(new Object(objectInfo.Position,
+                    objectInfo.Rotations, meshPaths, objectInfo.Path, alphaTextures));
             }
             return block;
         }
@@ -145,18 +116,25 @@ namespace OpenBusDrivingSimulator.Game
             // Load the static objects to buffer
             block.Position = new Vector2f(x, y);
             List<Entity> staticEntities = new List<Entity>();
-            foreach (MapObject mapObject in block.Objects)
+            HashSet<Mesh> staticMeshes = new HashSet<Mesh>();
+            foreach (Object mapObject in block.Objects)
             {
+                HashSet<string> alphaTextures = new HashSet<string>();
+                if (mapObject.AlphaTextures != null)
+                    foreach (ObjectTexture objTexture in mapObject.AlphaTextures)
+                        alphaTextures.Add(objTexture.Path);
+
                 foreach (string meshPath in mapObject.Meshes)
                 {
-                    Mesh staticMesh = Mesh.LoadFromCollada(GameEnvironment.RootPath + "objects\\" + meshPath);
-                    Entity entity = new Entity(staticMesh, mapObject.Position.X + block.Position.X, 
+                    Mesh staticMesh = Mesh.LoadFromCollada(GameEnvironment.RootPath + "objects\\" + meshPath, alphaTextures);
+                    Entity entity = new Entity(staticMesh.Name, mapObject.Position.X + block.Position.X, 
                         mapObject.Position.Y, -mapObject.Position.Z - block.Position.Y,
                         mapObject.Rotations.X, mapObject.Rotations.Y, mapObject.Rotations.Z);
                     staticEntities.Add(entity);
+                    staticMeshes.Add(staticMesh);
                 }
             }
-            Renderer.LoadStaticEntitiesToScene(staticEntities);
+            Renderer.LoadStaticEntitiesToScene(staticEntities, staticMeshes);
 
             // Load the terrain data to buffer as well
             int terrainSize = Terrain.TERRAIN_GRID_SIZE;

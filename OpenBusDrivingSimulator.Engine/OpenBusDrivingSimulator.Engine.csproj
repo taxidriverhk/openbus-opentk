@@ -60,12 +60,13 @@
     <Compile Include="Camera.cs" />
     <Compile Include="Collada.cs" />
     <Compile Include="Control.cs" />
+    <Compile Include="GraphicsHelper.cs" />
     <Compile Include="Material.cs" />
     <Compile Include="Mesh.cs" />
     <Compile Include="Screen.cs" />
     <Compile Include="Renderer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Shading.cs" />
+    <Compile Include="Shader.cs" />
     <Compile Include="Texture.cs" />
     <Compile Include="Vertex.cs" />
   </ItemGroup>

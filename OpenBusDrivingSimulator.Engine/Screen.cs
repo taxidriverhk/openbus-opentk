@@ -1,12 +1,8 @@
 ﻿using System;
 using System.Drawing;
 using System.Drawing.Imaging;
-using System.Diagnostics;
-using System.Text;
 using OpenTK;
 using OpenTK.Graphics;
-using OpenTK.Graphics.OpenGL;
-using OpenTK.Platform;
 using SDL2;
 using OpenBusDrivingSimulator.Engine.Controls;
 
@@ -32,6 +28,8 @@ namespace OpenBusDrivingSimulator.Engine
         private static IntPtr glContext;
         private static GraphicsContext graphicsContext;
         private static IconData iconData;
+
+        private static Ray mouseRay;
         #endregion
 
         #region Properties
@@ -53,6 +51,11 @@ namespace OpenBusDrivingSimulator.Engine
         public static int Height
         {
             get { return height; }
+        }
+
+        public static Ray MouseRay
+        {
+            get { return mouseRay; }
         }
         #endregion
 
@@ -133,6 +136,14 @@ namespace OpenBusDrivingSimulator.Engine
                         Controller.RemoveControlFromSequence(
                             GetKeyCodeFromScanCode(eventTriggered.key.keysym.scancode));
                         break;
+                    case SDL.SDL_EventType.SDL_MOUSEBUTTONUP:
+                        /*
+                         * Commented out for now as they are expensive operations
+                        Vector2 mouseLocation = new Vector2(eventTriggered.button.x, eventTriggered.button.y);
+                        mouseRay = GetMouseRay(mouseLocation);
+                        Entity hitEntity = Renderer.GetHitEntity(mouseLocation);
+                        */
+                        break;
                     default:
                         break;
                 }
@@ -147,6 +158,15 @@ namespace OpenBusDrivingSimulator.Engine
         public static void SwapBuffers()
         {
             SDL.SDL_GL_SwapWindow(windowHandle);
+        }
+
+        private static Ray GetMouseRay(Vector2 mouseLocation)
+        {
+            Vector3 nearPoint = GraphicsHelper.UnProject(
+                new Vector3(mouseLocation.X, mouseLocation.Y, 0.0f));
+            Vector3 farPoint = GraphicsHelper.UnProject(
+                new Vector3(mouseLocation.X, mouseLocation.Y, 1.0f));
+            return new Ray(nearPoint, farPoint);
         }
         #endregion
 

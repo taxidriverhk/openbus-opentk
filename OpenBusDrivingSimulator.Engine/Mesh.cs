@@ -11,15 +11,27 @@ namespace OpenBusDrivingSimulator.Engine
 {
     public struct Entity
     {
-        public Mesh Mesh;
+        private static int currentId = 0;
+
+        public string MeshName;
         public Vector3 Translation;
         public Vector3 Rotation;
 
-        public Entity(Mesh mesh, float tx, float ty, float tz, float rx, float ry, float rz)
+        public int Id;
+        public Vector3 Color;
+
+        public Entity(string meshName, float tx, float ty, float tz, float rx, float ry, float rz)
         {
-            Mesh = mesh;
+            MeshName = meshName;
             Translation = new Vector3(tx, ty, tz);
             Rotation = new Vector3(rx, ry, rz);
+
+            Id = currentId;
+            int r = (Id & 0x000000FF) >> 0,
+                g = (Id & 0x0000FF00) >> 8,
+                b = (Id & 0x00FF0000) >> 16;
+            Color = new Vector3(r/255f, g/255f, b/255f);
+            currentId++;
         }
     }
 
@@ -34,6 +46,11 @@ namespace OpenBusDrivingSimulator.Engine
         public uint[][] Indices;
 
         public static Mesh LoadFromCollada(string path)
+        {
+            return LoadFromCollada(path, null);
+        }
+
+        public static Mesh LoadFromCollada(string path, ISet<string> alphaTextures)
         {
             Collada collada = null;
             try
@@ -62,8 +79,15 @@ namespace OpenBusDrivingSimulator.Engine
             }
 
             for (int i = 0; i < collada.Images.Length && i < collada.Materials.Length; i++)
-                resultMesh.Materials[i].TextureId = Texture.LoadTextureFromFile(resultMesh.texturePath
-                    + Constants.PATH_DELIM + collada.Images[i].ImageFile);
+            {
+                string fullPath = resultMesh.texturePath
+                    + Constants.PATH_DELIM + collada.Images[i].ImageFile;
+                if (alphaTextures != null && alphaTextures.Contains(collada.Images[i].ImageFile))
+                    resultMesh.Materials[i].TextureId = Texture.LoadTexture(fullPath, true);
+                else
+                    resultMesh.Materials[i].TextureId = Texture.LoadTexture(fullPath);
+            }
+                
 
             resultMesh.Vertices = new Vertex[resultMesh.Materials.Length][];
             for (int i = 0; i < collada.Geometries.Length; i++)

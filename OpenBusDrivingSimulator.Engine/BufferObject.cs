@@ -8,6 +8,14 @@ using OpenTK.Graphics.OpenGL;
 
 namespace OpenBusDrivingSimulator.Engine
 {
+    internal enum BufferObjectDrawingMode
+    {
+        ALL = 0,
+        COLOR_ONLY = 1,
+        ALPHA_ONLY = 2,
+        NON_ALPHA_ONLY = 3
+    }
+
     /// <summary>
     /// 
     /// </summary>
@@ -259,10 +267,14 @@ namespace OpenBusDrivingSimulator.Engine
         /// </summary>
         internal void DrawEntities()
         {
-            DrawEntities(false);   
+            DrawEntities(BufferObjectDrawingMode.ALL);   
         }
 
-        internal void DrawEntities(bool colorOnly)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="mode"></param>
+        internal void DrawEntities(BufferObjectDrawingMode mode)
         {
             GL.Enable(EnableCap.CullFace);
             GL.CullFace(CullFaceMode.Back);
@@ -271,11 +283,18 @@ namespace OpenBusDrivingSimulator.Engine
                 List<int> textureIds = meshTextureIdMapping[entity.MeshName];
                 foreach (int textureId in textureIds)
                 {
+                    if (mode == BufferObjectDrawingMode.ALPHA_ONLY
+                        && !Texture.AlphaTextureIds.Contains(textureId))
+                        continue;
+                    else if (mode == BufferObjectDrawingMode.NON_ALPHA_ONLY
+                        && Texture.AlphaTextureIds.Contains(textureId))
+                        continue;
+
                     uint bufferId = textureIdBufferMapping[textureId],
                          indexArrayId = bufferIndexIdMapping[bufferId];
                     int indexArrayOffset = textureIndexMapping[textureId].Key,
                         indexArrayLength = textureIndexMapping[textureId].Value;
-                    if (colorOnly)
+                    if (mode == BufferObjectDrawingMode.COLOR_ONLY)
                         BufferObjectHelper.BindAndDrawBuffer(bufferId, indexArrayId,
                             indexArrayOffset, indexArrayLength, entity.Color,
                             entity.Translation, entity.Rotation, Vector3.One);
@@ -617,6 +636,7 @@ namespace OpenBusDrivingSimulator.Engine
                 }
 
             indexArrayLength = indices.Length;
+
             // Load the data into the buffer
             BufferObjectHelper.CreateBuffers(out bufferId, out indexArrayId);
             BufferObjectHelper.LoadDataIntoBuffers(bufferId, vertices, indexArrayId, indices);

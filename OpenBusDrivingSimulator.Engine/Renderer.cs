@@ -108,7 +108,7 @@ namespace OpenBusDrivingSimulator.Engine
             GL.ClearColor(Color.White);
             GL.Clear(ClearBufferMask.ColorBufferBit);
             GL.Disable(EnableCap.DepthTest);
-            staticBuffer.DrawEntities(true);
+            staticBuffer.DrawEntities(BufferObjectDrawingMode.COLOR_ONLY);
             Vector3 color = GraphicsHelper.GetColorOfScreen(new Vector3(mouseLocation.X, mouseLocation.Y, 0.0f));
             GL.Enable(EnableCap.DepthTest);
             return loadedEntities.Find(e => e.Color == color);
@@ -136,17 +136,41 @@ namespace OpenBusDrivingSimulator.Engine
             mirrorBuffers.Add(mirrorBuffer);
         }
 
-        public static void LoadSkyBox(Mesh skyBoxMesh, float scale, string textureFile)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="skyBoxMesh"></param>
+        /// <param name="scale"></param>
+        /// <param name="textureFile"></param>
+        public static void LoadSkyBox(Mesh skyBoxMesh, float scale)
         {
             skyBox.LoadSkyBox(skyBoxMesh, new Vector3(scale), skyBoxMesh.Materials[0].TextureId);
         }
 
+        public static void ReplaceSkyBox(string textureFile)
+        {
+            skyBox.ReplaceTextures(textureFile);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <param name="size"></param>
+        /// <param name="heights"></param>
+        /// <param name="textureFile"></param>
+        /// <param name="u"></param>
+        /// <param name="v"></param>
         public static void LoadTerrain(int x, int y, int size, float[][] heights, string textureFile, float u, float v)
         {
             int textureId = Texture.LoadTexture(textureFile);
             terrain.InitializeTerrain(new Vector2(x, y), size, heights, textureId, new Vector2(u, v));
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public static void DrawScene()
         {
             GL.ClearColor(Color.White);
@@ -170,15 +194,19 @@ namespace OpenBusDrivingSimulator.Engine
             GL.Enable(EnableCap.DepthTest);
             GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
 
+            // Draw the scene with opaque entities contribute to the depth buffer
             GL.Disable(EnableCap.Blend);
             GL.AlphaFunc(AlphaFunction.Equal, 1.0f);
             staticBuffer.DrawEntities();
 
+            // Draw the scene again with depth buffer read only, so the transparent entites cannot
+            // contribute to the depth buffer
             GL.Enable(EnableCap.Blend);
             GL.DepthMask(false);
             GL.AlphaFunc(AlphaFunction.Less, 1.0f);
-            staticBuffer.DrawEntities();
+            staticBuffer.DrawEntities(BufferObjectDrawingMode.ALPHA_ONLY);
 
+            // Set the states back
             GL.DepthMask(true);
             GL.Disable(EnableCap.AlphaTest);
             GL.Disable(EnableCap.Blend);

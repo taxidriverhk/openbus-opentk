@@ -17,7 +17,6 @@ namespace OpenBusDrivingSimulator.Engine
             public IntPtr IconSurface;
         }
 
-        #region Private Members
         private static bool closed;
         private static bool initialized;
 
@@ -30,9 +29,7 @@ namespace OpenBusDrivingSimulator.Engine
         private static IconData iconData;
 
         private static Ray mouseRay;
-        #endregion
 
-        #region Properties
         public static bool Closed
         {
             get { return closed; }
@@ -57,9 +54,7 @@ namespace OpenBusDrivingSimulator.Engine
         {
             get { return mouseRay; }
         }
-        #endregion
 
-        #region Public Methods
         public static bool Initialize(int inputWidth, int inputHeight, string title, string iconPath)
         {
             if (SDL.SDL_InitSubSystem(SDL.SDL_INIT_VIDEO) != 0)
@@ -168,13 +163,10 @@ namespace OpenBusDrivingSimulator.Engine
                 new Vector3(mouseLocation.X, mouseLocation.Y, 1.0f));
             return new Ray(nearPoint, farPoint);
         }
-        #endregion
 
-        #region Private Methods
         private static KeyCode GetKeyCodeFromScanCode(SDL.SDL_Scancode scanCode)
         {
             return (KeyCode)scanCode;
         }
-        #endregion
     }
 }

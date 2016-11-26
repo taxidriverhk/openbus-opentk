@@ -9,16 +9,6 @@ using OpenBusDrivingSimulator.Core;
 
 namespace OpenBusDrivingSimulator.Engine
 {
-    public struct PhongShading
-    {
-        public Vector4 Emission;
-        public Vector4 Ambient;
-        public Vector4 Diffuse;
-        public Vector4 Specular;
-        public float Shininess;
-        public float IndexOfRefraction;
-    }
-
     internal class ShaderProgram
     {
         private abstract class ShaderVariable
@@ -57,6 +47,13 @@ namespace OpenBusDrivingSimulator.Engine
 
             attributes = new Dictionary<string, AttributeVariable>();
             uniforms = new Dictionary<string, UniformVariable>();
+        }
+
+        internal void BindVertexAttribPointer(string varName, int size, int offset)
+        {
+            if (!attributes.ContainsKey(varName))
+                GL.VertexAttribPointer(attributes[varName].Location, size, VertexAttribPointerType.Float, false, 
+                    Vertex.Size, Vertex.Size * offset);
         }
 
         internal void DestroyShaders()
@@ -194,6 +191,13 @@ namespace OpenBusDrivingSimulator.Engine
                 };
                 GL.UniformMatrix4(uniforms[varName].Location, 1, false, matrix);
             }
+        }
+
+        internal void SetLight(string lightPos, string lightColor, string lightType, Light light)
+        {
+            SetUniform(lightPos, light.Position);
+            SetUniform(lightColor, light.Color);
+            SetUniform(lightType, (int)light.Type);
         }
 
         internal void UseProgram()

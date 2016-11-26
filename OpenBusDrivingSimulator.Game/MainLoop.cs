@@ -35,8 +35,7 @@ namespace OpenBusDrivingSimulator.Game
 
             #region Test Calls
             Renderer.LoadSkyBox(
-                Mesh.LoadFromCollada(GameEnvironment.RootPath + @"objects\sky.dae"),
-                450.0f, GameEnvironment.RootPath + @"objects\texture\sky.bmp");
+                Mesh.LoadFromCollada(GameEnvironment.RootPath + @"objects\sky.dae"), 450f);
             Game.LoadMap(GameEnvironment.RootPath + @"map\test.map");
             #endregion
 

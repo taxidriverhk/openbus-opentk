@@ -9,6 +9,13 @@ using OpenBusDrivingSimulator.Core;
 
 namespace OpenBusDrivingSimulator.Engine
 {
+    internal enum ShaderAttribute
+    {
+        POSITION = 0,
+        NORMAL = 1,
+        TEXCOORD = 2
+    }
+
     internal class ShaderProgram
     {
         private abstract class ShaderVariable
@@ -29,10 +36,14 @@ namespace OpenBusDrivingSimulator.Engine
         }
 
         private const int MAX_VAR_LENGTH = 256;
+        private static readonly Dictionary<ShaderAttribute, string> attributeVarNameMap = new Dictionary<ShaderAttribute, string>()
+        {
+            { ShaderAttribute.POSITION, "vPosition" },
+            { ShaderAttribute.NORMAL, "vNormal" },
+            { ShaderAttribute.TEXCOORD, "vTexCoord" }
+        };
 
         private int programId;
-        private int vertexShaderId;
-        private int fragmentShaderId;
         private bool loadSuccess;
 
         private Dictionary<string, AttributeVariable> attributes;
@@ -40,35 +51,45 @@ namespace OpenBusDrivingSimulator.Engine
 
         internal ShaderProgram()
         {
-            programId = -1;
-            vertexShaderId = -1;
-            fragmentShaderId = -1;
+            programId = 0;
             loadSuccess = false;
 
             attributes = new Dictionary<string, AttributeVariable>();
             uniforms = new Dictionary<string, UniformVariable>();
         }
 
-        internal void BindVertexAttribPointer(string varName, int size, int offset)
+        internal void BindVertexAttribPointer(ShaderAttribute attributeType)
         {
-            if (!attributes.ContainsKey(varName))
-                GL.VertexAttribPointer(attributes[varName].Location, size, VertexAttribPointerType.Float, false, 
-                    Vertex.Size, Vertex.Size * offset);
+            string varName = attributeVarNameMap[attributeType];
+            if (attributes.ContainsKey(varName))
+            {
+                int offset = 0,
+                    size = 3;
+                switch (attributeType)
+                {
+                    case ShaderAttribute.POSITION:
+                        offset = 0;
+                        size = 3;
+                        break;
+                    case ShaderAttribute.NORMAL:
+                        offset = Vector3.SizeInBytes;
+                        size = 3;
+                        break;
+                    case ShaderAttribute.TEXCOORD:
+                        offset = 2 * Vector3.SizeInBytes;
+                        size = 2;
+                        break;
+                }
+                GL.EnableVertexAttribArray(attributes[varName].Location);
+                GL.VertexAttribPointer(attributes[varName].Location, size, VertexAttribPointerType.Float, false,
+                    Vertex.Size, Vector3.SizeInBytes * offset);
+            }
         }
 
         internal void DestroyShaders()
         {
-            if (vertexShaderId != -1)
-            {
-                GL.DetachShader(programId, vertexShaderId);
-                GL.DeleteShader(vertexShaderId);
-            } 
-            if (fragmentShaderId != -1)
-            {
-                GL.DetachShader(programId, fragmentShaderId);
-                GL.DeleteShader(fragmentShaderId);
-            }
-            GL.DeleteProgram(programId);
+            if (programId != 0)
+                GL.DeleteProgram(programId);
         }
 
         internal void DisableAllVertexAttribArrays()
@@ -100,9 +121,9 @@ namespace OpenBusDrivingSimulator.Engine
                 return false;
 
             // Compile and load the shader codes
-            vertexShaderId = LoadShader(vCode, ShaderType.VertexShader);
-            fragmentShaderId = LoadShader(fCode, ShaderType.FragmentShader);
-            if (vertexShaderId == -1 || fragmentShaderId == -1)
+            int vertexShaderId = LoadShader(vCode, ShaderType.VertexShader),
+                fragmentShaderId = LoadShader(fCode, ShaderType.FragmentShader);
+            if (vertexShaderId == 0 || fragmentShaderId == 0)
                 return false;
 
             // Create the program and then attach the compiled shaders to the program
@@ -114,21 +135,37 @@ namespace OpenBusDrivingSimulator.Engine
             int attributeCount = 0,
                 uniformCount = 0;
             GL.LinkProgram(programId);
+            int linkResult = 0;
+            GL.GetProgram(programId, GetProgramParameterName.LinkStatus, out linkResult);
+            if (linkResult == 0)
+            {
+                string errorInfo;
+                GL.GetProgramInfoLog(programId, out errorInfo);
+                Log.Write(LogLevel.ERROR, "Failed to link the shaders to the program: {0}", errorInfo);
+                return false;
+            }
+
             GL.ValidateProgram(programId);
             GL.GetProgram(programId, GetProgramParameterName.ActiveAttributes, out attributeCount);
             GL.GetProgram(programId, GetProgramParameterName.ActiveUniforms, out uniformCount);
 
-            for (int i = 0; i < attributeCount; i++)
+            GL.UseProgram(programId);
+            foreach (KeyValuePair<ShaderAttribute, string> attribPair in attributeVarNameMap)
             {
                 AttributeVariable aVar = new AttributeVariable();
-                int length = 0;
-                StringBuilder name = new StringBuilder();
-
-                GL.GetActiveAttrib(programId, i, MAX_VAR_LENGTH, out length, out aVar.Size, out aVar.Type, name);
-                aVar.Name = name.ToString();
-                aVar.Location = GL.GetAttribLocation(programId, aVar.Name);
-                attributes.Add(name.ToString(), aVar);
+                int location = 0;
+                if (attribPair.Key == ShaderAttribute.NORMAL)
+                    location = 1;
+                else if (attribPair.Key == ShaderAttribute.TEXCOORD)
+                    location = 2;
+                GL.BindAttribLocation(programId, location, attribPair.Value);
+                aVar.Name = attribPair.Value;
+                aVar.Location = location;
+                aVar.Type = attribPair.Key == ShaderAttribute.TEXCOORD 
+                    ? ActiveAttribType.FloatVec2 : ActiveAttribType.FloatVec3;
+                attributes.Add(attribPair.Value, aVar);
             }
+            GL.UseProgram(0);
 
             for (int i = 0; i < uniformCount; i++)
             {
@@ -141,7 +178,13 @@ namespace OpenBusDrivingSimulator.Engine
                 uVar.Location = GL.GetAttribLocation(programId, uVar.Name);
                 uniforms.Add(name.ToString(), uVar);
             }
-             
+
+            // Delete the shaders as they are already in the program
+            GL.DetachShader(programId, vertexShaderId);
+            GL.DeleteShader(vertexShaderId);
+            GL.DetachShader(programId, fragmentShaderId);
+            GL.DeleteShader(fragmentShaderId);
+
             loadSuccess = true;
             return loadSuccess;
         }
@@ -238,7 +281,7 @@ namespace OpenBusDrivingSimulator.Engine
                 string errorInfo;
                 GL.GetShaderInfoLog(shaderHandle, out errorInfo);
                 Log.Write(LogLevel.ERROR, "Failed to compile the shader: {0}", errorInfo);
-                return -1;
+                return 0;
             }
             return shaderHandle;
         }

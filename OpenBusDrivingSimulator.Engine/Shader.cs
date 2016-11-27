@@ -16,6 +16,13 @@ namespace OpenBusDrivingSimulator.Engine
         TEXCOORD = 2
     }
 
+    internal enum ShaderUniform
+    {
+        PROJECTION_MATRIX = 0,
+        VIEW_MATRIX = 1,
+        MODEL_MATRIX = 2
+    }
+
     internal class ShaderProgram
     {
         private abstract class ShaderVariable
@@ -82,7 +89,7 @@ namespace OpenBusDrivingSimulator.Engine
                 }
                 GL.EnableVertexAttribArray(attributes[varName].Location);
                 GL.VertexAttribPointer(attributes[varName].Location, size, VertexAttribPointerType.Float, false,
-                    Vertex.Size, Vector3.SizeInBytes * offset);
+                    Vertex.Size, offset);
             }
         }
 
@@ -102,14 +109,6 @@ namespace OpenBusDrivingSimulator.Engine
         {
             foreach (string varName in attributes.Keys)
                 GL.EnableVertexAttribArray(attributes[varName].Location);
-        }
-
-        internal int GetAttribLocation(string varName)
-        {
-            if (!attributes.ContainsKey(varName))
-                return -1;
-            else
-                return attributes[varName].Location;
         }
 
         internal bool LoadShaderCodes(string vCodePath, string fCodePath)
@@ -132,8 +131,6 @@ namespace OpenBusDrivingSimulator.Engine
             GL.AttachShader(programId, fragmentShaderId);
 
             // Get the uniform and attributes from the code
-            int attributeCount = 0,
-                uniformCount = 0;
             GL.LinkProgram(programId);
             int linkResult = 0;
             GL.GetProgram(programId, GetProgramParameterName.LinkStatus, out linkResult);
@@ -145,9 +142,14 @@ namespace OpenBusDrivingSimulator.Engine
                 return false;
             }
 
-            GL.ValidateProgram(programId);
+            // For some reason, the progrma would crash if the codes in ShaderUseDict for getting all uniforms are used
+            // So just omit them for now
+#if ShaderUseDict
+            int attributeCount = 0,
+                uniformCount = 0;
             GL.GetProgram(programId, GetProgramParameterName.ActiveAttributes, out attributeCount);
             GL.GetProgram(programId, GetProgramParameterName.ActiveUniforms, out uniformCount);
+#endif
 
             GL.UseProgram(programId);
             foreach (KeyValuePair<ShaderAttribute, string> attribPair in attributeVarNameMap)
@@ -165,8 +167,8 @@ namespace OpenBusDrivingSimulator.Engine
                     ? ActiveAttribType.FloatVec2 : ActiveAttribType.FloatVec3;
                 attributes.Add(attribPair.Value, aVar);
             }
-            GL.UseProgram(0);
 
+#if ShaderUseDict
             for (int i = 0; i < uniformCount; i++)
             {
                 UniformVariable uVar = new UniformVariable();
@@ -178,6 +180,9 @@ namespace OpenBusDrivingSimulator.Engine
                 uVar.Location = GL.GetAttribLocation(programId, uVar.Name);
                 uniforms.Add(name.ToString(), uVar);
             }
+#endif
+
+            GL.UseProgram(0);
 
             // Delete the shaders as they are already in the program
             GL.DetachShader(programId, vertexShaderId);
@@ -191,48 +196,52 @@ namespace OpenBusDrivingSimulator.Engine
 
         internal void SetUniform(string varName, int value)
         {
-            if (uniforms.ContainsKey(varName))
-                GL.Uniform1(uniforms[varName].Location, value);
+            int location = GetUniformLocation(varName);
+            if (location >= 0)
+                GL.Uniform1(location, value);
         }
 
         internal void SetUniform(string varName, float value)
         {
-            if (uniforms.ContainsKey(varName))
-                GL.Uniform1(uniforms[varName].Location, value);
+            int location = GetUniformLocation(varName);
+            if (location >= 0)
+                GL.Uniform1(location, value);
         }
 
         internal void SetUniform(string varName, Vector3 value)
         {
-            if (uniforms.ContainsKey(varName))
-                GL.Uniform3(uniforms[varName].Location, value);
+            int location = GetUniformLocation(varName);
+            if (location >= 0)
+                GL.Uniform3(location, value);
         }
 
         internal void SetUniform(string varName, Matrix3 value)
         {
-            if (uniforms.ContainsKey(varName))
-            {
-                float[] matrix = new float[9]
-                {
-                    value.M11, value.M12, value.M13,
-                    value.M21, value.M22, value.M23,
-                    value.M31, value.M32, value.M33
-                };
-                GL.UniformMatrix3(uniforms[varName].Location, 1, false, matrix);
-            }
+            int location = GetUniformLocation(varName);
+            if (location >= 0)
+                GL.UniformMatrix3(location, false, ref value);
         }
 
         internal void SetUniform(string varName, Matrix4 value)
         {
-            if (uniforms.ContainsKey(varName))
+            int location = GetUniformLocation(varName);
+            if (location >= 0)
+                GL.UniformMatrix4(location, false, ref value);
+        }
+
+        internal void SetUniform(ShaderUniform varName, Matrix4 value)
+        {
+            switch (varName)
             {
-                float[] matrix = new float[16]
-                {
-                    value.M11, value.M12, value.M13, value.M14,
-                    value.M21, value.M22, value.M23, value.M24,
-                    value.M31, value.M32, value.M33, value.M34,
-                    value.M41, value.M42, value.M43, value.M44
-                };
-                GL.UniformMatrix4(uniforms[varName].Location, 1, false, matrix);
+                case ShaderUniform.PROJECTION_MATRIX:
+                    SetUniform("projectionMatrix", value);
+                    break;
+                case ShaderUniform.VIEW_MATRIX:
+                    SetUniform("viewMatrix", value);
+                    break;
+                case ShaderUniform.MODEL_MATRIX:
+                    SetUniform("modelMatrix", value);
+                    break;
             }
         }
 
@@ -252,6 +261,38 @@ namespace OpenBusDrivingSimulator.Engine
         internal void UnUseProgram()
         {
             GL.UseProgram(0);
+        }
+
+        internal bool Loaded
+        {
+            get { return loadSuccess; }
+        }
+
+        private int GetAttribLocation(string varName)
+        {
+            if (!attributes.ContainsKey(varName))
+                return -1;
+            else
+                return attributes[varName].Location;
+        }
+
+        private int GetUniformLocation(string varName)
+        {
+            if (!uniforms.ContainsKey(varName))
+            {
+                int location = GL.GetUniformLocation(programId, varName);
+                if (location >= 0)
+                {
+                    UniformVariable uVar = new UniformVariable();
+                    uVar.Name = varName;
+                    uVar.Location = location;
+                    uniforms.Add(varName, uVar);
+                    return location;
+                }
+                else
+                    return -1;
+            }
+            return uniforms[varName].Location;
         }
 
         private string ReadShaderCode(string codePath)

@@ -29,28 +29,9 @@ namespace OpenBusDrivingSimulator.Engine
             public byte A;
         }
 
-        internal static Matrix4 ProjectionMatrix
-        {
-            get
-            {
-                Matrix4 matrix = new Matrix4();
-                GL.GetFloat(GetPName.ProjectionMatrix, out matrix);
-                return matrix;
-            }
-        }
-
-        internal static Matrix4 ModelViewMatrix
-        {
-            get
-            {
-                Matrix4 matrix = new Matrix4();
-                GL.GetFloat(GetPName.ModelviewMatrix, out matrix);
-                return matrix;
-            }
-        }
-
         internal static Vector3 UnProject(Vector3 window)
         {
+            // Algorithm inspired by https://capnramses.github.io//opengl/raycasting.html
             // Get viewport coordinates
             int[] viewPort = new int[4];
             GL.GetInteger(GetPName.Viewport, viewPort);
@@ -64,7 +45,7 @@ namespace OpenBusDrivingSimulator.Engine
 
             // Get homogeneous clip coordinates
             Vector4 clip = Vector4.Transform(device, 
-                Matrix4.Invert(ModelViewMatrix * ProjectionMatrix));
+                Matrix4.Invert(Camera.ViewMatrix * Camera.ProjectionMatrix));
 
             // Get eye coordinates
             Vector3 eye = new Vector3(clip.X, clip.Y, clip.Z);

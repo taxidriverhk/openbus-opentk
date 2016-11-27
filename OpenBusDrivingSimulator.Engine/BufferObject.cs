@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
+using OpenBusDrivingSimulator.Core;
 
 namespace OpenBusDrivingSimulator.Engine
 {
@@ -15,6 +16,8 @@ namespace OpenBusDrivingSimulator.Engine
         ALPHA_ONLY = 2,
         NON_ALPHA_ONLY = 3
     }
+
+    internal delegate void ShaderProgramSetUniformsDelegate();
 
     /// <summary>
     /// 
@@ -187,6 +190,62 @@ namespace OpenBusDrivingSimulator.Engine
             GL.Scale(scale);
             BindAndDrawBuffer(bufferId, indexId, indexArrayStart, indexArrayLength, color);
             GL.PopMatrix();
+        }
+    }
+
+    internal static class ShaderProgramHelper
+    {
+        internal static void UseAndDrawBuffer(ShaderProgram shader, uint bufferId, uint indexArrayId, int indexArrayLength, int indexOffset, int textureId)
+        {
+            UseAndDrawBuffer(shader, bufferId, indexArrayId, indexArrayLength, indexOffset, new int[] { textureId },
+                Camera.ViewMatrix, Camera.ProjectionMatrix, Matrix4.Identity, () => { });
+        }
+
+        internal static void UseAndDrawBuffer(ShaderProgram shader, uint bufferId, uint indexArrayId, int indexArrayLength, int indexOffset, int textureId,
+            Vector3 translation, Vector3 rotation, Vector3 scale)
+        {
+            Matrix4 modelMatrix = Matrix4.CreateTranslation(translation);
+            modelMatrix *= Matrix4.CreateRotationY(rotation.Y);
+            modelMatrix *= Matrix4.CreateScale(scale);
+            UseAndDrawBuffer(shader, bufferId, indexArrayId, indexArrayLength, indexOffset, new int[] { textureId },
+                Camera.ViewMatrix, Camera.ProjectionMatrix, modelMatrix, () => { });
+        }
+
+        internal static void UseAndDrawBuffer(ShaderProgram shader, uint bufferId, uint indexArrayId, int indexArrayLength, int indexOffset, int textureId,
+            Vector3 translation, Vector3 rotation, Vector3 scale, ShaderProgramSetUniformsDelegate setUniforms)
+        {
+            Matrix4 modelMatrix = Matrix4.CreateTranslation(translation);
+            modelMatrix *= Matrix4.CreateRotationY(rotation.Y);
+            modelMatrix *= Matrix4.CreateScale(scale);
+            UseAndDrawBuffer(shader, bufferId, indexArrayId, indexArrayLength, indexOffset, new int[] { textureId },
+                Camera.ViewMatrix, Camera.ProjectionMatrix, modelMatrix, setUniforms);
+        }
+
+        internal static void UseAndDrawBuffer(ShaderProgram shader, uint bufferId, uint indexArrayId, int indexArrayLength, int indexOffset, int[] textureIds,
+            Matrix4 viewMatrix, Matrix4 projectionMatrix, Matrix4 modelMatrix, ShaderProgramSetUniformsDelegate setUniforms)
+        {
+            shader.UseProgram();
+            GL.BindBuffer(BufferTarget.ArrayBuffer, bufferId);
+
+            shader.BindVertexAttribPointer(ShaderAttribute.POSITION);
+            shader.BindVertexAttribPointer(ShaderAttribute.NORMAL);
+            shader.BindVertexAttribPointer(ShaderAttribute.TEXCOORD);
+
+            shader.SetUniform(ShaderUniform.VIEW_MATRIX, viewMatrix);
+            shader.SetUniform(ShaderUniform.PROJECTION_MATRIX, projectionMatrix);
+            shader.SetUniform(ShaderUniform.MODEL_MATRIX, modelMatrix);
+            setUniforms();
+
+            for (int i = 0; i < textureIds.Length && i < 32; i++)
+            {
+                GL.ActiveTexture(TextureUnit.Texture0 + i);
+                GL.BindTexture(TextureTarget.Texture2D, textureIds[i]);
+            }
+            GL.BindBuffer(BufferTarget.ElementArrayBuffer, indexArrayId);
+            GL.DrawElements(BeginMode.Triangles, indexArrayLength, DrawElementsType.UnsignedInt, indexOffset * sizeof(uint));
+
+            shader.DisableAllVertexAttribArrays();
+            shader.UnUseProgram();
         }
     }
 
@@ -597,14 +656,20 @@ namespace OpenBusDrivingSimulator.Engine
     /// </summary>
     internal class TerrainBufferObject
     {
+        private static readonly string VERTEX_SHADER_PATH = GameEnvironment.RootPath + @"shaders\terrainVertexShader.glsl";
+        private static readonly string FRAGMENT_SHADER_PATH = GameEnvironment.RootPath + @"shaders\terrainFragmentShader.glsl";
+
+        private ShaderProgram shader;
+        private Light sun;
         private Vector2 position;
         private uint bufferId;
         private uint indexArrayId;
         private int terrainTextureId;
         private int indexArrayLength;
 
-        internal void InitializeTerrain(Vector2 grid, int size, float[][] heights, int textureId, Vector2 uv)
+        internal void InitializeTerrain(Vector2 grid, int size, float[][] heights, int textureId, Vector2 uv, Light sunLight)
         {
+            sun = sunLight;
             position = grid;
             terrainTextureId = textureId;
             // Generate the vertices for the terrain based on the inputs
@@ -641,6 +706,8 @@ namespace OpenBusDrivingSimulator.Engine
             indexArrayLength = indices.Length;
 
             // Load the data into the buffer
+            shader = new ShaderProgram();
+            shader.LoadShaderCodes(VERTEX_SHADER_PATH, FRAGMENT_SHADER_PATH);
             BufferObjectHelper.CreateBuffers(out bufferId, out indexArrayId);
             BufferObjectHelper.LoadDataIntoBuffers(bufferId, vertices, indexArrayId, indices);
         }
@@ -650,8 +717,12 @@ namespace OpenBusDrivingSimulator.Engine
             GL.Enable(EnableCap.DepthTest);
             GL.Enable(EnableCap.CullFace);
             GL.CullFace(CullFaceMode.Back);
-            BufferObjectHelper.BindAndDrawBuffer(bufferId, indexArrayId, terrainTextureId, 0, indexArrayLength,
-                new Vector3(position.X, 0, position.Y), Vector3.Zero, Vector3.One);
+            ShaderProgramHelper.UseAndDrawBuffer(shader, bufferId, indexArrayId, indexArrayLength, 
+                0, terrainTextureId, new Vector3(position.X, 0, position.Y), Vector3.Zero, Vector3.One,
+                () => 
+                {
+                    shader.SetLight("lightPos", "lightColor", "lightType", sun);
+                });
             GL.Disable(EnableCap.CullFace);
         }
 

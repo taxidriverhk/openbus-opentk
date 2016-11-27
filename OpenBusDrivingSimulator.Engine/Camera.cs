@@ -22,6 +22,19 @@ namespace OpenBusDrivingSimulator.Engine
         private static Vector3 angles;
         private static float zoomFactor;
 
+        private static Matrix4 projectionMatrix;
+        private static Matrix4 viewMatrix;
+
+        internal static Matrix4 ProjectionMatrix
+        {
+            get { return projectionMatrix; }
+        }
+
+        internal static Matrix4 ViewMatrix
+        {
+            get { return viewMatrix; }
+        }
+
         public static Vector3 Eye
         {
             get { return eye; }
@@ -70,8 +83,8 @@ namespace OpenBusDrivingSimulator.Engine
             GL.MatrixMode(MatrixMode.Projection);
             GL.PushMatrix();
             GL.LoadIdentity();
-            Matrix4 projection = Matrix4.CreatePerspectiveFieldOfView(fieldOfView, aspect, zNear, zFar);
-            GL.LoadMatrix(ref projection);
+            projectionMatrix = Matrix4.CreatePerspectiveFieldOfView(fieldOfView, aspect, zNear, zFar);
+            GL.LoadMatrix(ref projectionMatrix);
 
             GL.MatrixMode(MatrixMode.Modelview);
             GL.LoadIdentity();
@@ -81,8 +94,8 @@ namespace OpenBusDrivingSimulator.Engine
                   cosTheta = (float)Math.Cos(angles.Y);
             target.X += zFar * sinTheta;
             target.Z += -zFar * cosTheta;
-            Matrix4 lookAt = Matrix4.LookAt(eye, target, up);
-            GL.LoadMatrix(ref lookAt);
+            viewMatrix = Matrix4.LookAt(eye, target, up);
+            GL.LoadMatrix(ref viewMatrix);
         }
 
         public static void Zoom(float zoomMultiplier)
@@ -109,6 +122,9 @@ namespace OpenBusDrivingSimulator.Engine
             target = new Vector3(0, 0, zFar);
             up = Vector3.UnitY;
             angles = Vector3.Zero;
+
+            projectionMatrix = Matrix4.Identity;
+            viewMatrix = Matrix4.Identity;
         }
     }
 }

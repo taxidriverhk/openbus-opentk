@@ -10,6 +10,11 @@ namespace OpenBusDrivingSimulator.Engine
     /// </summary>
     public static class Renderer
     {
+        // TODO: the sun color and position should be based on the game's time
+        private static readonly Vector3 SUN_POSITION = new Vector3(500, 500, 500);
+        private static readonly Vector3 SUN_COLOR = new Vector3(1.0f, 1.0f, 1.0f);
+        private static Light sun;
+
         private static List<Entity> loadedEntities;
         private static StaticBufferObject staticBuffer;
         private static List<MirrorBufferObject> mirrorBuffers;
@@ -29,6 +34,7 @@ namespace OpenBusDrivingSimulator.Engine
             mirrorBuffers = new List<MirrorBufferObject>();
             skyBox = new SkyBoxObject();
             terrain = new TerrainBufferObject();
+            sun = new Light(SUN_POSITION, SUN_COLOR, LightType.DIRECTIONAL);
         }
 
         /// <summary>
@@ -165,7 +171,7 @@ namespace OpenBusDrivingSimulator.Engine
         public static void LoadTerrain(int x, int y, int size, float[][] heights, string textureFile, float u, float v)
         {
             int textureId = Texture.LoadTexture(textureFile);
-            terrain.InitializeTerrain(new Vector2(x, y), size, heights, textureId, new Vector2(u, v));
+            terrain.InitializeTerrain(new Vector2(x, y), size, heights, textureId, new Vector2(u, v), sun);
         }
 
         /// <summary>

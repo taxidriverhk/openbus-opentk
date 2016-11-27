@@ -204,9 +204,7 @@ namespace OpenBusDrivingSimulator.Engine
         internal static void UseAndDrawBuffer(ShaderProgram shader, uint bufferId, uint indexArrayId, int indexArrayLength, int indexOffset, int textureId,
             Vector3 translation, Vector3 rotation, Vector3 scale)
         {
-            Matrix4 modelMatrix = Matrix4.CreateTranslation(translation);
-            modelMatrix *= Matrix4.CreateRotationY(rotation.Y);
-            modelMatrix *= Matrix4.CreateScale(scale);
+            Matrix4 modelMatrix = GraphicsHelper.CreateModelMatrix(translation, rotation, scale);
             UseAndDrawBuffer(shader, bufferId, indexArrayId, indexArrayLength, indexOffset, new int[] { textureId },
                 Camera.ViewMatrix, Camera.ProjectionMatrix, modelMatrix, () => { });
         }
@@ -214,9 +212,7 @@ namespace OpenBusDrivingSimulator.Engine
         internal static void UseAndDrawBuffer(ShaderProgram shader, uint bufferId, uint indexArrayId, int indexArrayLength, int indexOffset, int textureId,
             Vector3 translation, Vector3 rotation, Vector3 scale, ShaderProgramSetUniformsDelegate setUniforms)
         {
-            Matrix4 modelMatrix = Matrix4.CreateTranslation(translation);
-            modelMatrix *= Matrix4.CreateRotationY(rotation.Y);
-            modelMatrix *= Matrix4.CreateScale(scale);
+            Matrix4 modelMatrix = GraphicsHelper.CreateModelMatrix(translation, rotation, scale);
             UseAndDrawBuffer(shader, bufferId, indexArrayId, indexArrayLength, indexOffset, new int[] { textureId },
                 Camera.ViewMatrix, Camera.ProjectionMatrix, modelMatrix, setUniforms);
         }
@@ -254,6 +250,12 @@ namespace OpenBusDrivingSimulator.Engine
     /// </summary>
     internal class StaticBufferObject
     {
+        private static readonly string VERTEX_SHADER_PATH = GameEnvironment.RootPath + @"shaders\staticVertexShader.glsl";
+        private static readonly string FRAGMENT_SHADER_PATH = GameEnvironment.RootPath + @"shaders\staticFragmentShader.glsl";
+
+        private ShaderProgram shader;
+        private Light sun;
+
         private List<Entity> entities;
         private List<uint> bufferIds;
         private Dictionary<uint, uint> bufferIndexIdMapping;
@@ -275,7 +277,7 @@ namespace OpenBusDrivingSimulator.Engine
         /// </summary>
         /// <param name="entities"></param>
         /// <returns></returns>
-        internal int LoadEntities(List<Entity> entitiesToBeLoaded, ISet<Mesh> meshes)
+        internal int LoadEntities(List<Entity> entitiesToBeLoaded, ISet<Mesh> meshes, Light sunLight)
         {
             int meshesLoaded = 0;
             uint bufferId = 0,
@@ -317,6 +319,10 @@ namespace OpenBusDrivingSimulator.Engine
                 textureIdsLoaded = new List<int>();
             }
 
+            // And also the shaders
+            sun = sunLight;
+            shader = new ShaderProgram();
+            shader.LoadShaderCodes(VERTEX_SHADER_PATH, FRAGMENT_SHADER_PATH);
             // Finally load everything into the buffer
             BufferObjectHelper.LoadDataIntoBuffers(bufferId, verticesToBeLoaded.ToArray(),
                 indexBufferId, indicesToBeLoaded.ToArray());
@@ -361,9 +367,14 @@ namespace OpenBusDrivingSimulator.Engine
                             indexArrayOffset, indexArrayLength, entity.Color,
                             entity.Translation, entity.Rotation, Vector3.One);
                     else
-                        BufferObjectHelper.BindAndDrawBuffer(bufferId, indexArrayId,
-                            textureId, indexArrayOffset, indexArrayLength,
-                            entity.Translation, entity.Rotation, Vector3.One);
+                    {
+                        ShaderProgramHelper.UseAndDrawBuffer(shader, bufferId, indexArrayId, indexArrayLength,
+                            indexArrayOffset, textureId, entity.Translation, entity.Rotation, Vector3.One,
+                            () =>
+                            {
+                                shader.SetLight("lightPos", "lightColor", "lightType", sun);
+                            });
+                    }
                 }
             }
             GL.Disable(EnableCap.CullFace);
@@ -705,9 +716,10 @@ namespace OpenBusDrivingSimulator.Engine
 
             indexArrayLength = indices.Length;
 
-            // Load the data into the buffer
+            // Initialize the shader
             shader = new ShaderProgram();
             shader.LoadShaderCodes(VERTEX_SHADER_PATH, FRAGMENT_SHADER_PATH);
+            // Load the data into the buffer
             BufferObjectHelper.CreateBuffers(out bufferId, out indexArrayId);
             BufferObjectHelper.LoadDataIntoBuffers(bufferId, vertices, indexArrayId, indices);
         }

@@ -11,8 +11,8 @@ namespace OpenBusDrivingSimulator.Engine
     public static class Renderer
     {
         // TODO: the sun color and position should be based on the game's time
-        private static readonly Vector3 SUN_POSITION = new Vector3(500, 500, 500);
-        private static readonly Vector3 SUN_COLOR = new Vector3(1.0f, 1.0f, 1.0f);
+        private static readonly Vector3 SUN_POSITION = new Vector3(-5000, 5000, 5000);
+        private static readonly Vector3 SUN_COLOR = new Vector3(1.0f, 0.99f, 0.95f);
         private static Light sun;
 
         private static List<Entity> loadedEntities;
@@ -128,7 +128,7 @@ namespace OpenBusDrivingSimulator.Engine
         public static int LoadStaticEntitiesToScene(List<Entity> entities, ISet<Mesh> meshes)
         {
             loadedEntities = new List<Entity>(entities);
-            return staticBuffer.LoadEntities(entities, meshes);
+            return staticBuffer.LoadEntities(entities, meshes, sun);
         }
 
         /// <summary>
@@ -192,29 +192,10 @@ namespace OpenBusDrivingSimulator.Engine
         /// </summary>
         private static void DrawStaticScene()
         {
-            // !!WARNING!!
-            // Although the code below is able to draw entities with transparent texture
-            // while retaining the depth buffer, such operation is expensive.
-            // Should find a better way to draw.
-            GL.Enable(EnableCap.AlphaTest);
             GL.Enable(EnableCap.DepthTest);
             GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
-
-            // Draw the scene with opaque entities contribute to the depth buffer
-            GL.Disable(EnableCap.Blend);
-            GL.AlphaFunc(AlphaFunction.Equal, 1.0f);
-            staticBuffer.DrawEntities();
-
-            // Draw the scene again with depth buffer read only, so the transparent entites cannot
-            // contribute to the depth buffer
             GL.Enable(EnableCap.Blend);
-            GL.DepthMask(false);
-            GL.AlphaFunc(AlphaFunction.Less, 1.0f);
-            staticBuffer.DrawEntities(BufferObjectDrawingMode.ALPHA_ONLY);
-
-            // Set the states back
-            GL.DepthMask(true);
-            GL.Disable(EnableCap.AlphaTest);
+            staticBuffer.DrawEntities();
             GL.Disable(EnableCap.Blend);
         }
 

@@ -142,6 +142,17 @@ namespace OpenBusDrivingSimulator.Engine
                 return false;
             }
 
+            GL.ValidateProgram(programId);
+            int validateResult = 0;
+            GL.GetProgram(programId, GetProgramParameterName.ValidateStatus, out validateResult);
+            if (validateResult == 0)
+            {
+                string errorInfo;
+                GL.GetProgramInfoLog(programId, out errorInfo);
+                Log.Write(LogLevel.ERROR, "Shader program validation failed: {0}", errorInfo);
+                return false;
+            }
+
             // For some reason, the progrma would crash if the codes in ShaderUseDict for getting all uniforms are used
             // So just omit them for now
 #if ShaderUseDict

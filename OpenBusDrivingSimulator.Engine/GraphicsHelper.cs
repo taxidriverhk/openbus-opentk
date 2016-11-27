@@ -29,6 +29,18 @@ namespace OpenBusDrivingSimulator.Engine
             public byte A;
         }
 
+        internal static Matrix4 CreateModelMatrix(Vector3 translation, Vector3 rotation, Vector3 scale)
+        {
+            Matrix4 modelMatrix = Matrix4.Identity;
+            // Scale about the origin -> rotate about the origin -> translate
+            modelMatrix *= Matrix4.CreateScale(scale);
+            modelMatrix *= Matrix4.CreateRotationX(rotation.X);
+            modelMatrix *= Matrix4.CreateRotationY(rotation.Y);
+            modelMatrix *= Matrix4.CreateRotationZ(rotation.Z);
+            modelMatrix *= Matrix4.CreateTranslation(translation);
+            return modelMatrix;
+        }
+
         internal static Vector3 UnProject(Vector3 window)
         {
             // Algorithm inspired by https://capnramses.github.io//opengl/raycasting.html

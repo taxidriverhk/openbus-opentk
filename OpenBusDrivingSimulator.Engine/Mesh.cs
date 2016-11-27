@@ -20,11 +20,25 @@ namespace OpenBusDrivingSimulator.Engine
         public int Id;
         public Vector3 Color;
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="meshName"></param>
+        /// <param name="tx"></param>
+        /// <param name="ty"></param>
+        /// <param name="tz"></param>
+        /// <param name="rx">Rotation about x-axis in degrees.</param>
+        /// <param name="ry">Rotation about y-axis in degrees.</param>
+        /// <param name="rz">Rotation about z-axis in degrees.</param>
         public Entity(string meshName, float tx, float ty, float tz, float rx, float ry, float rz)
         {
             MeshName = meshName;
             Translation = new Vector3(tx, ty, tz);
-            Rotation = new Vector3(rx, ry, rz);
+            // Conver the angles into radians
+            float rxRadians = MathHelper.DegreesToRadians(rx),
+                  ryRadians = MathHelper.DegreesToRadians(ry),
+                  rzRadians = MathHelper.DegreesToRadians(rz);
+            Rotation = new Vector3(rxRadians, ryRadians, rzRadians);
 
             Id = currentId;
             int r = (Id & 0x000000FF) >> 0,

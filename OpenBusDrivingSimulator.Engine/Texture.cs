@@ -54,9 +54,9 @@ namespace OpenBusDrivingSimulator.Engine
             GL.BindTexture(TextureTarget.Texture2D, id);
 
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter,
-                (int)TextureMinFilter.Linear);
+                (int)TextureMinFilter.Nearest);
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter,
-                (int)TextureMagFilter.Linear);
+                (int)TextureMagFilter.Nearest);
 
             BitmapData bitmapData = bitmap.LockBits(new Rectangle(0, 0,
                 bitmap.Width, bitmap.Height), ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);

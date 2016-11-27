@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
+using OpenBusDrivingSimulator.Core;
 
 namespace OpenBusDrivingSimulator.Config
 {
@@ -19,6 +20,7 @@ namespace OpenBusDrivingSimulator.Config
             }
             catch (Exception ex)
             {
+                Log.Write(LogLevel.ERROR, "Unable to deserialize the file {0}: {1}", path, ex.Message);
                 return default(T);
             }
         }

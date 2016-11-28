@@ -195,6 +195,38 @@ namespace OpenBusDrivingSimulator.Engine
 
     internal static class ShaderProgramHelper
     {
+        internal static void UseAndDrawBuffer(ShaderProgram shader, uint bufferId, int vertexCount, int startIndex, int textureId)
+        {
+            UseAndDrawBuffer(shader, bufferId, vertexCount, startIndex, new int[] { textureId }, 
+                Matrix4.Identity, Camera.ProjectionMatrix, Matrix4.Identity, () => { });
+        }
+
+        internal static void UseAndDrawBuffer(ShaderProgram shader, uint bufferId, int vertexCount, int startIndex, int[] textureIds,
+            Matrix4 viewMatrix, Matrix4 projectionMatrix, Matrix4 modelMatrix, ShaderProgramSetUniformsDelegate setUniforms)
+        {
+            shader.UseProgram();
+            GL.BindBuffer(BufferTarget.ArrayBuffer, bufferId);
+
+            shader.BindVertexAttribPointer(ShaderAttribute.POSITION);
+            shader.BindVertexAttribPointer(ShaderAttribute.NORMAL);
+            shader.BindVertexAttribPointer(ShaderAttribute.TEXCOORD);
+
+            shader.SetUniform(ShaderUniform.VIEW_MATRIX, viewMatrix);
+            shader.SetUniform(ShaderUniform.PROJECTION_MATRIX, projectionMatrix);
+            shader.SetUniform(ShaderUniform.MODEL_MATRIX, modelMatrix);
+            setUniforms();
+
+            for (int i = 0; i < textureIds.Length && i < 32; i++)
+            {
+                GL.ActiveTexture(TextureUnit.Texture0 + i);
+                GL.BindTexture(TextureTarget.Texture2D, textureIds[i]);
+            }
+            GL.DrawArrays(PrimitiveType.Triangles, startIndex * Vertex.Size, vertexCount);
+
+            shader.DisableAllVertexAttribArrays();
+            shader.UnUseProgram();
+        }
+
         internal static void UseAndDrawBuffer(ShaderProgram shader, uint bufferId, uint indexArrayId, int indexArrayLength, int indexOffset, int textureId)
         {
             UseAndDrawBuffer(shader, bufferId, indexArrayId, indexArrayLength, indexOffset, new int[] { textureId },
@@ -275,7 +307,9 @@ namespace OpenBusDrivingSimulator.Engine
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="entities"></param>
+        /// <param name="entitiesToBeLoaded"></param>
+        /// <param name="meshes"></param>
+        /// <param name="sunLight"></param>
         /// <returns></returns>
         internal int LoadEntities(List<Entity> entitiesToBeLoaded, ISet<Mesh> meshes, Light sunLight)
         {
@@ -615,6 +649,10 @@ namespace OpenBusDrivingSimulator.Engine
     /// </summary>
     internal class SkyBoxObject
     {
+        private static readonly string VERTEX_SHADER_PATH = GameEnvironment.RootPath + @"shaders\skyBoxVertexShader.glsl";
+        private static readonly string FRAGMENT_SHADER_PATH = GameEnvironment.RootPath + @"shaders\skyBoxFragmentShader.glsl";
+
+        private ShaderProgram shader;
         private int textureId;
         private uint bufferId;
         private int vertexCount;
@@ -631,6 +669,9 @@ namespace OpenBusDrivingSimulator.Engine
 
             // Create the buffer and texture needed for the skybox
             textureId = skyBoxTextureId;
+
+            shader = new ShaderProgram();
+            shader.LoadShaderCodes(VERTEX_SHADER_PATH, FRAGMENT_SHADER_PATH);
             BufferObjectHelper.CreateBuffers(out bufferId);
             GL.BindBuffer(BufferTarget.ArrayBuffer, bufferId);
             GL.BufferData(BufferTarget.ArrayBuffer, new IntPtr(skyBoxMesh.Vertices[0].Length * Vertex.Size),
@@ -649,8 +690,7 @@ namespace OpenBusDrivingSimulator.Engine
             GL.Disable(EnableCap.DepthTest);
             GL.Enable(EnableCap.CullFace);
             GL.CullFace(CullFaceMode.Back);
-            BufferObjectHelper.BindAndDrawBuffer(bufferId, textureId, 0, vertexCount, 
-                Camera.Eye, Vector3.Zero, Vector3.One);
+            ShaderProgramHelper.UseAndDrawBuffer(shader, bufferId, vertexCount, 0, textureId);
             GL.Disable(EnableCap.CullFace);
             GL.Enable(EnableCap.DepthTest);
         }

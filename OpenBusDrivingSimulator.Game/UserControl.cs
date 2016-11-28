@@ -16,6 +16,10 @@ namespace OpenBusDrivingSimulator.Game
         CAMERA_MOVE_BACK,
         CAMERA_MOVE_UP,
         CAMERA_MOVE_DOWN,
+        CAMERA_ROTATE_Y_LEFT,
+        CAMERA_ROTATE_Y_RIGHT,
+        CAMERA_ROTATE_X_UP,
+        CAMERA_ROTATE_X_DOWN,
         TOGGLE_FPS
     }
 
@@ -47,17 +51,25 @@ namespace OpenBusDrivingSimulator.Game
             userControls = new UserControl[]
             {
                 new UserControl(ControlCommand.CAMERA_MOVE_LEFT, 
-                    new Control(ControlType.CONTINUOUS, ControlSource.KEYBOARD, KeyCode.KEY_LEFT)),
-                new UserControl(ControlCommand.CAMERA_MOVE_RIGHT, 
-                    new Control(ControlType.CONTINUOUS, ControlSource.KEYBOARD, KeyCode.KEY_RIGHT)),
-                new UserControl(ControlCommand.CAMERA_MOVE_FRONT, 
-                    new Control(ControlType.CONTINUOUS, ControlSource.KEYBOARD, KeyCode.KEY_UP)),
-                new UserControl(ControlCommand.CAMERA_MOVE_BACK, 
-                    new Control(ControlType.CONTINUOUS, ControlSource.KEYBOARD, KeyCode.KEY_DOWN)),
-                new UserControl(ControlCommand.CAMERA_MOVE_UP, 
                     new Control(ControlType.CONTINUOUS, ControlSource.KEYBOARD, KeyCode.KEY_A)),
+                new UserControl(ControlCommand.CAMERA_MOVE_RIGHT, 
+                    new Control(ControlType.CONTINUOUS, ControlSource.KEYBOARD, KeyCode.KEY_D)),
+                new UserControl(ControlCommand.CAMERA_MOVE_FRONT, 
+                    new Control(ControlType.CONTINUOUS, ControlSource.KEYBOARD, KeyCode.KEY_W)),
+                new UserControl(ControlCommand.CAMERA_MOVE_BACK, 
+                    new Control(ControlType.CONTINUOUS, ControlSource.KEYBOARD, KeyCode.KEY_S)),
+                new UserControl(ControlCommand.CAMERA_MOVE_UP, 
+                    new Control(ControlType.CONTINUOUS, ControlSource.KEYBOARD, KeyCode.KEY_Q)),
                 new UserControl(ControlCommand.CAMERA_MOVE_DOWN, 
-                    new Control(ControlType.CONTINUOUS, ControlSource.KEYBOARD, KeyCode.KEY_Z)),
+                    new Control(ControlType.CONTINUOUS, ControlSource.KEYBOARD, KeyCode.KEY_E)),
+                new UserControl(ControlCommand.CAMERA_ROTATE_Y_LEFT,
+                    new Control(ControlType.CONTINUOUS, ControlSource.KEYBOARD, KeyCode.KEY_LEFT)),
+                new UserControl(ControlCommand.CAMERA_ROTATE_Y_RIGHT,
+                    new Control(ControlType.CONTINUOUS, ControlSource.KEYBOARD, KeyCode.KEY_RIGHT)),
+                new UserControl(ControlCommand.CAMERA_ROTATE_X_DOWN,
+                    new Control(ControlType.CONTINUOUS, ControlSource.KEYBOARD, KeyCode.KEY_DOWN)),
+                new UserControl(ControlCommand.CAMERA_ROTATE_X_UP,
+                    new Control(ControlType.CONTINUOUS, ControlSource.KEYBOARD, KeyCode.KEY_UP)),
                 new UserControl(ControlCommand.TOGGLE_FPS, 
                     new Control(ControlType.DISCRETE, ControlSource.KEYBOARD, KeyCode.KEY_F))
             };
@@ -90,16 +102,26 @@ namespace OpenBusDrivingSimulator.Game
                         Camera.MoveBy(0.5f, 0, 0);
                         break;
                     case ControlCommand.CAMERA_MOVE_FRONT:
-                        Camera.MoveBy(0, 0, -0.5f);
+                        Camera.MoveBy(0, 0, 0.5f);
                         break;
                     case ControlCommand.CAMERA_MOVE_BACK:
-                        Camera.MoveBy(0, 0, 0.5f);
+                        Camera.MoveBy(0, 0, -0.5f);
                         break;
                     case ControlCommand.CAMERA_MOVE_UP:
                         Camera.MoveBy(0, 0.5f, 0);
                         break;
                     case ControlCommand.CAMERA_MOVE_DOWN:
                         Camera.MoveBy(0, -0.5f, 0);
+                        break;
+                    case ControlCommand.CAMERA_ROTATE_Y_LEFT:
+                        Camera.RotateYBy(0.5f);
+                        break;
+                    case ControlCommand.CAMERA_ROTATE_Y_RIGHT:
+                        Camera.RotateYBy(-0.5f);
+                        break;
+                    case ControlCommand.CAMERA_ROTATE_X_DOWN:
+                        break;
+                    case ControlCommand.CAMERA_ROTATE_X_UP:
                         break;
                     case ControlCommand.TOGGLE_FPS:
                         Game.ShowFrameRate = !Game.ShowFrameRate;

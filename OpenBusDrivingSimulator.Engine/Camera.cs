@@ -17,7 +17,8 @@ namespace OpenBusDrivingSimulator.Engine
         private static float fieldOfView;
 
         private static Vector3 eye;
-        private static Vector3 target;
+        private static Vector3 front;
+        private static Vector3 right;
         private static Vector3 up;
         private static Vector3 angles;
         private static float zoomFactor;
@@ -52,14 +53,14 @@ namespace OpenBusDrivingSimulator.Engine
 
         public static void MoveTo(float x, float y, float z)
         {
-            eye.X = x; eye.Y = y; eye.Z = -z;
-            target.X = x; target.Y = y;
+            eye.X = x; eye.Y = y; eye.Z = z;
         }
 
         public static void MoveBy(float x, float y, float z)
         {
-            eye.X += x; eye.Y += y; eye.Z -= z;
-            target.X += x; target.Y += y;
+            eye += right * x;
+            eye += front * z;
+            eye.Y += y;
         }
 
         public static void RotateYTo(float degrees)
@@ -88,13 +89,20 @@ namespace OpenBusDrivingSimulator.Engine
 
             GL.MatrixMode(MatrixMode.Modelview);
             GL.LoadIdentity();
-            
-            // Rotation about y-axis
-            float sinTheta = (float)Math.Sin(angles.Y),
-                  cosTheta = (float)Math.Cos(angles.Y);
-            target.X += zFar * sinTheta;
-            target.Z += -zFar * cosTheta;
-            viewMatrix = Matrix4.LookAt(eye, target, up);
+
+            // Apply yaw and pitch angles
+            float cosYaw = (float)Math.Cos(angles.Y),
+                  sinYaw = (float)Math.Sin(angles.Y);
+            float cosPitch = (float)Math.Cos(angles.X),
+                  sinPitch = (float)Math.Sin(angles.X);
+            front.X = cosPitch * sinYaw;
+            front.Y = sinPitch;
+            front.Z = cosPitch * cosYaw;
+            right.X = -cosYaw;
+            right.Z = sinYaw;
+            up = Vector3.Cross(right, front);
+
+            viewMatrix = Matrix4.LookAt(eye, eye + front, up);
             GL.LoadMatrix(ref viewMatrix);
         }
 
@@ -119,9 +127,10 @@ namespace OpenBusDrivingSimulator.Engine
             fieldOfView = zoomFactor * MathHelper.PiOver4;
 
             eye = Vector3.Zero;
-            target = new Vector3(0, 0, zFar);
+            front = new Vector3(0, 0, -1.0f);
+            right = Vector3.Zero;
             up = Vector3.UnitY;
-            angles = Vector3.Zero;
+            angles = new Vector3(0, MathHelper.Pi, 0);
 
             projectionMatrix = Matrix4.Identity;
             viewMatrix = Matrix4.Identity;

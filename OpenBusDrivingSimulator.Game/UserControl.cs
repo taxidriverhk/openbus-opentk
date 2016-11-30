@@ -114,10 +114,10 @@ namespace OpenBusDrivingSimulator.Game
                         Camera.MoveBy(0, -0.5f, 0);
                         break;
                     case ControlCommand.CAMERA_ROTATE_Y_LEFT:
-                        Camera.RotateYBy(0.5f);
+                        Camera.RotateYBy(1.0f);
                         break;
                     case ControlCommand.CAMERA_ROTATE_Y_RIGHT:
-                        Camera.RotateYBy(-0.5f);
+                        Camera.RotateYBy(-1.0f);
                         break;
                     case ControlCommand.CAMERA_ROTATE_X_DOWN:
                         break;

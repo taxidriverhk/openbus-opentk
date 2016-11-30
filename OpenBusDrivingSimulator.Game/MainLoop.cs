@@ -61,7 +61,7 @@ namespace OpenBusDrivingSimulator.Game
                 ControlHandler.ProcessControls();
                 Camera.UpdateCamera();
                 // Render the state
-                Game.LoadInfoBuffer();
+                Game.LoadIntoBuffers();
                 Renderer.DrawScene();
 
                 if (Game.ShowFrameRate)

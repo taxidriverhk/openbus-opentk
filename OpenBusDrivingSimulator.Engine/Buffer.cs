@@ -746,7 +746,10 @@ namespace OpenBusDrivingSimulator.Engine
 
         private ShaderProgram shader;
         private Light sun;
+
         private Vector2 position;
+        private int size;
+
         private uint bufferId;
         private uint indexArrayId;
         private int terrainTextureId;
@@ -759,10 +762,21 @@ namespace OpenBusDrivingSimulator.Engine
             shader.LoadShaderCodes(VERTEX_SHADER_PATH, FRAGMENT_SHADER_PATH);
         }
 
-        internal void InitializeTerrain(Vector2 grid, int size, float[][] heights, int textureId, Vector2 uv, Light sunLight)
+        internal Vector2 Position
+        {
+            get { return position; }
+        }
+
+        internal int Size
+        {
+            get { return size; }
+        }
+
+        internal void InitializeTerrain(Vector2 grid, int terrainSize, float[][] heights, int textureId, Vector2 uv, Light sunLight)
         {
             sun = sunLight;
             position = grid;
+            size = terrainSize;
             terrainTextureId = textureId;
             // Generate the vertices for the terrain based on the inputs
             float sliceU = uv.X / size,

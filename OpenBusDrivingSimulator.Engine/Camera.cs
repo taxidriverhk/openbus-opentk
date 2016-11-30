@@ -117,8 +117,9 @@ namespace OpenBusDrivingSimulator.Engine
             viewMatrix = Matrix4.LookAt(eye, eye + front, up);
             GL.LoadMatrix(ref viewMatrix);
 
-            // Also update the bounding box as well
+            // Update the boundaries as well
             CalculateBoundingBox();
+            Renderer.UpdateCurrentSlotIndex();
         }
 
         public static void Zoom(float zoomMultiplier)

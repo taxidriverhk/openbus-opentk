@@ -11,16 +11,22 @@ namespace OpenBusDrivingSimulator.Engine
     public static class Renderer
     {
         // TODO: the sun color and position should be based on the game's time
+        private const int MAX_STATIC_BUFFER_SLOTS = 9;
         private static readonly Vector3 SUN_POSITION = new Vector3(-5000, 5000, 5000);
         private static readonly Vector3 SUN_COLOR = new Vector3(1.0f, 0.99f, 0.95f);
+
         private static Light sun;
 
-        private static List<Entity> loadedEntities;
-        private static StaticVertexBuffer staticBuffer;
+        private static int currentSlot;
+        private static bool[] staticBufferSlotUsed;
+        private static List<Entity>[] loadedEntities;
+        private static StaticVertexBuffer[] staticBuffers;
+        private static bool[] terrainBufferSlotUsed;
+        private static TerrainBuffer[] terrainBuffers;
+
         private static List<MirrorBuffer> mirrorBuffers;
         private static OverlayTextBuffer overlayText;
         private static SkyBoxBuffer skyBox;
-        private static TerrainBuffer terrain;
 
         /// <summary>
         /// Initialize the components of the renderer, should be called before the main loop.
@@ -28,12 +34,17 @@ namespace OpenBusDrivingSimulator.Engine
         /// </summary>
         public static void Initialize()
         {
-            loadedEntities = new List<Entity>();
-            staticBuffer = new StaticVertexBuffer();
+            currentSlot = 0;
+            staticBufferSlotUsed = new bool[MAX_STATIC_BUFFER_SLOTS];
+            loadedEntities = new List<Entity>[MAX_STATIC_BUFFER_SLOTS];
+            staticBuffers = new StaticVertexBuffer[MAX_STATIC_BUFFER_SLOTS];
+            terrainBufferSlotUsed = new bool[MAX_STATIC_BUFFER_SLOTS];
+            terrainBuffers = new TerrainBuffer[MAX_STATIC_BUFFER_SLOTS];
+
             overlayText = new OverlayTextBuffer();
             mirrorBuffers = new List<MirrorBuffer>();
             skyBox = new SkyBoxBuffer();
-            terrain = new TerrainBuffer();
+            
             sun = new Light(SUN_POSITION, SUN_COLOR, LightType.DIRECTIONAL);
         }
 
@@ -43,12 +54,23 @@ namespace OpenBusDrivingSimulator.Engine
         /// </summary>
         public static void Cleanup()
         {
-            loadedEntities.Clear();
-            staticBuffer.Cleanup();
+            for (int i = 0; i < loadedEntities.Length; i++)
+                if (loadedEntities[i] != null)
+                    loadedEntities[i].Clear();
+            for (int i = 0; i < terrainBufferSlotUsed.Length; i++)
+            {
+                terrainBufferSlotUsed[i] = false;
+                staticBufferSlotUsed[i] = false;
+            }
+            foreach (StaticVertexBuffer staticBuffer in staticBuffers)
+                if (staticBuffer != null)
+                    staticBuffer.Cleanup();
+            foreach (TerrainBuffer terrainBuffer in terrainBuffers)
+                if (terrainBuffer != null)
+                    terrainBuffer.Cleanup();
             foreach (MirrorBuffer mirrorBuffer in mirrorBuffers)
                 mirrorBuffer.Cleanup();
             skyBox.Cleanup();
-            terrain.Cleanup();
         }
 
         /// <summary>
@@ -114,10 +136,10 @@ namespace OpenBusDrivingSimulator.Engine
             GL.ClearColor(Color.White);
             GL.Clear(ClearBufferMask.ColorBufferBit);
             GL.Disable(EnableCap.DepthTest);
-            staticBuffer.DrawEntities(BufferObjectDrawingMode.COLOR_ONLY);
+            staticBuffers[currentSlot].DrawEntities(BufferObjectDrawingMode.COLOR_ONLY);
             Vector3 color = GraphicsHelper.GetColorOfScreen(new Vector3(mouseLocation.X, mouseLocation.Y, 0.0f));
             GL.Enable(EnableCap.DepthTest);
-            return loadedEntities.Find(e => e.Color == color);
+            return loadedEntities[currentSlot].Find(e => e.Color == color);
         }
 
         /// <summary>
@@ -127,8 +149,25 @@ namespace OpenBusDrivingSimulator.Engine
         /// <returns></returns>
         public static int LoadStaticEntitiesToScene(List<Entity> entities, ISet<Mesh> meshes)
         {
-            loadedEntities = new List<Entity>(entities);
-            return staticBuffer.LoadEntities(entities, meshes, sun);
+            int slotToUse = GetAvailableStaticBufferSlot();
+            if (slotToUse >= 0)
+            {
+                loadedEntities[slotToUse] = new List<Entity>(entities);
+                StaticVertexBuffer staticBuffer = new StaticVertexBuffer();
+                int meshesLoaded = staticBuffer.LoadEntities(entities, meshes, sun);
+                staticBuffers[slotToUse] = staticBuffer;
+                return meshesLoaded;
+            }
+            else
+                return 0;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public static void UnloadStaticEntitiesFromScene()
+        {
+            // TODO: how to know which slot to unload
         }
 
         /// <summary>
@@ -138,7 +177,7 @@ namespace OpenBusDrivingSimulator.Engine
         public static void LoadMirror(Mesh mirrorMesh)
         {
             MirrorBuffer mirrorBuffer = new MirrorBuffer();
-            mirrorBuffer.InitializeMirror(mirrorMesh, staticBuffer);
+            mirrorBuffer.InitializeMirror(mirrorMesh, staticBuffers[currentSlot]);
             mirrorBuffers.Add(mirrorBuffer);
         }
 
@@ -170,8 +209,14 @@ namespace OpenBusDrivingSimulator.Engine
         /// <param name="v"></param>
         public static void LoadTerrain(int x, int y, int size, float[][] heights, string textureFile, float u, float v)
         {
-            int textureId = TextureManager.LoadTexture(textureFile);
-            terrain.InitializeTerrain(new Vector2(x, y), size, heights, textureId, new Vector2(u, v), sun);
+            int slotToUse = GetAvailableTerrainBufferSlot();
+            if (slotToUse >= 0)
+            {
+                int textureId = TextureManager.LoadTexture(textureFile);
+                TerrainBuffer terrainBuffer = new TerrainBuffer();
+                terrainBuffer.InitializeTerrain(new Vector2(x, y), size, heights, textureId, new Vector2(u, v), sun);
+                terrainBuffers[slotToUse] = terrainBuffer;
+            }
         }
 
         /// <summary>
@@ -187,6 +232,24 @@ namespace OpenBusDrivingSimulator.Engine
             DrawTerrain();
         }
 
+        internal static void UpdateCurrentSlotIndex()
+        {
+            Vector3 currentPosition = Camera.Eye;
+            for (int i = 0; i < terrainBuffers.Length; i++)
+                if (terrainBuffers[i] != null)
+                {
+                    int size = terrainBuffers[i].Size;
+                    Vector2 terrainPosition = terrainBuffers[i].Position;
+                    if (currentPosition.X >= terrainPosition.X && currentPosition.X <= terrainPosition.X + size
+                        && -currentPosition.Z >= terrainPosition.Y && -currentPosition.Z <= terrainPosition.Y + size)
+                    {
+                        currentSlot = i;
+                        return;
+                    }
+                }
+            currentSlot = 0;
+        }
+
         /// <summary>
         /// 
         /// </summary>
@@ -195,7 +258,9 @@ namespace OpenBusDrivingSimulator.Engine
             GL.Enable(EnableCap.DepthTest);
             GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
             GL.Enable(EnableCap.Blend);
-            staticBuffer.DrawEntities();
+            foreach (StaticVertexBuffer staticBuffer in staticBuffers)
+                if (staticBuffer != null)
+                    staticBuffer.DrawEntities();
             GL.Disable(EnableCap.Blend);
         }
 
@@ -221,7 +286,25 @@ namespace OpenBusDrivingSimulator.Engine
         /// </summary>
         private static void DrawTerrain()
         {
-            terrain.DrawTerrain();
+            foreach (TerrainBuffer terrainBuffer in terrainBuffers)
+                if (terrainBuffer != null)
+                    terrainBuffer.DrawTerrain();
+        }
+
+        private static int GetAvailableStaticBufferSlot()
+        {
+            for (int i = 0; i < staticBufferSlotUsed.Length; i++)
+                if (!staticBufferSlotUsed[i])
+                    return i;
+            return -1;
+        }
+
+        private static int GetAvailableTerrainBufferSlot()
+        {
+            for (int i = 0; i < terrainBufferSlotUsed.Length; i++)
+                if (!terrainBufferSlotUsed[i])
+                    return i;
+            return -1;
         }
     }
 }

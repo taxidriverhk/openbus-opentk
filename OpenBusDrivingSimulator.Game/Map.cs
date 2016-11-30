@@ -144,8 +144,9 @@ namespace OpenBusDrivingSimulator.Game
                 }
             }
                 
-            Renderer.LoadTerrain(x, y, Terrain.TERRAIN_GRID_SIZE,
-                heights, GameEnvironment.RootPath + terrain.TexturePath, terrain.TextureUV.X, terrain.TextureUV.Y);
+            Renderer.LoadTerrain(x * MapBlock.MAP_BLOCK_SIZE, -y * MapBlock.MAP_BLOCK_SIZE, 
+                Terrain.TERRAIN_GRID_SIZE, heights, GameEnvironment.RootPath + terrain.TexturePath, 
+                terrain.TextureUV.X, terrain.TextureUV.Y);
             currentBlock = block;
         }
     }
@@ -178,6 +179,8 @@ namespace OpenBusDrivingSimulator.Game
         public static void StartLoadBlockThread(MapBlock block)
         {
             loadedIntoBuffer = false;
+            entities = new List<Entity>();
+            meshes = new HashSet<Mesh>();
             foreach (Object mapObject in block.Objects)
             {
                 HashSet<string> alphaTextures = new HashSet<string>();
@@ -188,8 +191,8 @@ namespace OpenBusDrivingSimulator.Game
                 foreach (string meshPath in mapObject.Meshes)
                 {
                     Mesh staticMesh = Mesh.LoadFromCollada(GameEnvironment.RootPath + "objects\\" + meshPath, alphaTextures);
-                    Entity entity = new Entity(staticMesh.Name, mapObject.Position.X + block.Position.X,
-                        mapObject.Position.Y, -mapObject.Position.Z - block.Position.Y,
+                    Entity entity = new Entity(staticMesh.Name, mapObject.Position.X + block.Position.X * MapBlock.MAP_BLOCK_SIZE,
+                        mapObject.Position.Y, -mapObject.Position.Z - block.Position.Y * MapBlock.MAP_BLOCK_SIZE,
                         mapObject.Rotations.X, mapObject.Rotations.Y, mapObject.Rotations.Z);
                     entities.Add(entity);
                     meshes.Add(staticMesh);
@@ -205,8 +208,6 @@ namespace OpenBusDrivingSimulator.Game
 
             TextureManager.LoadAllTexturesInQueue();
             Renderer.LoadStaticEntitiesToScene(entities, meshes);
-            entities = new List<Entity>();
-            meshes = new HashSet<Mesh>();
             loadedIntoBuffer = true;
             loadCompleted = false;
         }

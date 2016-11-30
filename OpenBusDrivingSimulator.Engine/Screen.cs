@@ -69,7 +69,7 @@ namespace OpenBusDrivingSimulator.Engine
             // Initialize the OpenGL context
             glContext = SDL.SDL_GL_CreateContext(windowHandle);
             graphicsContext = new GraphicsContext(new ContextHandle(glContext),
-                SDL.SDL_GL_GetProcAddress,
+                (string proc) => SDL.SDL_GL_GetProcAddress(proc),
                 () => new ContextHandle(SDL.SDL_GL_GetCurrentContext()));
 
             // Add icon to the window

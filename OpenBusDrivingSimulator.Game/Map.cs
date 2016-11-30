@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using OpenBusDrivingSimulator.Config;
 using OpenBusDrivingSimulator.Core;
 using OpenBusDrivingSimulator.Engine;
@@ -110,31 +111,21 @@ namespace OpenBusDrivingSimulator.Game
     public class Map
     {
         private MapBlock currentBlock;
+        private Thread blockLoadThread;
 
         public void LoadBlock(int x, int y, MapBlock block, Terrain terrain)
         {
-            // Load the static objects to buffer
+            // Load the static objects to buffer in a separate thread
             block.Position = new Vector2f(x, y);
-            List<Entity> staticEntities = new List<Entity>();
-            HashSet<Mesh> staticMeshes = new HashSet<Mesh>();
-            foreach (Object mapObject in block.Objects)
+            if (blockLoadThread == null || !blockLoadThread.IsAlive)
             {
-                HashSet<string> alphaTextures = new HashSet<string>();
-                if (mapObject.AlphaTextures != null)
-                    foreach (ObjectTexture objTexture in mapObject.AlphaTextures)
-                        alphaTextures.Add(objTexture.Path);
-
-                foreach (string meshPath in mapObject.Meshes)
+                blockLoadThread = new Thread(delegate ()
                 {
-                    Mesh staticMesh = Mesh.LoadFromCollada(GameEnvironment.RootPath + "objects\\" + meshPath, alphaTextures);
-                    Entity entity = new Entity(staticMesh.Name, mapObject.Position.X + block.Position.X, 
-                        mapObject.Position.Y, -mapObject.Position.Z - block.Position.Y,
-                        mapObject.Rotations.X, mapObject.Rotations.Y, mapObject.Rotations.Z);
-                    staticEntities.Add(entity);
-                    staticMeshes.Add(staticMesh);
-                }
+                    MapBlockLoader.StartLoadBlockThread(block);
+                });
+                blockLoadThread.IsBackground = true;
+                blockLoadThread.Start();
             }
-            Renderer.LoadStaticEntitiesToScene(staticEntities, staticMeshes);
 
             // Load the terrain data to buffer as well
             int terrainSize = Terrain.TERRAIN_GRID_SIZE;
@@ -156,6 +147,68 @@ namespace OpenBusDrivingSimulator.Game
             Renderer.LoadTerrain(x, y, Terrain.TERRAIN_GRID_SIZE,
                 heights, GameEnvironment.RootPath + terrain.TexturePath, terrain.TextureUV.X, terrain.TextureUV.Y);
             currentBlock = block;
+        }
+    }
+
+    public static class MapBlockLoader
+    {
+        private static bool loadedIntoBuffer;
+        private static bool loadCompleted;
+        private static List<Entity> entities;
+        private static HashSet<Mesh> meshes;
+
+        static MapBlockLoader()
+        {
+            loadedIntoBuffer = false;
+            loadCompleted = false;
+            entities = new List<Entity>();
+            meshes = new HashSet<Mesh>();
+        }
+
+        public static bool LoadedInfoBuffer
+        {
+            get { return loadedIntoBuffer; }
+        }
+
+        public static bool LoadCompleted
+        {
+            get { return loadCompleted; }
+        }
+
+        public static void StartLoadBlockThread(MapBlock block)
+        {
+            loadedIntoBuffer = false;
+            foreach (Object mapObject in block.Objects)
+            {
+                HashSet<string> alphaTextures = new HashSet<string>();
+                if (mapObject.AlphaTextures != null)
+                    foreach (ObjectTexture objTexture in mapObject.AlphaTextures)
+                        alphaTextures.Add(objTexture.Path);
+
+                foreach (string meshPath in mapObject.Meshes)
+                {
+                    Mesh staticMesh = Mesh.LoadFromCollada(GameEnvironment.RootPath + "objects\\" + meshPath, alphaTextures);
+                    Entity entity = new Entity(staticMesh.Name, mapObject.Position.X + block.Position.X,
+                        mapObject.Position.Y, -mapObject.Position.Z - block.Position.Y,
+                        mapObject.Rotations.X, mapObject.Rotations.Y, mapObject.Rotations.Z);
+                    entities.Add(entity);
+                    meshes.Add(staticMesh);
+                }
+            }
+            loadCompleted = true;
+        }
+
+        public static void LoadInfoBuffer()
+        {
+            if (loadedIntoBuffer || !loadCompleted)
+                return;
+
+            TextureManager.LoadAllTexturesInQueue();
+            Renderer.LoadStaticEntitiesToScene(entities, meshes);
+            entities = new List<Entity>();
+            meshes = new HashSet<Mesh>();
+            loadedIntoBuffer = true;
+            loadCompleted = false;
         }
     }
 }

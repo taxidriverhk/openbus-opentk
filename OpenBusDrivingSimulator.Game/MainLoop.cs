@@ -61,6 +61,7 @@ namespace OpenBusDrivingSimulator.Game
                 ControlHandler.ProcessControls();
                 Camera.UpdateCamera();
                 // Render the state
+                Game.LoadInfoBuffer();
                 Renderer.DrawScene();
 
                 if (Game.ShowFrameRate)
@@ -68,7 +69,7 @@ namespace OpenBusDrivingSimulator.Game
                 Screen.SwapBuffers();
             }
             Renderer.Cleanup();
-            Texture.UnloadAllTextures();
+            TextureManager.UnloadAllTextures();
             Screen.Destroy();
         }
     }

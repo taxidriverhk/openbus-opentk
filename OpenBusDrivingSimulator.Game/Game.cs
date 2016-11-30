@@ -26,6 +26,11 @@ namespace OpenBusDrivingSimulator.Game
             get { return buses; }
         }
 
+        public static void LoadInfoBuffer()
+        {
+            MapBlockLoader.LoadInfoBuffer();
+        }
+
         public static void LoadMap(string filename)
         {
             world = new Map();

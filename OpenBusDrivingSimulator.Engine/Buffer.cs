@@ -22,7 +22,7 @@ namespace OpenBusDrivingSimulator.Engine
     /// <summary>
     /// 
     /// </summary>
-    internal static class BufferObjectHelper
+    internal static class BufferHelper
     {
         internal static void CreateBuffers(out uint bufferId)
         {
@@ -280,7 +280,7 @@ namespace OpenBusDrivingSimulator.Engine
     /// <summary>
     /// 
     /// </summary>
-    internal class StaticBufferObject
+    internal class StaticVertexBuffer
     {
         private static readonly string VERTEX_SHADER_PATH = GameEnvironment.RootPath + @"shaders\staticVertexShader.glsl";
         private static readonly string FRAGMENT_SHADER_PATH = GameEnvironment.RootPath + @"shaders\staticFragmentShader.glsl";
@@ -288,20 +288,30 @@ namespace OpenBusDrivingSimulator.Engine
         private ShaderProgram shader;
         private Light sun;
 
+        private bool renderWithinBounds;
+
         private List<Entity> entities;
         private List<uint> bufferIds;
         private Dictionary<uint, uint> bufferIndexIdMapping;
-        private Dictionary<int, uint> textureIdBufferMapping;
-        private Dictionary<string, List<int>> meshTextureIdMapping;
-        private Dictionary<int, KeyValuePair<int, int>> textureIndexMapping;
+        private Dictionary<Texture, uint> textureBufferMapping;
+        private Dictionary<string, List<Texture>> meshTextureMapping;
+        private Dictionary<Texture, KeyValuePair<int, int>> textureIndexMapping;
 
-        internal StaticBufferObject()
+        internal StaticVertexBuffer()
         {
+            entities = new List<Entity>();
             bufferIds = new List<uint>();
             bufferIndexIdMapping = new Dictionary<uint, uint>();
-            textureIdBufferMapping = new Dictionary<int, uint>();
-            meshTextureIdMapping = new Dictionary<string, List<int>>();
-            textureIndexMapping = new Dictionary<int, KeyValuePair<int, int>>();
+            textureBufferMapping = new Dictionary<Texture, uint>();
+            meshTextureMapping = new Dictionary<string, List<Texture>>();
+            textureIndexMapping = new Dictionary<Texture, KeyValuePair<int, int>>();
+
+            shader = new ShaderProgram();
+            shader.LoadShaderCodes(VERTEX_SHADER_PATH, FRAGMENT_SHADER_PATH);
+
+            // Only render the entities where their origins are within the bounding box
+            // TODO: this member should be configurable
+            renderWithinBounds = false;
         }
 
         /// <summary>
@@ -317,12 +327,12 @@ namespace OpenBusDrivingSimulator.Engine
             uint bufferId = 0,
                  indexBufferId = 0;
 
-            BufferObjectHelper.CreateBuffers(out bufferId, out indexBufferId);
+            BufferHelper.CreateBuffers(out bufferId, out indexBufferId);
             bufferIds.Add(bufferId);
             bufferIndexIdMapping.Add(bufferId, indexBufferId);
 
             uint maxArraySize = UInt32.MaxValue;
-            List<int> textureIdsLoaded = new List<int>();
+            List<Texture> texturesLoaded = new List<Texture>();
             List<Vertex> verticesToBeLoaded = new List<Vertex>();
             List<uint> indicesToBeLoaded = new List<uint>();
 
@@ -343,22 +353,24 @@ namespace OpenBusDrivingSimulator.Engine
                         indicesToBeLoaded.Add(currentIndex);
                     }
                     verticesToBeLoaded.AddRange(mesh.Vertices[i].ToList());
-                    textureIndexMapping.Add(mesh.Materials[i].TextureId,
+
+                    Texture texture = mesh.Materials[i].Texture;
+                    if (texture.TextureId == 0)
+                        texture.TextureId = TextureManager.GetTextureId(texture);
+                    textureIndexMapping.Add(texture,
                         new KeyValuePair<int, int>((int)startIndex, mesh.Indices[i].Length));
-                    textureIdBufferMapping.Add(mesh.Materials[i].TextureId, bufferId);
-                    textureIdsLoaded.Add(mesh.Materials[i].TextureId);
+                    textureBufferMapping.Add(texture, bufferId);
+                    texturesLoaded.Add(texture);
                 }
-                meshTextureIdMapping.Add(mesh.Name, textureIdsLoaded);
+                meshTextureMapping.Add(mesh.Name, texturesLoaded);
                 meshesLoaded++;
-                textureIdsLoaded = new List<int>();
+                texturesLoaded = new List<Texture>();
             }
 
             // And also the shaders
             sun = sunLight;
-            shader = new ShaderProgram();
-            shader.LoadShaderCodes(VERTEX_SHADER_PATH, FRAGMENT_SHADER_PATH);
             // Finally load everything into the buffer
-            BufferObjectHelper.LoadDataIntoBuffers(bufferId, verticesToBeLoaded.ToArray(),
+            BufferHelper.LoadDataIntoBuffers(bufferId, verticesToBeLoaded.ToArray(),
                 indexBufferId, indicesToBeLoaded.ToArray());
 
             return meshesLoaded;
@@ -382,28 +394,31 @@ namespace OpenBusDrivingSimulator.Engine
             GL.CullFace(CullFaceMode.Back);
             foreach (Entity entity in entities)
             {
-                List<int> textureIds = meshTextureIdMapping[entity.MeshName];
-                foreach (int textureId in textureIds)
+                if (renderWithinBounds && !EntityInBoundingBox(entity))
+                    continue;
+
+                List<Texture> textures = meshTextureMapping[entity.MeshName];
+                foreach (Texture texture in textures)
                 {
                     if (mode == BufferObjectDrawingMode.ALPHA_ONLY
-                        && !Texture.AlphaTextureIds.Contains(textureId))
+                        && !texture.HasAlpha)
                         continue;
                     else if (mode == BufferObjectDrawingMode.NON_ALPHA_ONLY
-                        && Texture.AlphaTextureIds.Contains(textureId))
+                        && texture.HasAlpha)
                         continue;
 
-                    uint bufferId = textureIdBufferMapping[textureId],
+                    uint bufferId = textureBufferMapping[texture],
                          indexArrayId = bufferIndexIdMapping[bufferId];
-                    int indexArrayOffset = textureIndexMapping[textureId].Key,
-                        indexArrayLength = textureIndexMapping[textureId].Value;
+                    int indexArrayOffset = textureIndexMapping[texture].Key,
+                        indexArrayLength = textureIndexMapping[texture].Value;
                     if (mode == BufferObjectDrawingMode.COLOR_ONLY)
-                        BufferObjectHelper.BindAndDrawBuffer(bufferId, indexArrayId,
+                        BufferHelper.BindAndDrawBuffer(bufferId, indexArrayId,
                             indexArrayOffset, indexArrayLength, entity.Color,
                             entity.Translation, entity.Rotation, Vector3.One);
                     else
                     {
                         ShaderProgramHelper.UseAndDrawBuffer(shader, bufferId, indexArrayId, indexArrayLength,
-                            indexArrayOffset, textureId, entity.Translation, entity.Rotation, Vector3.One,
+                            indexArrayOffset, texture.TextureId, entity.Translation, entity.Rotation, Vector3.One,
                             () =>
                             {
                                 shader.SetLight("lightPos", "lightColor", "lightType", sun);
@@ -423,22 +438,35 @@ namespace OpenBusDrivingSimulator.Engine
             {
                 uint targetBufferId = bufferIds[i],
                      targetIndexId = bufferIndexIdMapping[targetBufferId];
-                BufferObjectHelper.DeleteBuffers(targetBufferId, targetIndexId);
+                BufferHelper.DeleteBuffers(targetBufferId, targetIndexId);
             }
 
             bufferIds.Clear();
             bufferIndexIdMapping.Clear();
             entities.Clear();
-            textureIdBufferMapping.Clear();
-            meshTextureIdMapping.Clear();
+            textureBufferMapping.Clear();
+            meshTextureMapping.Clear();
             textureIndexMapping.Clear();
+        }
+
+        private bool EntityInBoundingBox(Entity entity)
+        {
+            // TODO: should check the bounding box rather than just the origin
+            // If all the 8 points of the bounding box is not within the plane
+            // Then the entity is considered not within the bound
+            Vector3 origin = entity.Translation;
+            foreach (Vector4 plane in Camera.BoundingPlanes)
+                if (plane.X * origin.X + plane.Y * origin.Y 
+                    + plane.Z * origin.Z - plane.W < 0)
+                    return false;
+            return true;
         }
     }
 
     /// <summary>
     /// 
     /// </summary>
-    internal class DynamicBufferObject
+    internal class DynamicVertexBuffer
     {
 
     }
@@ -446,14 +474,14 @@ namespace OpenBusDrivingSimulator.Engine
     /// <summary>
     /// 
     /// </summary>
-    internal class OverlayTextObject
+    internal class OverlayTextBuffer
     {
         /// <summary>
         /// Bitmap used for converting strings into a picture for display.
         /// </summary>
         private Bitmap textBmp;
 
-        internal OverlayTextObject()
+        internal OverlayTextBuffer()
         {
             textBmp = new Bitmap(Screen.Width, Screen.Height, 
                 System.Drawing.Imaging.PixelFormat.Format32bppArgb);
@@ -481,7 +509,7 @@ namespace OpenBusDrivingSimulator.Engine
                 gfx.DrawString(text, font, brush, new PointF(screenLeft, screenTop));
             }
 
-            int textTextureId = Texture.LoadTexture(textBmp);
+            int textTextureId = TextureManager.LoadTexture(textBmp);
 
             GL.Disable(EnableCap.DepthTest);
             GL.BlendFunc(BlendingFactorSrc.One, BlendingFactorDest.OneMinusSrcAlpha);
@@ -507,7 +535,7 @@ namespace OpenBusDrivingSimulator.Engine
             GL.TexCoord2(0.0f, 0.0f);
             GL.Vertex2(-1.0f, 1.0f);
             GL.End();
-            Texture.UnloadTexture(textTextureId);
+            TextureManager.UnloadTexture(textTextureId);
 
             GL.PopMatrix();
             GL.MatrixMode(MatrixMode.Projection);
@@ -521,14 +549,14 @@ namespace OpenBusDrivingSimulator.Engine
     /// <summary>
     /// 
     /// </summary>
-    internal class MirrorBufferObject
+    internal class MirrorBuffer
     {
         private Vector3 position;
         private Vector3 target;
         private Vector3 up;
         private float viewableDistance;
 
-        private StaticBufferObject staticScene;
+        private StaticVertexBuffer staticScene;
         private uint mirrorBufferId;
         private uint mirrorIndexId;
         private int mirrorIndexArrayLength;
@@ -540,7 +568,7 @@ namespace OpenBusDrivingSimulator.Engine
         /// <summary>
         /// 
         /// </summary>
-        internal MirrorBufferObject()
+        internal MirrorBuffer()
         {
             viewableDistance = 20.0f;
             position = new Vector3(0, 5, -20.0f);
@@ -553,7 +581,7 @@ namespace OpenBusDrivingSimulator.Engine
         /// </summary>
         /// <param name="mirrorMesh"></param>
         /// <param name="scene"></param>
-        internal void InitializeMirror(Mesh mirrorMesh, StaticBufferObject scene)
+        internal void InitializeMirror(Mesh mirrorMesh, StaticVertexBuffer scene)
         {
             // Create the frame buffer and the texture
             GL.GenFramebuffers(1, out frameBufferId);
@@ -584,7 +612,7 @@ namespace OpenBusDrivingSimulator.Engine
                 RenderbufferTarget.Renderbuffer, rendererBufferId);
 
             // Create the buffers used for the mirror mesh
-            BufferObjectHelper.CreateBuffers(out mirrorBufferId, out mirrorIndexId);
+            BufferHelper.CreateBuffers(out mirrorBufferId, out mirrorIndexId);
             GL.BindBuffer(BufferTarget.ArrayBuffer, mirrorBufferId);
             GL.BufferData(BufferTarget.ArrayBuffer, new IntPtr(mirrorMesh.Vertices[0].Length * Vertex.Size),
                 mirrorMesh.Vertices[0], BufferUsageHint.StaticDraw);
@@ -627,7 +655,7 @@ namespace OpenBusDrivingSimulator.Engine
             // Draw the mirror mesh with the rendered texture
             GL.Enable(EnableCap.CullFace);
             GL.CullFace(CullFaceMode.Back);
-            BufferObjectHelper.BindAndDrawBuffer(mirrorBufferId, mirrorIndexId,
+            BufferHelper.BindAndDrawBuffer(mirrorBufferId, mirrorIndexId,
                 mirrorTextureId, 0, mirrorIndexArrayLength);
             GL.Disable(EnableCap.CullFace);
         }
@@ -637,7 +665,7 @@ namespace OpenBusDrivingSimulator.Engine
         /// </summary>
         internal void Cleanup()
         {
-            BufferObjectHelper.DeleteBuffers(mirrorBufferId, mirrorIndexId);
+            BufferHelper.DeleteBuffers(mirrorBufferId, mirrorIndexId);
             GL.DeleteRenderbuffers(1, ref rendererBufferId);
             GL.DeleteTexture(mirrorTextureId);
             GL.DeleteFramebuffers(1, ref frameBufferId);
@@ -647,17 +675,23 @@ namespace OpenBusDrivingSimulator.Engine
     /// <summary>
     /// 
     /// </summary>
-    internal class SkyBoxObject
+    internal class SkyBoxBuffer
     {
         private static readonly string VERTEX_SHADER_PATH = GameEnvironment.RootPath + @"shaders\skyBoxVertexShader.glsl";
         private static readonly string FRAGMENT_SHADER_PATH = GameEnvironment.RootPath + @"shaders\skyBoxFragmentShader.glsl";
 
         private ShaderProgram shader;
-        private int textureId;
+        private Texture texture;
         private uint bufferId;
         private int vertexCount;
 
-        internal void LoadSkyBox(Mesh skyBoxMesh, Vector3 scale, int skyBoxTextureId)
+        internal SkyBoxBuffer()
+        {
+            shader = new ShaderProgram();
+            shader.LoadShaderCodes(VERTEX_SHADER_PATH, FRAGMENT_SHADER_PATH);
+        }
+
+        internal void LoadSkyBox(Mesh skyBoxMesh, Vector3 scale)
         {
             // Enlarge the skybox
             for (int i = 0; i < skyBoxMesh.Vertices[0].Length; i++)
@@ -668,11 +702,10 @@ namespace OpenBusDrivingSimulator.Engine
             }
 
             // Create the buffer and texture needed for the skybox
-            textureId = skyBoxTextureId;
-
-            shader = new ShaderProgram();
-            shader.LoadShaderCodes(VERTEX_SHADER_PATH, FRAGMENT_SHADER_PATH);
-            BufferObjectHelper.CreateBuffers(out bufferId);
+            texture = skyBoxMesh.Materials[0].Texture;
+            int textureId = TextureManager.LoadTexture(texture);
+            texture.TextureId = textureId;
+            BufferHelper.CreateBuffers(out bufferId);
             GL.BindBuffer(BufferTarget.ArrayBuffer, bufferId);
             GL.BufferData(BufferTarget.ArrayBuffer, new IntPtr(skyBoxMesh.Vertices[0].Length * Vertex.Size),
                 skyBoxMesh.Vertices[0], BufferUsageHint.StaticDraw);
@@ -681,8 +714,9 @@ namespace OpenBusDrivingSimulator.Engine
 
         internal void ReplaceTextures(string textureFile)
         {
-            Texture.UnloadTexture(textureId);
-            textureId = Texture.LoadTexture(textureFile);
+            TextureManager.UnloadTexture(texture.TextureId);
+            int textureId = TextureManager.LoadTexture(textureFile);
+            texture = new Texture(textureId, false, textureFile);
         }
 
         internal void DrawSkyBox()
@@ -690,22 +724,22 @@ namespace OpenBusDrivingSimulator.Engine
             GL.Disable(EnableCap.DepthTest);
             GL.Enable(EnableCap.CullFace);
             GL.CullFace(CullFaceMode.Back);
-            ShaderProgramHelper.UseAndDrawBuffer(shader, bufferId, vertexCount, 0, textureId);
+            ShaderProgramHelper.UseAndDrawBuffer(shader, bufferId, vertexCount, 0, texture.TextureId);
             GL.Disable(EnableCap.CullFace);
             GL.Enable(EnableCap.DepthTest);
         }
 
         internal void Cleanup()
         {
-            Texture.UnloadTexture(textureId);
-            BufferObjectHelper.DeleteBuffers(bufferId);
+            TextureManager.UnloadTexture(texture.TextureId);
+            BufferHelper.DeleteBuffers(bufferId);
         }
     }
 
     /// <summary>
     /// 
     /// </summary>
-    internal class TerrainBufferObject
+    internal class TerrainBuffer
     {
         private static readonly string VERTEX_SHADER_PATH = GameEnvironment.RootPath + @"shaders\terrainVertexShader.glsl";
         private static readonly string FRAGMENT_SHADER_PATH = GameEnvironment.RootPath + @"shaders\terrainFragmentShader.glsl";
@@ -717,6 +751,13 @@ namespace OpenBusDrivingSimulator.Engine
         private uint indexArrayId;
         private int terrainTextureId;
         private int indexArrayLength;
+
+        internal TerrainBuffer()
+        {
+            // Initialize the shader
+            shader = new ShaderProgram();
+            shader.LoadShaderCodes(VERTEX_SHADER_PATH, FRAGMENT_SHADER_PATH);
+        }
 
         internal void InitializeTerrain(Vector2 grid, int size, float[][] heights, int textureId, Vector2 uv, Light sunLight)
         {
@@ -755,13 +796,9 @@ namespace OpenBusDrivingSimulator.Engine
                 }
 
             indexArrayLength = indices.Length;
-
-            // Initialize the shader
-            shader = new ShaderProgram();
-            shader.LoadShaderCodes(VERTEX_SHADER_PATH, FRAGMENT_SHADER_PATH);
             // Load the data into the buffer
-            BufferObjectHelper.CreateBuffers(out bufferId, out indexArrayId);
-            BufferObjectHelper.LoadDataIntoBuffers(bufferId, vertices, indexArrayId, indices);
+            BufferHelper.CreateBuffers(out bufferId, out indexArrayId);
+            BufferHelper.LoadDataIntoBuffers(bufferId, vertices, indexArrayId, indices);
         }
 
         internal void DrawTerrain()
@@ -780,8 +817,8 @@ namespace OpenBusDrivingSimulator.Engine
 
         internal void Cleanup()
         {
-            Texture.UnloadTexture(terrainTextureId);
-            BufferObjectHelper.DeleteBuffers(bufferId);
+            TextureManager.UnloadTexture(terrainTextureId);
+            BufferHelper.DeleteBuffers(bufferId);
         }
     }
 }

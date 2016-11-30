@@ -97,11 +97,10 @@ namespace OpenBusDrivingSimulator.Engine
                 string fullPath = resultMesh.texturePath
                     + Constants.PATH_DELIM + collada.Images[i].ImageFile;
                 if (alphaTextures != null && alphaTextures.Contains(collada.Images[i].ImageFile))
-                    resultMesh.Materials[i].TextureId = Texture.LoadTexture(fullPath, true);
+                    resultMesh.Materials[i].Texture = TextureManager.PutIntoLoadQueue(fullPath, true);
                 else
-                    resultMesh.Materials[i].TextureId = Texture.LoadTexture(fullPath);
+                    resultMesh.Materials[i].Texture = TextureManager.PutIntoLoadQueue(fullPath, false);
             }
-                
 
             resultMesh.Vertices = new Vertex[resultMesh.Materials.Length][];
             for (int i = 0; i < collada.Geometries.Length; i++)

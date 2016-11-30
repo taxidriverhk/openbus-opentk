@@ -16,11 +16,11 @@ namespace OpenBusDrivingSimulator.Engine
         private static Light sun;
 
         private static List<Entity> loadedEntities;
-        private static StaticBufferObject staticBuffer;
-        private static List<MirrorBufferObject> mirrorBuffers;
-        private static OverlayTextObject overlayText;
-        private static SkyBoxObject skyBox;
-        private static TerrainBufferObject terrain;
+        private static StaticVertexBuffer staticBuffer;
+        private static List<MirrorBuffer> mirrorBuffers;
+        private static OverlayTextBuffer overlayText;
+        private static SkyBoxBuffer skyBox;
+        private static TerrainBuffer terrain;
 
         /// <summary>
         /// Initialize the components of the renderer, should be called before the main loop.
@@ -29,11 +29,11 @@ namespace OpenBusDrivingSimulator.Engine
         public static void Initialize()
         {
             loadedEntities = new List<Entity>();
-            staticBuffer = new StaticBufferObject();
-            overlayText = new OverlayTextObject();
-            mirrorBuffers = new List<MirrorBufferObject>();
-            skyBox = new SkyBoxObject();
-            terrain = new TerrainBufferObject();
+            staticBuffer = new StaticVertexBuffer();
+            overlayText = new OverlayTextBuffer();
+            mirrorBuffers = new List<MirrorBuffer>();
+            skyBox = new SkyBoxBuffer();
+            terrain = new TerrainBuffer();
             sun = new Light(SUN_POSITION, SUN_COLOR, LightType.DIRECTIONAL);
         }
 
@@ -45,7 +45,7 @@ namespace OpenBusDrivingSimulator.Engine
         {
             loadedEntities.Clear();
             staticBuffer.Cleanup();
-            foreach (MirrorBufferObject mirrorBuffer in mirrorBuffers)
+            foreach (MirrorBuffer mirrorBuffer in mirrorBuffers)
                 mirrorBuffer.Cleanup();
             skyBox.Cleanup();
             terrain.Cleanup();
@@ -137,7 +137,7 @@ namespace OpenBusDrivingSimulator.Engine
         /// <param name="mirrorMesh"></param>
         public static void LoadMirror(Mesh mirrorMesh)
         {
-            MirrorBufferObject mirrorBuffer = new MirrorBufferObject();
+            MirrorBuffer mirrorBuffer = new MirrorBuffer();
             mirrorBuffer.InitializeMirror(mirrorMesh, staticBuffer);
             mirrorBuffers.Add(mirrorBuffer);
         }
@@ -150,7 +150,7 @@ namespace OpenBusDrivingSimulator.Engine
         /// <param name="textureFile"></param>
         public static void LoadSkyBox(Mesh skyBoxMesh, float scale)
         {
-            skyBox.LoadSkyBox(skyBoxMesh, new Vector3(scale), skyBoxMesh.Materials[0].TextureId);
+            skyBox.LoadSkyBox(skyBoxMesh, new Vector3(scale));
         }
 
         public static void ReplaceSkyBox(string textureFile)
@@ -170,7 +170,7 @@ namespace OpenBusDrivingSimulator.Engine
         /// <param name="v"></param>
         public static void LoadTerrain(int x, int y, int size, float[][] heights, string textureFile, float u, float v)
         {
-            int textureId = Texture.LoadTexture(textureFile);
+            int textureId = TextureManager.LoadTexture(textureFile);
             terrain.InitializeTerrain(new Vector2(x, y), size, heights, textureId, new Vector2(u, v), sun);
         }
 
@@ -204,7 +204,7 @@ namespace OpenBusDrivingSimulator.Engine
         /// </summary>
         private static void DrawMirrors()
         {
-            foreach (MirrorBufferObject mirrorBuffer in mirrorBuffers)
+            foreach (MirrorBuffer mirrorBuffer in mirrorBuffers)
                 mirrorBuffer.DrawMirror();
         }
 

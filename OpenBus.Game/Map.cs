@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using OpenBus.Config;
-using OpenBus.Core;
+using OpenBus.Common;
 using OpenBus.Engine;
 
 namespace OpenBus.Game

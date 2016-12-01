@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Input;
 
-namespace OpenBus.GUI.ViewModel
+namespace OpenBus.WPF.ViewModel
 {
     public class ApplicationCommand : ICommand
     {

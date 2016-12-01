@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 
-namespace OpenBus.Core
+namespace OpenBus.Common
 {
     /// <summary>
     /// Represents a three-dimensional vector with single precision.

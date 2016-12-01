@@ -5,7 +5,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 
-namespace OpenBus.GUI.ViewModel
+namespace OpenBus.WPF.ViewModel
 {
     public abstract class WindowModel : INotifyPropertyChanged
     {

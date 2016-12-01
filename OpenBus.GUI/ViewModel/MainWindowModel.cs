@@ -5,11 +5,10 @@ using System.Linq;
 using System.Text;
 using System.Windows;
 using System.Windows.Input;
-using OpenBus.Core;
+using OpenBus.Common;
 using OpenBus.Game;
-using OpenBus.GUI.View;
 
-namespace OpenBus.GUI.ViewModel
+namespace OpenBus.WPF.ViewModel
 {
     public class MainWindowModelStrings
     {

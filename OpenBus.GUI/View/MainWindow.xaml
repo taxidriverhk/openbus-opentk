@@ -1,7 +1,7 @@
-﻿<Window x:Class="OpenBus.GUI.View.MainWindow"
+﻿<Window x:Class="OpenBus.WPF.View.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:model="clr-namespace:OpenBus.GUI.ViewModel"
+        xmlns:model="clr-namespace:OpenBus.WPF.ViewModel"
         Title="{Binding Strings.Title}"  Width="{Binding ScreenSize.Width}" Height="{Binding ScreenSize.Height}"
         Visibility="{Binding IsVisible, Mode=TwoWay, Converter={StaticResource boolToVisibilityConverter}}"
         WindowStartupLocation="CenterScreen" ResizeMode="CanMinimize">

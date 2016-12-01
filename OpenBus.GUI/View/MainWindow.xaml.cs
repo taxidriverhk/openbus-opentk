@@ -1,7 +1,7 @@
 ﻿using System.Windows;
 using OpenBus.Game;
 
-namespace OpenBus.GUI.View
+namespace OpenBus.WPF.View
 {
     /// <summary>
     /// 

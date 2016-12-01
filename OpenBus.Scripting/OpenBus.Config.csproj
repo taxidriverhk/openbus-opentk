@@ -48,9 +48,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\OpenBus.Core\OpenBus.Core.csproj">
+    <ProjectReference Include="..\OpenBus.Common\OpenBus.Common.csproj">
       <Project>{bbda98e6-a972-4f60-8eed-83430d24845b}</Project>
-      <Name>OpenBus.Core</Name>
+      <Name>OpenBus.Common</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

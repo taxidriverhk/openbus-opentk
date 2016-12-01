@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace OpenBus.Core
+namespace OpenBus.Common
 {
     public enum LogLevel
     {

@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using OpenTK;
-using OpenBus.Core;
+using OpenBus.Common;
 using OpenBus.Engine.Assets;
 
 namespace OpenBus.Engine

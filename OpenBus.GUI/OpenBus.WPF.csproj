@@ -7,8 +7,8 @@
     <ProjectGuid>{7BA39C8A-2A9C-4008-830F-38AC1A0D4CD9}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>OpenBus.GUI</RootNamespace>
-    <AssemblyName>OpenBus</AssemblyName>
+    <RootNamespace>OpenBus.WPF</RootNamespace>
+    <AssemblyName>OpenBus.WPF</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -40,7 +40,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
-    <DocumentationFile>bin\Debug\OpenBus.XML</DocumentationFile>
+    <DocumentationFile>bin\Debug\OpenBus.WPF.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>x86</PlatformTarget>
@@ -53,7 +53,7 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>OpenBus.GUI.Program</StartupObject>
+    <StartupObject>OpenBus.WPF.Program</StartupObject>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationIcon>Images\favicon.ico</ApplicationIcon>
@@ -74,7 +74,7 @@
     <Reference Include="PresentationFramework" />
   </ItemGroup>
   <ItemGroup>
-    <ApplicationDefinition Include="View\App.xaml">
+    <ApplicationDefinition Include="App.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
@@ -83,7 +83,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Compile Include="View\App.xaml.cs">
+    <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
@@ -123,9 +123,9 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\OpenBus.Core\OpenBus.Core.csproj">
+    <ProjectReference Include="..\OpenBus.Common\OpenBus.Common.csproj">
       <Project>{bbda98e6-a972-4f60-8eed-83430d24845b}</Project>
-      <Name>OpenBus.Core</Name>
+      <Name>OpenBus.Common</Name>
     </ProjectReference>
     <ProjectReference Include="..\OpenBus.Engine\OpenBus.Engine.csproj">
       <Project>{CD675E02-CA7C-4E34-90A4-30E21FC05AC7}</Project>

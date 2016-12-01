@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 
-namespace OpenBus.Core
+namespace OpenBus.Common
 {
     public static class Timer
     {

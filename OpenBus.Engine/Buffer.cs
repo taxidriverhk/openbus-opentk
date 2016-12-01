@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
-using OpenBus.Core;
+using OpenBus.Common;
 
 namespace OpenBus.Engine
 {

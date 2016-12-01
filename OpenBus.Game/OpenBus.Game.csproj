@@ -60,9 +60,9 @@
     <Compile Include="UserControl.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\OpenBus.Core\OpenBus.Core.csproj">
+    <ProjectReference Include="..\OpenBus.Common\OpenBus.Common.csproj">
       <Project>{bbda98e6-a972-4f60-8eed-83430d24845b}</Project>
-      <Name>OpenBus.Core</Name>
+      <Name>OpenBus.Common</Name>
     </ProjectReference>
     <ProjectReference Include="..\OpenBus.Engine\OpenBus.Engine.csproj">
       <Project>{CD675E02-CA7C-4E34-90A4-30E21FC05AC7}</Project>

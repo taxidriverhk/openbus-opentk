@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace OpenBus.Core
+namespace OpenBus.Common
 {
     public static class GameEnvironment
     {

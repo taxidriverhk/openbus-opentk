@@ -23,7 +23,7 @@ namespace OpenBusDrivingSimulator.Engine
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="meshName"></param>
+        /// <param name="meshName">A unique name that identifies the mesh</param>
         /// <param name="tx"></param>
         /// <param name="ty"></param>
         /// <param name="tz"></param>
@@ -79,8 +79,8 @@ namespace OpenBusDrivingSimulator.Engine
             }
             
             Mesh resultMesh = new Mesh();
-            // Get the name of the mesh
-            resultMesh.Name = path.Replace(GameEnvironment.RootPath, "");
+            // Get the name of the mesh (which is the path in this case)
+            resultMesh.Name = path;
             // Used for mapping the material id to the array index
             Dictionary<string, int> materialMapping = new Dictionary<string, int>();
             resultMesh.Materials = new Material[collada.Materials.Length];
@@ -96,6 +96,8 @@ namespace OpenBusDrivingSimulator.Engine
             {
                 string fullPath = resultMesh.texturePath
                     + Constants.PATH_DELIM + collada.Images[i].ImageFile;
+                // TODO: separate image file paths reading from material info reading
+                // and should not assume that material's index == image's index
                 if (alphaTextures != null && alphaTextures.Contains(collada.Images[i].ImageFile))
                     resultMesh.Materials[i].Texture = TextureManager.PutIntoLoadQueue(fullPath, true);
                 else

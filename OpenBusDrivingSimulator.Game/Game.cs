@@ -28,7 +28,7 @@ namespace OpenBusDrivingSimulator.Game
 
         public static void LoadIntoBuffers()
         {
-            MapBlockLoader.LoadInfoBuffer();
+            MapBlockLoader.LoadIntoBuffer();
         }
 
         public static void LoadMap(string filename)

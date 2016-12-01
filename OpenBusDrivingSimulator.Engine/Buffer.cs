@@ -309,7 +309,7 @@ namespace OpenBusDrivingSimulator.Engine
             shader = new ShaderProgram();
             shader.LoadShaderCodes(VERTEX_SHADER_PATH, FRAGMENT_SHADER_PATH);
 
-            // Only render the entities where their origins are within the bounding box
+            // Only render the entities where their bounds are within the bounding box
             // TODO: this member should be configurable
             renderWithinBounds = false;
         }
@@ -336,7 +336,7 @@ namespace OpenBusDrivingSimulator.Engine
             List<Vertex> verticesToBeLoaded = new List<Vertex>();
             List<uint> indicesToBeLoaded = new List<uint>();
 
-            entities = entitiesToBeLoaded;
+            entities = new List<Entity>(entitiesToBeLoaded);
             foreach (Mesh mesh in meshes)
             {
                 for (int i = 0; i < mesh.Vertices.Length; i++)
@@ -476,14 +476,11 @@ namespace OpenBusDrivingSimulator.Engine
     /// </summary>
     internal class OverlayTextBuffer
     {
-        /// <summary>
-        /// Bitmap used for converting strings into a picture for display.
-        /// </summary>
         private Bitmap textBmp;
 
         internal OverlayTextBuffer()
         {
-            textBmp = new Bitmap(Screen.Width, Screen.Height, 
+            textBmp = new Bitmap(Screen.Width, Screen.Height,
                 System.Drawing.Imaging.PixelFormat.Format32bppArgb);
         }
 
@@ -508,8 +505,7 @@ namespace OpenBusDrivingSimulator.Engine
                 gfx.Clear(Color.Transparent);
                 gfx.DrawString(text, font, brush, new PointF(screenLeft, screenTop));
             }
-
-            int textTextureId = TextureManager.LoadTexture(textBmp);
+            int textTextureId = TextureManager.LoadTexture(textBmp, false);
 
             GL.Disable(EnableCap.DepthTest);
             GL.BlendFunc(BlendingFactorSrc.One, BlendingFactorDest.OneMinusSrcAlpha);

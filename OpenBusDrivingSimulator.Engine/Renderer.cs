@@ -192,6 +192,10 @@ namespace OpenBusDrivingSimulator.Engine
             skyBox.LoadSkyBox(skyBoxMesh, new Vector3(scale));
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="textureFile"></param>
         public static void ReplaceSkyBox(string textureFile)
         {
             skyBox.ReplaceTextures(textureFile);
@@ -214,7 +218,7 @@ namespace OpenBusDrivingSimulator.Engine
             {
                 int textureId = TextureManager.LoadTexture(textureFile);
                 TerrainBuffer terrainBuffer = new TerrainBuffer();
-                terrainBuffer.InitializeTerrain(new Vector2(x, y), size, heights, textureId, new Vector2(u, v), sun);
+                terrainBuffer.InitializeTerrain(new Vector2(x, -y), size, heights, textureId, new Vector2(u, v), sun);
                 terrainBuffers[slotToUse] = terrainBuffer;
             }
         }
@@ -232,6 +236,9 @@ namespace OpenBusDrivingSimulator.Engine
             DrawTerrain();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         internal static void UpdateCurrentSlotIndex()
         {
             Vector3 currentPosition = Camera.Eye;
@@ -291,6 +298,10 @@ namespace OpenBusDrivingSimulator.Engine
                     terrainBuffer.DrawTerrain();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         private static int GetAvailableStaticBufferSlot()
         {
             for (int i = 0; i < staticBufferSlotUsed.Length; i++)
@@ -299,6 +310,10 @@ namespace OpenBusDrivingSimulator.Engine
             return -1;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         private static int GetAvailableTerrainBufferSlot()
         {
             for (int i = 0; i < terrainBufferSlotUsed.Length; i++)

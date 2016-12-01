@@ -60,15 +60,29 @@ namespace OpenBusDrivingSimulator.Engine
     /// </summary>
     public static class TextureManager
     {
+        private struct TextureLoadQueueItem
+        {
+            public Texture Texture;
+            public Bitmap Bitmap;
+
+            public override bool Equals(object obj)
+            {
+                TextureLoadQueueItem other = (TextureLoadQueueItem)obj;
+                return this.Texture.Path == other.Texture.Path;
+            }
+
+            public override int GetHashCode()
+            {
+                return this.Texture.Path.GetHashCode();
+            }
+        }
+
         /// <summary>
         /// List of supported image format to load into.
         /// </summary>
         private static readonly string[] supportedFormats = { ".bmp" };
 
         private static HashSet<Texture> textures;
-        private static List<Texture> textureLoadQueue;
-
-
         /// <summary>
         /// List of IDs where each of them points to the data allocated to the graphics memory.
         /// </summary>
@@ -77,10 +91,12 @@ namespace OpenBusDrivingSimulator.Engine
             get { return textures; }
         }
 
+        private static HashSet<TextureLoadQueueItem> textureLoadQueue;
+
         static TextureManager()
         {
             textures = new HashSet<Texture>();
-            textureLoadQueue = new List<Texture>();
+            textureLoadQueue = new HashSet<TextureLoadQueueItem>();
         }
 
         public static int GetTextureId(Texture target)
@@ -91,43 +107,16 @@ namespace OpenBusDrivingSimulator.Engine
             return 0;
         }
 
-        /// <summary>
-        /// Loads a bitmap into the graphics memory.
-        /// </summary>
-        /// <param name="bitmap">The bitmap that contains the data of the image.</param>
-        /// <returns>
-        /// The texture ID allocated to the graphics memory.
-        /// -1 if the bitmap is null.
-        /// </returns>
-        public static int LoadTexture(Bitmap bitmap, bool hasAlpha, bool addToList)
-        {
-            if (bitmap == null)
-                return -1;
-
-            int id = GL.GenTexture();
-            GL.BindTexture(TextureTarget.Texture2D, id);
-
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter,
-                (int)TextureMinFilter.Nearest);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter,
-                (int)TextureMagFilter.Nearest);
-
-            BitmapData bitmapData = bitmap.LockBits(new Rectangle(0, 0,
-                bitmap.Width, bitmap.Height), ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
-            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba,
-                bitmap.Width, bitmap.Height, 0, OpenTK.Graphics.OpenGL.PixelFormat.Bgra,
-                PixelType.UnsignedByte, bitmapData.Scan0);
-            bitmap.UnlockBits(bitmapData);
-
-            Texture texture = new Texture(id, hasAlpha);
-            if (addToList)
-                textures.Add(texture);
-            return id;
-        }
-
         public static int LoadTexture(Bitmap bitmap)
         {
-            return LoadTexture(bitmap, false, true);
+            int textureId = LoadTexture(bitmap, true);
+            return textureId;
+        }
+
+        public static int LoadTexture(Bitmap bitmap, bool disposeBitmap)
+        {
+            int textureId = LoadTexture(bitmap, false, true, disposeBitmap);
+            return textureId;
         }
 
         /// <summary>
@@ -157,17 +146,7 @@ namespace OpenBusDrivingSimulator.Engine
                 return -1;
 
             Bitmap bitmap = new Bitmap(fullPath);
-            if (hasAlpha && bitmap.PixelFormat != System.Drawing.Imaging.PixelFormat.Format32bppArgb)
-            {
-                Rectangle rect = new Rectangle(0, 0, bitmap.Width, bitmap.Height);
-                Bitmap bitmapWithAlpha = new Bitmap(bitmap.Width, bitmap.Height, 
-                    System.Drawing.Imaging.PixelFormat.Format32bppArgb);
-                using (Graphics gfx = Graphics.FromImage(bitmapWithAlpha))
-                    gfx.DrawImage(bitmap, rect, rect, GraphicsUnit.Pixel);
-                bitmapWithAlpha.MakeTransparent();
-                bitmap = bitmapWithAlpha;
-            }
-            int textureId = LoadTexture(bitmap, hasAlpha, false);
+            int textureId = LoadTexture(bitmap, hasAlpha, false, true);
             textures.Add(new Texture(textureId, hasAlpha, path));
             return textureId;
         }
@@ -186,16 +165,27 @@ namespace OpenBusDrivingSimulator.Engine
 
         public static void LoadAllTexturesInQueue()
         {
-            foreach (Texture texture in textureLoadQueue)
-                LoadTexture(texture);
+            foreach (TextureLoadQueueItem item in textureLoadQueue)
+            {
+                int textureId = LoadTexture(item.Bitmap, item.Texture.HasAlpha, false, true);
+                Texture loadedTexture = new Texture(item.Texture.Path, item.Texture.HasAlpha);
+                loadedTexture.TextureId = textureId;
+                textures.Add(loadedTexture);
+            }
             textureLoadQueue.Clear();
         }
 
         public static Texture PutIntoLoadQueue(string path, bool hasAlpha)
         {
-            Texture texture = new Texture(path, hasAlpha);
-            textureLoadQueue.Add(texture);
-            return texture;
+            TextureLoadQueueItem item = new TextureLoadQueueItem();
+            item.Bitmap = new Bitmap(path);
+            if (item.Bitmap != null)
+            {
+                item.Texture = new Texture(path, hasAlpha);
+                textureLoadQueue.Add(item);
+                return item.Texture;
+            }
+            return new Texture();
         }
 
         /// <summary>
@@ -220,6 +210,53 @@ namespace OpenBusDrivingSimulator.Engine
         {
             foreach (Texture texture in textures)
                 GL.DeleteTexture(texture.TextureId);
+        }
+
+        private static Bitmap GetAlphaBitmap(Bitmap bitmap)
+        {
+            if (bitmap != null)
+            {
+                Rectangle rect = new Rectangle(0, 0, bitmap.Width, bitmap.Height);
+                Bitmap bitmapWithAlpha = new Bitmap(bitmap.Width, bitmap.Height,
+                    System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+                using (Graphics gfx = Graphics.FromImage(bitmapWithAlpha))
+                    gfx.DrawImage(bitmap, rect, rect, GraphicsUnit.Pixel);
+                bitmapWithAlpha.MakeTransparent();
+                bitmap.Dispose();
+                return bitmapWithAlpha;
+            }
+            else
+                return bitmap;
+        }
+
+        private static int LoadTexture(Bitmap bitmap, bool hasAlpha, bool addToList, bool disposeBitmap)
+        {
+            if (bitmap == null)
+                return -1;
+
+            int id = GL.GenTexture();
+            GL.BindTexture(TextureTarget.Texture2D, id);
+            if (hasAlpha && bitmap.PixelFormat != System.Drawing.Imaging.PixelFormat.Format32bppArgb)
+                bitmap = GetAlphaBitmap(bitmap);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter,
+                (int)TextureMinFilter.Nearest);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter,
+                (int)TextureMagFilter.Nearest);
+            BitmapData bitmapData = bitmap.LockBits(new Rectangle(0, 0,
+                bitmap.Width, bitmap.Height), ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba,
+                bitmapData.Width, bitmapData.Height, 0, OpenTK.Graphics.OpenGL.PixelFormat.Bgra,
+                PixelType.UnsignedByte, bitmapData.Scan0);
+            bitmap.UnlockBits(bitmapData);
+            if (disposeBitmap)
+                bitmap.Dispose();
+
+            Texture texture = new Texture(id, hasAlpha);
+            // Either let this function add the texture to the hash set
+            // Or let the caller (which should be a TextureManager method too) do it
+            if (addToList)
+                textures.Add(texture);
+            return id;
         }
     }
 }

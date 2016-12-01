@@ -115,39 +115,18 @@ namespace OpenBusDrivingSimulator.Game
 
         public void LoadBlock(int x, int y, MapBlock block, Terrain terrain)
         {
-            // Load the static objects to buffer in a separate thread
+            int blockSize = MapBlock.MAP_BLOCK_SIZE;
             block.Position = new Vector2f(x, y);
-            if (blockLoadThread == null || !blockLoadThread.IsAlive)
+            // Load the static objects to buffer in a separate thread
+            blockLoadThread = new Thread(delegate ()
             {
-                blockLoadThread = new Thread(delegate ()
-                {
-                    MapBlockLoader.StartLoadBlockThread(block);
-                });
-                blockLoadThread.IsBackground = true;
-                blockLoadThread.Start();
-            }
+                MapBlockLoader.StartLoadBlockThread(block, terrain, blockSize);
+            });
+            blockLoadThread.IsBackground = true;
+            blockLoadThread.Start();
 
-            // Load the terrain data to buffer as well
-            int terrainSize = Terrain.TERRAIN_GRID_SIZE;
-            float[][] heights = new float[terrainSize][];
-            for (int i = 0; i < terrainSize; i++)
-            {
-                heights[i] = new float[terrainSize];
-                for (int j = 0; j < terrainSize; j++)
-                {
-                    Terrain.TerrainDisplacement displacement = terrain.Displacements
-                        .Find(d => d.X == i && d.Y == j);
-                    if (displacement != null)
-                        heights[i][j] = displacement.Displacement;
-                    else
-                        heights[i][j] = 0;
-                }
-            }
-                
-            Renderer.LoadTerrain(x * MapBlock.MAP_BLOCK_SIZE, -y * MapBlock.MAP_BLOCK_SIZE, 
-                Terrain.TERRAIN_GRID_SIZE, heights, GameEnvironment.RootPath + terrain.TexturePath, 
-                terrain.TextureUV.X, terrain.TextureUV.Y);
-            currentBlock = block;
+            if (currentBlock == null)
+                currentBlock = block;
         }
     }
 
@@ -155,6 +134,12 @@ namespace OpenBusDrivingSimulator.Game
     {
         private static bool loadedIntoBuffer;
         private static bool loadCompleted;
+
+        private static double progress;
+
+        private static Vector2f blockPosition;
+        private static Terrain terrain;
+        private static float[][] terrainHeights;
         private static List<Entity> entities;
         private static HashSet<Mesh> meshes;
 
@@ -176,11 +161,17 @@ namespace OpenBusDrivingSimulator.Game
             get { return loadCompleted; }
         }
 
-        public static void StartLoadBlockThread(MapBlock block)
+        public static double Progress
+        {
+            get { return progress; }
+        }
+
+        public static void StartLoadBlockThread(MapBlock block, Terrain terrainToLoad, int blockSize)
         {
             loadedIntoBuffer = false;
-            entities = new List<Entity>();
-            meshes = new HashSet<Mesh>();
+
+            // Static entity loading
+            blockPosition = block.Position;
             foreach (Object mapObject in block.Objects)
             {
                 HashSet<string> alphaTextures = new HashSet<string>();
@@ -198,18 +189,48 @@ namespace OpenBusDrivingSimulator.Game
                     meshes.Add(staticMesh);
                 }
             }
+
+            // Terrain loading
+            terrain = terrainToLoad;
+            terrainHeights = new float[blockSize][];
+            for (int i = 0; i < blockSize; i++)
+            {
+                terrainHeights[i] = new float[blockSize];
+                for (int j = 0; j < blockSize; j++)
+                {
+                    Terrain.TerrainDisplacement displacement = terrain.Displacements
+                        .Find(d => d.X == i && d.Y == j);
+                    if (displacement != null)
+                        terrainHeights[i][j] = displacement.Displacement;
+                    else
+                        terrainHeights[i][j] = 0;
+                }
+            }
+
             loadCompleted = true;
         }
 
-        public static void LoadInfoBuffer()
+        public static void LoadIntoBuffer()
         {
             if (loadedIntoBuffer || !loadCompleted)
                 return;
 
             TextureManager.LoadAllTexturesInQueue();
             Renderer.LoadStaticEntitiesToScene(entities, meshes);
+            Renderer.LoadTerrain((int)blockPosition.X * MapBlock.MAP_BLOCK_SIZE, 
+                (int)blockPosition.Y * MapBlock.MAP_BLOCK_SIZE,
+                Terrain.TERRAIN_GRID_SIZE, terrainHeights, GameEnvironment.RootPath + terrain.TexturePath,
+                terrain.TextureUV.X, terrain.TextureUV.Y);
+
+            blockPosition = Vector2f.Zero;
+            terrain = null;
+            terrainHeights = null;
+            entities.Clear();
+            meshes.Clear();
+
             loadedIntoBuffer = true;
             loadCompleted = false;
+            progress = 0;
         }
     }
 }

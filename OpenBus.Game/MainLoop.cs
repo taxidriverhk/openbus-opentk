@@ -22,7 +22,7 @@ namespace OpenBus.Game
         {
             double totalTimeElapsedForHud = 0.0;
             string iconPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) 
-                +"\\" + Constants.APPLICATION_ICON;
+                + Constants.PATH_DELIM + Constants.APPLICATION_ICON;
             if (!File.Exists(iconPath))
                 iconPath = string.Empty;
 
@@ -35,8 +35,8 @@ namespace OpenBus.Game
 
             #region Test Calls
             Renderer.LoadSkyBox(
-                Mesh.LoadFromCollada(GameEnvironment.RootPath + @"objects\sky.dae"), 450f);
-            Game.LoadMap(GameEnvironment.RootPath + @"map\test.map");
+                Mesh.LoadFromCollada(GameEnvironment.RootPath + @"objects\test\models\sky.dae"), 450f);
+            Game.LoadMap(GameEnvironment.RootPath + @"maps\Test Map\test.map");
             #endregion
 
             Screen.Show();

@@ -12,6 +12,16 @@ namespace OpenBus.Config
     [XmlRoot("object")]
     public class ObjectEx
     {
+        public class ObjectInfo
+        {
+            [XmlElement("name")]
+            public string Name;
+            [XmlElement("model_dir")]
+            public string ModelDirectory;
+            [XmlElement("texture_dir")]
+            public string TextureDirectory;
+        }
+
         public class AlphaTextureInfo
         {
             public enum AlphaTextureMode
@@ -34,6 +44,8 @@ namespace OpenBus.Config
             public string Path;
         }
 
+        [XmlElement("info")]
+        public ObjectInfo Info;
         [XmlArray("meshes")]
         [XmlArrayItem("mesh")]
         public MeshInfo[] Meshes;

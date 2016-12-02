@@ -40,11 +40,23 @@ namespace OpenBus.Game
         private Vector3f rotations;
         private string[] meshes;
         private ObjectTexture[] alphaTextures;
+        private string modelDirectory;
+        private string textureDirectory;
         private string path;
 
         public string Path
         {
             get { return path; }
+        }
+
+        public string ModelDirectory
+        {
+            get { return modelDirectory; }
+        }
+
+        public string TextureDirectory
+        {
+            get { return textureDirectory; }
         }
 
         public Vector3f Position
@@ -67,12 +79,15 @@ namespace OpenBus.Game
             get { return alphaTextures; }
         }
 
-        public Object(Vector3f position, Vector3f rotations, string[] meshes, string path, ObjectTexture[] alphaTextures)
+        public Object(Vector3f position, Vector3f rotations, string[] meshes, string path, 
+            string modelDirectory, string textureDirectory, ObjectTexture[] alphaTextures)
         {
             this.position = position;
             this.rotations = rotations;
             this.meshes = meshes;
             this.path = path;
+            this.modelDirectory = modelDirectory;
+            this.textureDirectory = textureDirectory;
             this.alphaTextures = alphaTextures;
         }
     }

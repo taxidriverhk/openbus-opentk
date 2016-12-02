@@ -7,7 +7,7 @@ namespace OpenBus.Common
 {
     public static class GameEnvironment
     {
-        public static string RootPath = @"D:\Downloads\OpenBDS\";
+        public static string RootPath = @"D:\Downloads\OpenBus\";
     }
 
     public static class Constants

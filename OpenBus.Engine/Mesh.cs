@@ -51,9 +51,6 @@ namespace OpenBus.Engine
 
     public class Mesh
     {
-        // TODO: make the path of the texture file configurable
-        private string texturePath = @"D:\Downloads\OpenBDS\objects\texture";
-
         public string Name;
         public Material[] Materials;
         public Vertex[][] Vertices; 
@@ -61,10 +58,10 @@ namespace OpenBus.Engine
 
         public static Mesh LoadFromCollada(string path)
         {
-            return LoadFromCollada(path, null);
+            return LoadFromCollada(path, Path.GetDirectoryName(path) + @"\..\textures", null);
         }
 
-        public static Mesh LoadFromCollada(string path, ISet<string> alphaTextures)
+        public static Mesh LoadFromCollada(string path, string textureDir, ISet<string> alphaTextures)
         {
             Collada collada = null;
             try
@@ -94,7 +91,7 @@ namespace OpenBus.Engine
 
             for (int i = 0; i < collada.Images.Length && i < collada.Materials.Length; i++)
             {
-                string fullPath = resultMesh.texturePath
+                string fullPath = textureDir
                     + Constants.PATH_DELIM + collada.Images[i].ImageFile;
                 // TODO: separate image file paths reading from material info reading
                 // and should not assume that material's index == image's index
@@ -157,7 +154,6 @@ namespace OpenBus.Engine
 
         private Mesh()
         {
-
         }
     }
 }

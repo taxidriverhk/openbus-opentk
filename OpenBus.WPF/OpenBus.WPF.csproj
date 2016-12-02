@@ -162,7 +162,7 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>copy "$(SolutionDir)OpenBus.Engine\Referenced Libraries\SDL*.dll" "$(ProjectDir)$(OutDir)"
-copy "$(SolutionDir)OpenBus.GUI\Images\favicon.ico" "$(ProjectDir)$(OutDir)"</PostBuildEvent>
+copy "$(ProjectDir)Images\favicon.ico" "$(ProjectDir)$(OutDir)"</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

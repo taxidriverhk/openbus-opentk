@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -90,7 +91,8 @@ namespace OpenBus.Game
             block.objects = new List<Object>();
             foreach (ObjectInfo objectInfo in blockEx.Objects)
             {
-                ObjectEx objectEx = XmlDeserializeHelper<ObjectEx>.DeserializeFromFile(GameEnvironment.RootPath + objectInfo.Path);
+                ObjectEx objectEx = XmlDeserializeHelper<ObjectEx>
+                    .DeserializeFromFile(GameEnvironment.RootPath + objectInfo.Path);
                 string[] meshPaths = new string[objectEx.Meshes.Length];
                 ObjectTexture[] alphaTextures = null;
                 if (objectEx.AlphaTextures != null)
@@ -102,7 +104,9 @@ namespace OpenBus.Game
                         alphaTextures[i] = new ObjectTexture(objectEx.AlphaTextures[i].Path,
                             (ObjectTextureAlphaMode)objectEx.AlphaTextures[i].Mode);
                 block.objects.Add(new Object(objectInfo.Position,
-                    objectInfo.Rotations, meshPaths, objectInfo.Path, alphaTextures));
+                    objectInfo.Rotations, meshPaths, objectInfo.Path,
+                    objectEx.Info.ModelDirectory, 
+                    objectEx.Info.TextureDirectory, alphaTextures));
             }
             return block;
         }
@@ -181,7 +185,10 @@ namespace OpenBus.Game
 
                 foreach (string meshPath in mapObject.Meshes)
                 {
-                    Mesh staticMesh = Mesh.LoadFromCollada(GameEnvironment.RootPath + "objects\\" + meshPath, alphaTextures);
+                    Mesh staticMesh = Mesh.LoadFromCollada(GameEnvironment.RootPath + 
+                        mapObject.ModelDirectory + Constants.PATH_DELIM + meshPath,
+                        GameEnvironment.RootPath +
+                        mapObject.TextureDirectory, alphaTextures);
                     Entity entity = new Entity(staticMesh.Name, mapObject.Position.X + block.Position.X * MapBlock.MAP_BLOCK_SIZE,
                         mapObject.Position.Y, -mapObject.Position.Z - block.Position.Y * MapBlock.MAP_BLOCK_SIZE,
                         mapObject.Rotations.X, mapObject.Rotations.Y, mapObject.Rotations.Z);

@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenBus.WPF", "OpenBus.GUI\OpenBus.WPF.csproj", "{7BA39C8A-2A9C-4008-830F-38AC1A0D4CD9}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenBus.WPF", "OpenBus.WPF\OpenBus.WPF.csproj", "{7BA39C8A-2A9C-4008-830F-38AC1A0D4CD9}"
 	ProjectSection(ProjectDependencies) = postProject
 		{5115A399-4E0F-4B33-A811-9E0E9910DEBD} = {5115A399-4E0F-4B33-A811-9E0E9910DEBD}
 	EndProjectSection
@@ -19,7 +19,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenBus.Game", "OpenBus.Gam
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenBus.Common", "OpenBus.Common\OpenBus.Common.csproj", "{BBDA98E6-A972-4F60-8EED-83430D24845B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenBus.Config", "OpenBus.Scripting\OpenBus.Config.csproj", "{C96185D1-B950-4D13-A768-AAC7844CEE04}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenBus.Config", "OpenBus.Config\OpenBus.Config.csproj", "{C96185D1-B950-4D13-A768-AAC7844CEE04}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenBus.WinForm", "OpenBus.WinForm\OpenBus.WinForm.csproj", "{F8EC47A4-C2DA-47D2-8BC8-2F8DEBCD8AD3}"
 EndProject

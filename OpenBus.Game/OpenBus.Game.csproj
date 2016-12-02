@@ -68,7 +68,7 @@
       <Project>{CD675E02-CA7C-4E34-90A4-30E21FC05AC7}</Project>
       <Name>OpenBus.Engine</Name>
     </ProjectReference>
-    <ProjectReference Include="..\OpenBus.Scripting\OpenBus.Config.csproj">
+    <ProjectReference Include="..\OpenBus.Config\OpenBus.Config.csproj">
       <Project>{c96185d1-b950-4d13-a768-aac7844cee04}</Project>
       <Name>OpenBus.Config</Name>
     </ProjectReference>

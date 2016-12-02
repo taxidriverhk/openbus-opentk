@@ -41,9 +41,9 @@ namespace OpenBus.Game
                 // TODO: load the starting block according to the config
                 MapEx.BlockInfo blockInfo = mapLoaded.Blocks[0];
                 MapBlockEx block = XmlDeserializeHelper<MapBlockEx>.DeserializeFromFile(
-                    GameEnvironment.RootPath + "map\\" + blockInfo.Path);
+                    GameEnvironment.RootPath + "maps\\Test Map\\" + blockInfo.Path);
                 TerrainEx terrain = XmlDeserializeHelper<TerrainEx>.DeserializeFromFile(
-                    GameEnvironment.RootPath + "map\\" + blockInfo.TerrainPath);
+                    GameEnvironment.RootPath + "maps\\Test Map\\" + blockInfo.TerrainPath);
                 if (block != null && terrain != null)
                     world.LoadBlock(blockInfo.Position.X, blockInfo.Position.Y, block, terrain);
                 #endregion

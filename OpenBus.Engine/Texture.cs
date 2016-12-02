@@ -81,8 +81,9 @@ namespace OpenBus.Engine
         /// List of supported image format to load into.
         /// </summary>
         private static readonly string[] supportedFormats = { ".bmp" };
-
         private static HashSet<Texture> textures;
+        private static HashSet<TextureLoadQueueItem> textureLoadQueue;
+
         /// <summary>
         /// List of IDs where each of them points to the data allocated to the graphics memory.
         /// </summary>
@@ -90,8 +91,6 @@ namespace OpenBus.Engine
         {
             get { return textures; }
         }
-
-        private static HashSet<TextureLoadQueueItem> textureLoadQueue;
 
         static TextureManager()
         {

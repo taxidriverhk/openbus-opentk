@@ -771,7 +771,7 @@ namespace OpenBus.Engine
         internal void InitializeTerrain(Vector2 grid, int terrainSize, float[][] heights, int textureId, Vector2 uv, Light sunLight)
         {
             sun = sunLight;
-            position = grid;
+            position = new Vector2(grid.X * size, -grid.Y * size);
             size = terrainSize;
             terrainTextureId = textureId;
             // Generate the vertices for the terrain based on the inputs

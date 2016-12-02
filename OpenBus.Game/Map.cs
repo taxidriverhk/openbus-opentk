@@ -19,11 +19,9 @@ namespace OpenBus.Game
             public float Displacement;
         }
 
-        public const int TERRAIN_GRID_SIZE = 250;
-
         private string texture;
         private Vector2f textureUV;
-        private Vector2f position;
+        private MapBlockPosition position;
         private List<TerrainDisplacement> displacements;
 
         public string TexturePath
@@ -41,21 +39,12 @@ namespace OpenBus.Game
             get { return displacements;}
         }
 
-        public static implicit operator Terrain(TerrainEx terrainEx)
+        public Terrain(string texture, Vector2f uv, MapBlockPosition position, List<TerrainDisplacement> displacements)
         {
-            Terrain terrain = new Terrain();
-            terrain.texture = terrainEx.Texture.Path;
-            terrain.textureUV = terrainEx.Texture.UV;
-            terrain.displacements = new List<TerrainDisplacement>();
-            foreach (TerrainEx.TerrainDisplacement displacementEx in terrainEx.Displacements)
-            {
-                TerrainDisplacement displacement = new TerrainDisplacement();
-                displacement.X = displacementEx.X;
-                displacement.Y = displacementEx.Y;
-                displacement.Displacement = displacementEx.Displacement;
-                terrain.displacements.Add(displacement);
-            }
-            return terrain;
+            this.texture = texture;
+            this.textureUV = uv;
+            this.position = position;
+            this.displacements = displacements;
         }
     }
 
@@ -64,7 +53,7 @@ namespace OpenBus.Game
         public const int MAP_BLOCK_SIZE = 250;
 
         private bool loaded;
-        private Vector2f position;
+        private MapBlockPosition position;
         private List<Object> objects;
 
         public bool Loaded
@@ -77,50 +66,78 @@ namespace OpenBus.Game
             get { return objects; }
         }
 
-        public Vector2f Position
+        public MapBlockPosition Position
         {
             get { return position; }
             set { position = value; }
         }
 
-        public static implicit operator MapBlock(MapBlockEx blockEx)
+        public MapBlock()
         {
-            MapBlock block = new MapBlock();
-            block.loaded = false;
-            block.position = new Vector2f();
-            block.objects = new List<Object>();
-            foreach (ObjectInfo objectInfo in blockEx.Objects)
-            {
-                ObjectEx objectEx = XmlDeserializeHelper<ObjectEx>
-                    .DeserializeFromFile(GameEnvironment.RootPath + objectInfo.Path);
-                string[] meshPaths = new string[objectEx.Meshes.Length];
-                ObjectTexture[] alphaTextures = null;
-                if (objectEx.AlphaTextures != null)
-                    alphaTextures = new ObjectTexture[objectEx.AlphaTextures.Length];
-                for (int i = 0; i < objectEx.Meshes.Length; i++)
-                    meshPaths[i] = objectEx.Meshes[i].Path;
-                if (alphaTextures != null)
-                    for (int i = 0; i < objectEx.AlphaTextures.Length; i++)
-                        alphaTextures[i] = new ObjectTexture(objectEx.AlphaTextures[i].Path,
-                            (ObjectTextureAlphaMode)objectEx.AlphaTextures[i].Mode);
-                block.objects.Add(new Object(objectInfo.Position,
-                    objectInfo.Rotations, meshPaths, objectInfo.Path,
-                    objectEx.Info.ModelDirectory, 
-                    objectEx.Info.TextureDirectory, alphaTextures));
-            }
-            return block;
+            objects = new List<Object>();
+            loaded = false;
+        }
+
+        public void AddObject(Object objectItem)
+        {
+            objects.Add(objectItem);
+        }
+    }
+
+    public struct MapBlockPosition
+    {
+        public int X;
+        public int Y;
+
+        public MapBlockPosition(int x, int y)
+        {
+            X = x; Y = y;
+        }
+
+        public static MapBlockPosition Zero
+        {
+            get { return new MapBlockPosition(0, 0); }
+        }
+    }
+
+    public struct MapBlockInfo
+    {
+        public MapBlockPosition Position;
+        public string MapBlockToLoad;
+        public string TerrainToLoad;
+
+        public MapBlockInfo(MapBlockPosition position, string mapBlockToLoad, string terrainToLoad)
+        {
+            Position = position;
+            MapBlockToLoad = mapBlockToLoad;
+            TerrainToLoad = terrainToLoad;
         }
     }
 
     public class Map
     {
+        private List<MapBlockInfo> blockInfoList;
         private MapBlock currentBlock;
         private Thread blockLoadThread;
+
+        public List<MapBlockInfo> BlockInfoList
+        {
+            get { return blockInfoList; }
+        }
+
+        public Map()
+        {
+            blockInfoList = new List<MapBlockInfo>();
+        }
+
+        public void AddBlockInfo(MapBlockInfo mapBlockInfo)
+        {
+            blockInfoList.Add(mapBlockInfo);
+        }
 
         public void LoadBlock(int x, int y, MapBlock block, Terrain terrain)
         {
             int blockSize = MapBlock.MAP_BLOCK_SIZE;
-            block.Position = new Vector2f(x, y);
             // Load the static objects to buffer in a separate thread
             blockLoadThread = new Thread(delegate ()
             {
@@ -141,7 +158,7 @@ namespace OpenBus.Game
 
         private static double progress;
 
-        private static Vector2f blockPosition;
+        private static MapBlockPosition blockPosition;
         private static Terrain terrain;
         private static float[][] terrainHeights;
         private static List<Entity> entities;
@@ -224,12 +241,11 @@ namespace OpenBus.Game
 
             TextureManager.LoadAllTexturesInQueue();
             Renderer.LoadStaticEntitiesToScene(entities, meshes);
-            Renderer.LoadTerrain((int)blockPosition.X * MapBlock.MAP_BLOCK_SIZE, 
-                (int)blockPosition.Y * MapBlock.MAP_BLOCK_SIZE,
-                Terrain.TERRAIN_GRID_SIZE, terrainHeights, GameEnvironment.RootPath + terrain.TexturePath,
+            Renderer.LoadTerrain(blockPosition.X, blockPosition.Y,
+                MapBlock.MAP_BLOCK_SIZE, terrainHeights, GameEnvironment.RootPath + terrain.TexturePath,
                 terrain.TextureUV.X, terrain.TextureUV.Y);
 
-            blockPosition = Vector2f.Zero;
+            blockPosition = MapBlockPosition.Zero;
             terrain = null;
             terrainHeights = null;
             entities.Clear();

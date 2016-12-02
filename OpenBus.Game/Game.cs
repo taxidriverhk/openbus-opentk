@@ -31,19 +31,18 @@ namespace OpenBus.Game
             MapBlockLoader.LoadIntoBuffer();
         }
 
-        public static void LoadMap(string filename)
+        public static void LoadMap(string path)
         {
-            world = new Map();
-            MapEx mapLoaded = XmlDeserializeHelper<MapEx>.DeserializeFromFile(filename);
-            if (mapLoaded != null)
+            world = ConfigLoader.LoadMap(path);
+            if (world != null)
             {
                 #region Test Code
                 // TODO: load the starting block according to the config
-                MapEx.BlockInfo blockInfo = mapLoaded.Blocks[0];
-                MapBlockEx block = XmlDeserializeHelper<MapBlockEx>.DeserializeFromFile(
-                    GameEnvironment.RootPath + "maps\\Test Map\\" + blockInfo.Path);
-                TerrainEx terrain = XmlDeserializeHelper<TerrainEx>.DeserializeFromFile(
-                    GameEnvironment.RootPath + "maps\\Test Map\\" + blockInfo.TerrainPath);
+                MapBlockInfo blockInfo = world.BlockInfoList[0];
+                MapBlock block = ConfigLoader.LoadMapBlock(GameEnvironment.RootPath 
+                    + "maps\\Test Map\\" + blockInfo.MapBlockToLoad, blockInfo.Position);
+                Terrain terrain = ConfigLoader.LoadTerrain(GameEnvironment.RootPath 
+                    + "maps\\Test Map\\" + blockInfo.TerrainToLoad, blockInfo.Position);
                 if (block != null && terrain != null)
                     world.LoadBlock(blockInfo.Position.X, blockInfo.Position.Y, block, terrain);
                 #endregion

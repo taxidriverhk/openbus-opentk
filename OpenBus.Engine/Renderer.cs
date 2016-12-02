@@ -218,7 +218,7 @@ namespace OpenBus.Engine
             {
                 int textureId = TextureManager.LoadTexture(textureFile);
                 TerrainBuffer terrainBuffer = new TerrainBuffer();
-                terrainBuffer.InitializeTerrain(new Vector2(x, -y), size, heights, textureId, new Vector2(u, v), sun);
+                terrainBuffer.InitializeTerrain(new Vector2(x, y), size, heights, textureId, new Vector2(u, v), sun);
                 terrainBuffers[slotToUse] = terrainBuffer;
             }
         }

@@ -21,18 +21,8 @@ namespace OpenBus.Game
         public static void Start()
         {
             double totalTimeElapsedForHud = 0.0;
-            string iconPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) 
-                + Constants.PATH_DELIM + Constants.APPLICATION_ICON;
-            if (!File.Exists(iconPath))
-                iconPath = string.Empty;
 
-            Screen.Initialize(Constants.DEFAULT_SCREEN_WIDTH,
-                Constants.DEFAULT_SCREEN_HEIGHT, Constants.APPLICATION_NAME, iconPath);
-            Renderer.Initialize();
-            Camera.Initialize();
-
-            ControlHandler.LoadControls();
-
+            Initialize();
             #region Test Calls
             Renderer.LoadSkyBox(
                 Mesh.LoadFromCollada(GameEnvironment.RootPath + @"objects\test\models\sky.dae"), 450f);
@@ -40,7 +30,6 @@ namespace OpenBus.Game
             #endregion
 
             Screen.Show();
-            Timer.Start();
             while (true)
             {
                 // Timing calculation
@@ -52,25 +41,63 @@ namespace OpenBus.Game
                     totalTimeElapsedForHud = 0;
                 }
 
-                // Update inputs
-
                 // Process inputs and update states
                 Screen.HandleEvents();
                 if (Screen.Closed)
                     break;
-                ControlHandler.ProcessControls();
-                Camera.UpdateCamera();
+                UpdateState();
+                
                 // Render the state
-                Game.LoadIntoBuffers();
-                Renderer.DrawScene();
+                UpdateBlocks();
+                DrawScene();
 
-                if (Game.ShowFrameRate)
-                    Renderer.DrawText(string.Format("{0:0.00} fps", Game.FrameRate), 0, 95);
+                // Update the screen with the new drawing
                 Screen.SwapBuffers();
             }
+            Cleanup();
+        }
+
+        private static void Cleanup()
+        {
+            Game.SaveAndClean();
             Renderer.Cleanup();
             TextureManager.UnloadAllTextures();
             Screen.Destroy();
+        }
+
+        private static void DrawScene()
+        {
+            Renderer.DrawScene();
+            if (Game.ShowFrameRate)
+                Renderer.DrawText(string.Format("{0:0.00} fps", Game.FrameRate), 0, 95);
+        }
+
+        private static void Initialize()
+        {
+            string iconPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)
+                + Constants.PATH_DELIM + Constants.APPLICATION_ICON;
+            if (!File.Exists(iconPath))
+                iconPath = string.Empty;
+
+            Game.Initialize();
+            Screen.Initialize(Constants.DEFAULT_SCREEN_WIDTH,
+                Constants.DEFAULT_SCREEN_HEIGHT, Constants.APPLICATION_NAME, iconPath);
+            Renderer.Initialize();
+            Camera.Initialize();
+            ControlHandler.LoadControls();
+            Timer.Start();
+        }
+
+        private static void UpdateBlocks()
+        {
+            Game.LoadOrUnloadBlocks();
+            Game.LoadIntoBuffers();
+        }
+
+        private static void UpdateState()
+        {
+            ControlHandler.ProcessControls();
+            Game.CurrentView.UpdateCamera();
         }
     }
 }

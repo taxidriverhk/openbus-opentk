@@ -11,26 +11,55 @@ namespace OpenBus.Game
     public static class Game
     {
         private static Map world;
-        private static List<Bus> buses = new List<Bus>();
+        private static List<Bus> buses;
+        private static View currentView;
+        private static List<View> views;
 
         public static bool ShowFrameRate = true;
         public static double FrameRate = 0.0;
+
+        public static View CurrentView
+        {
+            get { return currentView; }
+        }
 
         public static Map World
         {
             get { return world; }
         }
 
-        public static List<Bus> Buses
+        static Game()
         {
-            get { return buses; }
+            buses = new List<Bus>();
+            views = new List<View>();
         }
 
+        public static void Initialize()
+        {
+            
+        }
+
+        /// <summary>
+        /// Checks to see if the object configurations loaded can be loaded into
+        /// the graphics buffers
+        /// </summary>
         public static void LoadIntoBuffers()
         {
             MapBlockLoader.LoadIntoBuffer();
         }
 
+        /// <summary>
+        /// Loads or unloads blocks based on the player's current position
+        /// </summary>
+        public static void LoadOrUnloadBlocks()
+        {
+
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="path"></param>
         public static void LoadMap(string path)
         {
             world = ConfigLoader.LoadMap(path);
@@ -47,6 +76,22 @@ namespace OpenBus.Game
                     world.LoadBlock(blockInfo.Position.X, blockInfo.Position.Y, block, terrain);
                 #endregion
             }
+
+            // Loads the free camera by default
+            currentView = new View(ViewType.FREE);
+            views.Add(currentView);
+            Camera.UpdateCamera();
+        }
+
+        public static void SaveAndClean()
+        {
+            buses.Clear();
+            views.Clear();
+        }
+
+        public static void UpdateCamera()
+        {
+
         }
 
         private static void UnloadMap()

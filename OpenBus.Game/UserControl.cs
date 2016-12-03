@@ -20,6 +20,8 @@ namespace OpenBus.Game
         CAMERA_ROTATE_Y_RIGHT,
         CAMERA_ROTATE_X_UP,
         CAMERA_ROTATE_X_DOWN,
+        CAMERA_ZOOM_IN,
+        CAMERA_ZOOM_OUT,
         TOGGLE_FPS
     }
 
@@ -70,6 +72,10 @@ namespace OpenBus.Game
                     new Control(ControlType.CONTINUOUS, ControlSource.KEYBOARD, KeyCode.KEY_DOWN)),
                 new UserControl(ControlCommand.CAMERA_ROTATE_X_UP,
                     new Control(ControlType.CONTINUOUS, ControlSource.KEYBOARD, KeyCode.KEY_UP)),
+                new UserControl(ControlCommand.CAMERA_ZOOM_IN,
+                    new Control(ControlType.CONTINUOUS, ControlSource.KEYBOARD, KeyCode.KEY_NUMPAD_PLUS)),
+                new UserControl(ControlCommand.CAMERA_ZOOM_OUT,
+                    new Control(ControlType.CONTINUOUS, ControlSource.KEYBOARD, KeyCode.KEY_NUMPAD_MINUS)),
                 new UserControl(ControlCommand.TOGGLE_FPS, 
                     new Control(ControlType.DISCRETE, ControlSource.KEYBOARD, KeyCode.KEY_F))
             };
@@ -96,32 +102,38 @@ namespace OpenBus.Game
                     case ControlCommand.INVALID:
                         break;
                     case ControlCommand.CAMERA_MOVE_LEFT:
-                        Camera.MoveBy(-0.5f, 0, 0);
+                        Game.CurrentView.MoveBy(-0.5f, 0, 0);
                         break;
                     case ControlCommand.CAMERA_MOVE_RIGHT:
-                        Camera.MoveBy(0.5f, 0, 0);
+                        Game.CurrentView.MoveBy(0.5f, 0, 0);
                         break;
                     case ControlCommand.CAMERA_MOVE_FRONT:
-                        Camera.MoveBy(0, 0, 0.5f);
+                        Game.CurrentView.MoveBy(0, 0, 0.5f);
                         break;
                     case ControlCommand.CAMERA_MOVE_BACK:
-                        Camera.MoveBy(0, 0, -0.5f);
+                        Game.CurrentView.MoveBy(0, 0, -0.5f);
                         break;
                     case ControlCommand.CAMERA_MOVE_UP:
-                        Camera.MoveBy(0, 0.5f, 0);
+                        Game.CurrentView.MoveBy(0, 0.5f, 0);
                         break;
                     case ControlCommand.CAMERA_MOVE_DOWN:
-                        Camera.MoveBy(0, -0.5f, 0);
+                        Game.CurrentView.MoveBy(0, -0.5f, 0);
                         break;
                     case ControlCommand.CAMERA_ROTATE_Y_LEFT:
-                        Camera.RotateYBy(1.0f);
+                        Game.CurrentView.ChangeYawAngleBy(1.0f);
                         break;
                     case ControlCommand.CAMERA_ROTATE_Y_RIGHT:
-                        Camera.RotateYBy(-1.0f);
+                        Game.CurrentView.ChangeYawAngleBy(-1.0f);
                         break;
                     case ControlCommand.CAMERA_ROTATE_X_DOWN:
                         break;
                     case ControlCommand.CAMERA_ROTATE_X_UP:
+                        break;
+                    case ControlCommand.CAMERA_ZOOM_IN:
+                        Game.CurrentView.ZoomBy(0.1f);
+                        break;
+                    case ControlCommand.CAMERA_ZOOM_OUT:
+                        Game.CurrentView.ZoomBy(-0.1f);
                         break;
                     case ControlCommand.TOGGLE_FPS:
                         Game.ShowFrameRate = !Game.ShowFrameRate;

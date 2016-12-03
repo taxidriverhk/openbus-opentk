@@ -5,6 +5,7 @@ using System.Text;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
+using OpenBus.Common;
 
 namespace OpenBus.Engine
 {
@@ -53,45 +54,13 @@ namespace OpenBus.Engine
             get { return eye; }
         }
 
-        public static Vector3 Angles
-        {
-            get { return angles; }
-        }
-
         public static void Initialize()
         {
             InitializeWithDefaults();
         }
 
-        public static void MoveTo(float x, float y, float z)
-        {
-            eye.X = x; eye.Y = y; eye.Z = z;
-        }
-
-        public static void MoveBy(float x, float y, float z)
-        {
-            eye += right * x;
-            eye += front * z;
-            eye.Y += y;
-        }
-
-        public static void RotateYTo(float degrees)
-        {
-            angles.Y = MathHelper.DegreesToRadians(degrees);
-            if (angles.Y >= MathHelper.TwoPi)
-                angles.Y = angles.Y % MathHelper.TwoPi;
-        }
-
-        public static void RotateYBy(float degrees)
-        {
-            angles.Y += MathHelper.DegreesToRadians(degrees);
-            if (angles.Y >= MathHelper.TwoPi)
-                angles.Y = angles.Y % MathHelper.TwoPi;
-        }
-
         public static void UpdateCamera()
         {
-            // Projection
             GL.Viewport(0, 0, Screen.Width, Screen.Height);
             GL.MatrixMode(MatrixMode.Projection);
             GL.PushMatrix();
@@ -101,19 +70,6 @@ namespace OpenBus.Engine
 
             GL.MatrixMode(MatrixMode.Modelview);
             GL.LoadIdentity();
-
-            // Apply yaw and pitch angles
-            float cosYaw = (float)Math.Cos(angles.Y),
-                  sinYaw = (float)Math.Sin(angles.Y);
-            float cosPitch = (float)Math.Cos(angles.X),
-                  sinPitch = (float)Math.Sin(angles.X);
-            front.X = cosPitch * sinYaw;
-            front.Y = sinPitch;
-            front.Z = cosPitch * cosYaw;
-            right.X = -cosYaw;
-            right.Z = sinYaw;
-            up = Vector3.Cross(right, front);
-
             viewMatrix = Matrix4.LookAt(eye, eye + front, up);
             GL.LoadMatrix(ref viewMatrix);
 
@@ -122,14 +78,17 @@ namespace OpenBus.Engine
             Renderer.UpdateCurrentSlotIndex();
         }
 
+        public static void SetCamera(Vector3f uPosition, Vector3f uFront, Vector3f uRight)
+        {
+            eye = new Vector3(uPosition.X, uPosition.Y, -uPosition.Z);
+            front = new Vector3(uFront.X, uFront.Y, -uFront.Z);
+            right = new Vector3(uRight.X, uRight.Y, -uRight.Z);
+            up = Vector3.Cross(right, front);
+        }
+
         public static void Zoom(float zoomMultiplier)
         {
             zoomFactor = zoomMultiplier;
-            if (zoomFactor >= 4.0f)
-                zoomFactor = 3.99f;
-            else if (zoomFactor <= 0.0f)
-                zoomFactor = 0.01f;
-
             fieldOfView = (1 / zoomFactor) * MathHelper.PiOver4;
             UpdateCamera();
         }

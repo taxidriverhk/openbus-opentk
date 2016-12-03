@@ -58,7 +58,9 @@ namespace OpenBus.Engine.Controls
         KEY_RIGHT = 79,
         KEY_LEFT = 80,
         KEY_UP = 81,
-        KEY_DOWN = 82
+        KEY_DOWN = 82,
+        KEY_NUMPAD_MINUS = 86,
+        KEY_NUMPAD_PLUS = 87
     }
 
     [Flags]

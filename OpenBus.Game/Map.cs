@@ -98,6 +98,16 @@ namespace OpenBus.Game
         {
             get { return new MapBlockPosition(0, 0); }
         }
+
+        public static bool operator ==(MapBlockPosition left, MapBlockPosition right)
+        {
+            return left.X == right.X && left.Y == right.Y;
+        }
+
+        public static bool operator !=(MapBlockPosition left, MapBlockPosition right)
+        {
+            return left.X != right.X || left.Y != right.Y;
+        }
     }
 
     public struct MapBlockInfo
@@ -116,9 +126,11 @@ namespace OpenBus.Game
 
     public class Map
     {
+        private const int MAX_SIMU_BLOCKS = 9;
+
         private List<MapBlockInfo> blockInfoList;
+        private List<MapBlock> loadedBlocks;
         private MapBlock currentBlock;
-        private Thread blockLoadThread;
 
         public List<MapBlockInfo> BlockInfoList
         {
@@ -128,6 +140,7 @@ namespace OpenBus.Game
         public Map()
         {
             blockInfoList = new List<MapBlockInfo>();
+            loadedBlocks = new List<MapBlock>();
         }
 
         public void AddBlockInfo(MapBlockInfo mapBlockInfo)
@@ -135,19 +148,41 @@ namespace OpenBus.Game
             blockInfoList.Add(mapBlockInfo);
         }
 
+        public bool BlockExists(MapBlockPosition position)
+        {
+            return loadedBlocks.Find(b => b.Position == position) != null;
+        }
+
+        public MapBlockPosition GetBlockPosition(Vector3f position)
+        {
+            int blockX = (int)(position.X / MapBlock.MAP_BLOCK_SIZE),
+                blockY = (int)(position.Z / MapBlock.MAP_BLOCK_SIZE);
+            if (position.X < 0)
+                blockX -= 1;
+            if (position.Z < 0)
+                blockY -= 1;
+            return new MapBlockPosition(blockX, blockY);
+        }
+
+        public bool IsInMap(Vector3f position)
+        {
+            return BlockExists(GetBlockPosition(position));
+        }
+
         public void LoadBlock(int x, int y, MapBlock block, Terrain terrain)
         {
             int blockSize = MapBlock.MAP_BLOCK_SIZE;
             // Load the static objects to buffer in a separate thread
-            blockLoadThread = new Thread(delegate ()
+            Thread loadBlockThread = new Thread(delegate ()
             {
                 MapBlockLoader.StartLoadBlockThread(block, terrain, blockSize);
             });
-            blockLoadThread.IsBackground = true;
-            blockLoadThread.Start();
+            loadBlockThread.IsBackground = true;
+            loadBlockThread.Start();
 
             if (currentBlock == null)
                 currentBlock = block;
+            loadedBlocks.Add(block);
         }
     }
 
@@ -189,6 +224,7 @@ namespace OpenBus.Game
 
         public static void StartLoadBlockThread(MapBlock block, Terrain terrainToLoad, int blockSize)
         {
+            double numOfObjects = block.Objects.Count;
             loadedIntoBuffer = false;
 
             // Static entity loading
@@ -212,6 +248,7 @@ namespace OpenBus.Game
                     entities.Add(entity);
                     meshes.Add(staticMesh);
                 }
+                progress += (1 / numOfObjects) * 0.9;
             }
 
             // Terrain loading
@@ -231,6 +268,7 @@ namespace OpenBus.Game
                 }
             }
 
+            progress = 1.0;
             loadCompleted = true;
         }
 

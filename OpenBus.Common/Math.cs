@@ -7,6 +7,19 @@ using System.Xml.Serialization;
 
 namespace OpenBus.Common
 {
+    public static class Trigonometry
+    {
+        public const float PI = (float)Math.PI;
+        public const float TWO_PI = 2 * (float)Math.PI;
+        public const int HALF_CIRCLE_DEGREES = 180;
+        public const int CIRCLE_DEGREES = 360;
+
+        public static float DegreesToRadians(float degrees)
+        {
+            return degrees * PI / HALF_CIRCLE_DEGREES;
+        }
+    }
+
     /// <summary>
     /// Represents a three-dimensional vector with single precision.
     /// This should not be used on the engine module, which depends on OpenTK. 
@@ -52,7 +65,41 @@ namespace OpenBus.Common
 
         public static Vector3f UnitZ
         {
-            get { return new Vector3f(0.0f, 1.0f, 0.0f); }
+            get { return new Vector3f(0.0f, 0.0f, 1.0f); }
+        }
+
+        public static Vector3f Cross(Vector3f left, Vector3f right)
+        {
+            return new Vector3f(left.Y * right.Z - left.Z * right.Y,
+                left.Z * right.X - left.X * right.Z,
+                left.X * right.Y - left.Y * right.X);
+        }
+
+        public static Vector3f operator *(Vector3f left, float right)
+        {
+            return new Vector3f(left.X * right, left.Y * right, left.Z * right);
+        }
+
+        public static Vector3f operator *(float left, Vector3f right)
+        {
+            return new Vector3f(left * right.X, left * right.Y, left * right.Z);
+        }
+
+        public static Vector3f operator +(Vector3f left, Vector3f right)
+        {
+            return new Vector3f(left.X + right.X, left.Y + right.Y, left.Z + right.Z);
+        }
+
+        public static bool operator ==(Vector3f left, Vector3f right)
+        {
+            return left.X == right.X && left.Y == right.Y
+                && left.Z == right.Z;
+        }
+
+        public static bool operator !=(Vector3f left, Vector3f right)
+        {
+            return left.X != right.X || left.Y != right.Y
+                || left.Z != right.Z;
         }
     }
 

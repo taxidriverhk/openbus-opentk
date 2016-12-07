@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using OpenBus.Common;
 
-namespace OpenBus.Game
+namespace OpenBus.Game.Objects
 {
     public enum ObjectTextureAlphaMode
     {

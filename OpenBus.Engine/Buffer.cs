@@ -282,8 +282,8 @@ namespace OpenBus.Engine
     /// </summary>
     internal class StaticVertexBuffer
     {
-        private static readonly string VERTEX_SHADER_PATH = GameEnvironment.RootPath + @"shaders\staticVertexShader.glsl";
-        private static readonly string FRAGMENT_SHADER_PATH = GameEnvironment.RootPath + @"shaders\staticFragmentShader.glsl";
+        private static readonly string VERTEX_SHADER_PATH = EnvironmentVariables.RootPath + @"shaders\staticVertexShader.glsl";
+        private static readonly string FRAGMENT_SHADER_PATH = EnvironmentVariables.RootPath + @"shaders\staticFragmentShader.glsl";
 
         private ShaderProgram shader;
         private Light sun;
@@ -673,8 +673,8 @@ namespace OpenBus.Engine
     /// </summary>
     internal class SkyBoxBuffer
     {
-        private static readonly string VERTEX_SHADER_PATH = GameEnvironment.RootPath + @"shaders\skyBoxVertexShader.glsl";
-        private static readonly string FRAGMENT_SHADER_PATH = GameEnvironment.RootPath + @"shaders\skyBoxFragmentShader.glsl";
+        private static readonly string VERTEX_SHADER_PATH = EnvironmentVariables.RootPath + @"shaders\skyBoxVertexShader.glsl";
+        private static readonly string FRAGMENT_SHADER_PATH = EnvironmentVariables.RootPath + @"shaders\skyBoxFragmentShader.glsl";
 
         private ShaderProgram shader;
         private Texture texture;
@@ -699,8 +699,6 @@ namespace OpenBus.Engine
 
             // Create the buffer and texture needed for the skybox
             texture = skyBoxMesh.Materials[0].Texture;
-            int textureId = TextureManager.LoadTexture(texture);
-            texture.TextureId = textureId;
             BufferHelper.CreateBuffers(out bufferId);
             GL.BindBuffer(BufferTarget.ArrayBuffer, bufferId);
             GL.BufferData(BufferTarget.ArrayBuffer, new IntPtr(skyBoxMesh.Vertices[0].Length * Vertex.Size),
@@ -737,8 +735,8 @@ namespace OpenBus.Engine
     /// </summary>
     internal class TerrainBuffer
     {
-        private static readonly string VERTEX_SHADER_PATH = GameEnvironment.RootPath + @"shaders\terrainVertexShader.glsl";
-        private static readonly string FRAGMENT_SHADER_PATH = GameEnvironment.RootPath + @"shaders\terrainFragmentShader.glsl";
+        private static readonly string VERTEX_SHADER_PATH = EnvironmentVariables.RootPath + @"shaders\terrainVertexShader.glsl";
+        private static readonly string FRAGMENT_SHADER_PATH = EnvironmentVariables.RootPath + @"shaders\terrainFragmentShader.glsl";
 
         private ShaderProgram shader;
         private Light sun;

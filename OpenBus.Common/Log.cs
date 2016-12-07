@@ -22,7 +22,7 @@ namespace OpenBus.Common
 
         static Log()
         {
-            logFilePath = GameEnvironment.RootPath 
+            logFilePath = EnvironmentVariables.RootPath 
                 + string.Format("OpenBDS_Log_{0}.txt", DateTime.Now.ToString("yyyy-MM-dd"));
         }
 

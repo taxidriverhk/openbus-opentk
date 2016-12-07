@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Text;
 using OpenBus.Common;
 using OpenBus.Engine;
+using OpenBus.Game.Controls;
 
 namespace OpenBus.Game
 {
@@ -15,6 +16,8 @@ namespace OpenBus.Game
     /// </summary>
     public static class MainLoop
     {
+        private static double frameRate;
+
         /// <summary>
         /// Starts the game loop. 
         /// </summary>
@@ -24,9 +27,7 @@ namespace OpenBus.Game
 
             Initialize();
             #region Test Calls
-            Renderer.LoadSkyBox(
-                Mesh.LoadFromCollada(GameEnvironment.RootPath + @"objects\test\models\sky.dae"), 450f);
-            Game.LoadMap(GameEnvironment.RootPath + @"maps\Test Map\test.map");
+            Game.LoadMap(EnvironmentVariables.RootPath + @"maps\Test Map\test.map");
             #endregion
 
             Screen.Show();
@@ -37,7 +38,7 @@ namespace OpenBus.Game
                 totalTimeElapsedForHud += timeElapsed;
                 if (totalTimeElapsedForHud >= 0.2)
                 {
-                    Game.FrameRate = 1 / timeElapsed;
+                    frameRate = 1 / timeElapsed;
                     totalTimeElapsedForHud = 0;
                 }
 
@@ -68,8 +69,8 @@ namespace OpenBus.Game
         private static void DrawScene()
         {
             Renderer.DrawScene();
-            if (Game.ShowFrameRate)
-                Renderer.DrawText(string.Format("{0:0.00} fps", Game.FrameRate), 0, 95);
+            if (Game.Settings.ScreenDisplaySettings.ShowFrameRate)
+                Renderer.DrawText(string.Format("{0:0.00} fps", frameRate), 0, 95);
         }
 
         private static void Initialize()

@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace OpenBus.Game
+namespace OpenBus.Game.Objects
 {
     /// <summary>
     /// Controls the state and data of a bus

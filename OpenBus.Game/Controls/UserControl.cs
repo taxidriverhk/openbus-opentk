@@ -5,7 +5,7 @@ using System.Text;
 using OpenBus.Engine;
 using OpenBus.Engine.Controls;
 
-namespace OpenBus.Game
+namespace OpenBus.Game.Controls
 {
     public enum ControlCommand
     {
@@ -136,7 +136,7 @@ namespace OpenBus.Game
                         Game.CurrentView.ZoomBy(-0.1f);
                         break;
                     case ControlCommand.TOGGLE_FPS:
-                        Game.ShowFrameRate = !Game.ShowFrameRate;
+                        Game.Settings.ScreenDisplaySettings.ToggleFrameRateDisplay();
                         break;
                 }
             }

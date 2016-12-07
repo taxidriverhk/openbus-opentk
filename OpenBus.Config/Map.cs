@@ -73,8 +73,39 @@ namespace OpenBus.Config
             public string Name;
         }
 
+        public class SkyInfo
+        {
+            public enum SkyTextureMode
+            {
+                [XmlEnum("day")]
+                DAY,
+                [XmlEnum("night")]
+                NIGHT,
+                [XmlEnum("dawn")]
+                DAWN,
+                [XmlEnum("sunset")]
+                SUNSET
+            }
+
+            public class SkyTexture
+            {
+                [XmlAttribute("mode")]
+                public SkyTextureMode Mode;
+                [XmlAttribute("path")]
+                public string Path;
+            }
+
+            [XmlElement("size")]
+            public int Size;
+            [XmlArray("textures")]
+            [XmlArrayItem("texture")]
+            public SkyTexture[] Textures;
+        }
+
         [XmlElement("info")]
         public MapInfo Info;
+        [XmlElement("sky")]
+        public SkyInfo Sky;
         [XmlArray("blocks")]
         [XmlArrayItem("block")]
         public BlockInfo[] Blocks;

@@ -209,7 +209,7 @@
   <ItemGroup>
     <Compile Include="Buffer.cs" />
     <Compile Include="Camera.cs" />
-    <Compile Include="Collada.cs" />
+    <Compile Include="Assets\Collada.cs" />
     <Compile Include="Control.cs" />
     <Compile Include="GraphicsHelper.cs" />
     <Compile Include="Light.cs" />

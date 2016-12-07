@@ -5,7 +5,7 @@ using System.Text;
 using OpenBus.Common;
 using OpenBus.Engine;
 
-namespace OpenBus.Game
+namespace OpenBus.Game.Controls
 {
     /// <summary>
     /// The type of the view
@@ -20,12 +20,7 @@ namespace OpenBus.Game
         /// Rotates about the object (ex. the bus). The camera moves along the direction of the object,
         /// with pitch angle and the rotation about the object applied to the view.
         /// </summary>
-        ROTATE_ABOUT_OBJECT = 1,
-        /// <summary>
-        /// Rotates about itself, similar to a first-person view. The camera moves along the direction of the object,
-        /// with yaw and pitch angles applied to the view.
-        /// </summary>
-        ROTATE_ABOUT_CAMERA = 2
+        ROTATE_ABOUT_OBJECT = 1
     }
 
     public class View

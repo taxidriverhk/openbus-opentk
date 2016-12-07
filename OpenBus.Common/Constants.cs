@@ -5,7 +5,7 @@ using System.Text;
 
 namespace OpenBus.Common
 {
-    public static class GameEnvironment
+    public static class EnvironmentVariables
     {
         public static string RootPath = @"D:\Downloads\OpenBus\";
     }

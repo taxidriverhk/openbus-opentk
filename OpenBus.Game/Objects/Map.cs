@@ -1,15 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
+using System.Drawing;
 using System.Threading;
-using OpenBus.Config;
 using OpenBus.Common;
 using OpenBus.Engine;
 
-namespace OpenBus.Game
+namespace OpenBus.Game.Objects
 {
+    public enum SkyMode
+    {
+        DAY = 0,
+        NIGHT = 1,
+        DAWN = 2,
+        SUNSET = 3
+    }
+
     public class Terrain
     {
         public class TerrainDisplacement
@@ -48,10 +53,52 @@ namespace OpenBus.Game
         }
     }
 
+    public class Sky
+    {
+        private int size;
+        private SkyMode mode;
+        private string texture;
+
+        public int Size
+        {
+            get { return size; }
+        }
+
+        public SkyMode Mode
+        {
+            get { return mode; }
+        }
+
+        public string Texture
+        {
+            get { return texture; }
+        }
+
+        public Sky(int size, SkyMode mode, string texture)
+        {
+            this.size = size;
+            this.mode = mode;
+            this.texture = texture;
+        }
+
+        public Sky(int size, string mode, string texture)
+        {
+            this.size = size;
+            if (!Enum.TryParse(mode, out this.mode))
+                this.mode = SkyMode.DAY;
+            this.texture = texture;
+        }
+
+        public Sky(string texture)
+        {
+            this.size = 450;
+            this.mode = SkyMode.DAY;
+            this.texture = texture;
+        }
+    }
+
     public class MapBlock
     {
-        public const int MAP_BLOCK_SIZE = 250;
-
         private bool loaded;
         private MapBlockPosition position;
         private List<Object> objects;
@@ -126,11 +173,19 @@ namespace OpenBus.Game
 
     public class Map
     {
-        private const int MAX_SIMU_BLOCKS = 9;
+        private static readonly int blockSize = Game.Settings.MapDisplaySettings.BlockSize;
+        private static readonly string skyBoxMeshPath = EnvironmentVariables.RootPath + @"objects\skies\models\sky.dae";
 
+        private List<Sky> skies;
+        private Sky currentSky;
         private List<MapBlockInfo> blockInfoList;
         private List<MapBlock> loadedBlocks;
         private MapBlock currentBlock;
+
+        public static int BlockSize
+        {
+            get { return blockSize; }
+        }
 
         public List<MapBlockInfo> BlockInfoList
         {
@@ -139,6 +194,7 @@ namespace OpenBus.Game
 
         public Map()
         {
+            skies = new List<Sky>();
             blockInfoList = new List<MapBlockInfo>();
             loadedBlocks = new List<MapBlock>();
         }
@@ -148,15 +204,34 @@ namespace OpenBus.Game
             blockInfoList.Add(mapBlockInfo);
         }
 
+        public void AddSky(Sky sky)
+        {
+            skies.Add(sky);
+            if (currentSky == null)
+                currentSky = sky;
+        }
+
         public bool BlockExists(MapBlockPosition position)
         {
             return loadedBlocks.Find(b => b.Position == position) != null;
         }
 
+        public bool ChangeSky(SkyMode mode)
+        {
+            Sky sky = skies.Find(s => s.Mode == mode);
+            if (sky != null)
+            {
+                currentSky = sky;
+                return true;
+            }
+            else
+                return false;
+        }
+
         public MapBlockPosition GetBlockPosition(Vector3f position)
         {
-            int blockX = (int)(position.X / MapBlock.MAP_BLOCK_SIZE),
-                blockY = (int)(position.Z / MapBlock.MAP_BLOCK_SIZE);
+            int blockX = (int)(position.X / blockSize),
+                blockY = (int)(position.Z / blockSize);
             if (position.X < 0)
                 blockX -= 1;
             if (position.Z < 0)
@@ -171,7 +246,6 @@ namespace OpenBus.Game
 
         public void LoadBlock(int x, int y, MapBlock block, Terrain terrain)
         {
-            int blockSize = MapBlock.MAP_BLOCK_SIZE;
             // Load the static objects to buffer in a separate thread
             Thread loadBlockThread = new Thread(delegate ()
             {
@@ -183,6 +257,25 @@ namespace OpenBus.Game
             if (currentBlock == null)
                 currentBlock = block;
             loadedBlocks.Add(block);
+        }
+
+        public void LoadCurrentSky()
+        {
+            if (currentSky == null)
+                return;
+
+            Mesh skyBoxMesh = Mesh.LoadFromCollada(skyBoxMeshPath);
+            if (skyBoxMesh == null)
+            {
+                Log.Write(LogLevel.ERROR, "Failed to load the sky box from {0}", skyBoxMeshPath);
+                return;
+            }
+
+            skyBoxMesh.Materials[0].Texture.Path = currentSky.Texture;
+            TextureManager.UnloadTexture(skyBoxMesh.Materials[0].Texture.TextureId);
+            skyBoxMesh.Materials[0].Texture.TextureId = 
+                TextureManager.LoadTexture(EnvironmentVariables.RootPath + currentSky.Texture);
+            Renderer.LoadSkyBox(skyBoxMesh, currentSky.Size);
         }
     }
 
@@ -238,12 +331,12 @@ namespace OpenBus.Game
 
                 foreach (string meshPath in mapObject.Meshes)
                 {
-                    Mesh staticMesh = Mesh.LoadFromCollada(GameEnvironment.RootPath + 
+                    Mesh staticMesh = Mesh.LoadFromCollada(EnvironmentVariables.RootPath + 
                         mapObject.ModelDirectory + Constants.PATH_DELIM + meshPath,
-                        GameEnvironment.RootPath +
+                        EnvironmentVariables.RootPath +
                         mapObject.TextureDirectory, alphaTextures);
-                    Entity entity = new Entity(staticMesh.Name, mapObject.Position.X + block.Position.X * MapBlock.MAP_BLOCK_SIZE,
-                        mapObject.Position.Y, -mapObject.Position.Z - block.Position.Y * MapBlock.MAP_BLOCK_SIZE,
+                    Entity entity = new Entity(staticMesh.Name, mapObject.Position.X + block.Position.X * Map.BlockSize,
+                        mapObject.Position.Y, -mapObject.Position.Z - block.Position.Y * Map.BlockSize,
                         mapObject.Rotations.X, mapObject.Rotations.Y, mapObject.Rotations.Z);
                     entities.Add(entity);
                     meshes.Add(staticMesh);
@@ -280,7 +373,7 @@ namespace OpenBus.Game
             TextureManager.LoadAllTexturesInQueue();
             Renderer.LoadStaticEntitiesToScene(entities, meshes);
             Renderer.LoadTerrain(blockPosition.X, blockPosition.Y,
-                MapBlock.MAP_BLOCK_SIZE, terrainHeights, GameEnvironment.RootPath + terrain.TexturePath,
+                Map.BlockSize, terrainHeights, EnvironmentVariables.RootPath + terrain.TexturePath,
                 terrain.TextureUV.X, terrain.TextureUV.Y);
 
             blockPosition = MapBlockPosition.Zero;

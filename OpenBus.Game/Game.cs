@@ -5,18 +5,62 @@ using System.Text;
 using OpenBus.Common;
 using OpenBus.Config;
 using OpenBus.Engine;
+using OpenBus.Game.Objects;
+using OpenBus.Game.Controls;
 
 namespace OpenBus.Game
 {
+    public class ScreenDisplaySettings
+    {
+        public bool ShowFrameRate = true;
+
+        public void ToggleFrameRateDisplay()
+        {
+            ShowFrameRate = !ShowFrameRate;
+        }
+    }
+
+    public class MapDisplaySettings
+    {
+        public int MaxSimuBlocks = 9;
+        public int BlockSize = 250;
+    }
+
+    public class GameSettings
+    {
+        private MapDisplaySettings mapDisplaySettings;
+        private ScreenDisplaySettings screenDisplaySettings;
+
+        public MapDisplaySettings MapDisplaySettings
+        {
+            get { return mapDisplaySettings; }
+        }
+
+        public ScreenDisplaySettings ScreenDisplaySettings
+        {
+            get { return screenDisplaySettings; }
+        }
+
+        public GameSettings()
+        {
+            // Load the default settings
+            mapDisplaySettings = new MapDisplaySettings();
+            screenDisplaySettings = new ScreenDisplaySettings();
+        }
+
+        public void LoadMapDisplaySettings()
+        {
+
+        }
+    }
+
     public static class Game
     {
+        private static GameSettings gameSettings;
         private static Map world;
         private static List<Bus> buses;
         private static View currentView;
         private static List<View> views;
-
-        public static bool ShowFrameRate = true;
-        public static double FrameRate = 0.0;
 
         public static View CurrentView
         {
@@ -28,8 +72,14 @@ namespace OpenBus.Game
             get { return world; }
         }
 
+        public static GameSettings Settings
+        {
+            get { return gameSettings; }
+        }
+
         static Game()
         {
+            gameSettings = new GameSettings();
             buses = new List<Bus>();
             views = new List<View>();
         }
@@ -54,6 +104,9 @@ namespace OpenBus.Game
         public static void LoadOrUnloadBlocks()
         {
 
+            // If the current block position is to be changed, then determine which
+            // blocks should be loaded
+
         }
 
         /// <summary>
@@ -68,16 +121,17 @@ namespace OpenBus.Game
                 #region Test Code
                 // TODO: load the starting block according to the config
                 MapBlockInfo blockInfo = world.BlockInfoList[0];
-                MapBlock block = ConfigLoader.LoadMapBlock(GameEnvironment.RootPath 
+                MapBlock block = ConfigLoader.LoadMapBlock(EnvironmentVariables.RootPath 
                     + "maps\\Test Map\\" + blockInfo.MapBlockToLoad, blockInfo.Position);
-                Terrain terrain = ConfigLoader.LoadTerrain(GameEnvironment.RootPath 
+                Terrain terrain = ConfigLoader.LoadTerrain(EnvironmentVariables.RootPath 
                     + "maps\\Test Map\\" + blockInfo.TerrainToLoad, blockInfo.Position);
                 if (block != null && terrain != null)
                     world.LoadBlock(blockInfo.Position.X, blockInfo.Position.Y, block, terrain);
                 #endregion
+                world.LoadCurrentSky();
             }
 
-            // Loads the free camera by default
+            // Load the free camera by default
             currentView = new View(ViewType.FREE);
             views.Add(currentView);
             Camera.UpdateCamera();

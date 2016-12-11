@@ -86,6 +86,18 @@ namespace OpenBus.Game.Controls
             }
         }
 
+        public static MapInfo LoadMapInfo(string path)
+        {
+            MapInfo mapInfo = new MapInfo();
+            MapEx mapEx = XmlDeserializeHelper<MapEx>.DeserializeFromFile(path);
+            if (mapEx != null)
+            {
+                mapInfo.Name = mapEx.Info.Name;
+                mapInfo.Path = path;
+            }
+            return mapInfo;
+        }
+
         public static Terrain LoadTerrain(string path, MapBlockPosition position)
         {
             TerrainEx terrainEx = XmlDeserializeHelper<TerrainEx>.DeserializeFromFile(path);

@@ -16,7 +16,18 @@ namespace OpenBus.Game
     /// </summary>
     public static class MainLoop
     {
+        private static string currentMapPath;
         private static double frameRate;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="mapPath"></param>
+        public static void SetParameters(string mapPath)
+        {
+            // TODO: add more parameters as we can
+            currentMapPath = mapPath;
+        }
 
         /// <summary>
         /// Starts the game loop. 
@@ -26,10 +37,7 @@ namespace OpenBus.Game
             double totalTimeElapsedForHud = 0.0;
 
             Initialize();
-            #region Test Calls
-            Game.LoadMap(EnvironmentVariables.RootPath + @"maps\Test Map\test.map");
-            #endregion
-
+            Game.LoadMap(currentMapPath);
             Screen.Show();
             while (true)
             {

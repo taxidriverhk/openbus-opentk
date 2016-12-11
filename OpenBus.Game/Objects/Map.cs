@@ -171,6 +171,12 @@ namespace OpenBus.Game.Objects
         }
     }
 
+    public class MapInfo
+    {
+        public string Path;
+        public string Name;
+    }
+
     public class Map
     {
         private static readonly int blockSize = Game.Settings.MapDisplaySettings.BlockSize;

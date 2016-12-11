@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.IO;
 using System.Text;
 using OpenBus.Common;
 using OpenBus.Config;
@@ -120,11 +121,12 @@ namespace OpenBus.Game
             {
                 #region Test Code
                 // TODO: load the starting block according to the config
+                string mapDirectory = Path.GetDirectoryName(path);
                 MapBlockInfo blockInfo = world.BlockInfoList[0];
-                MapBlock block = ConfigLoader.LoadMapBlock(EnvironmentVariables.RootPath 
-                    + "maps\\Test Map\\" + blockInfo.MapBlockToLoad, blockInfo.Position);
-                Terrain terrain = ConfigLoader.LoadTerrain(EnvironmentVariables.RootPath 
-                    + "maps\\Test Map\\" + blockInfo.TerrainToLoad, blockInfo.Position);
+                MapBlock block = ConfigLoader.LoadMapBlock(mapDirectory 
+                    + Constants.PATH_DELIM + blockInfo.MapBlockToLoad, blockInfo.Position);
+                Terrain terrain = ConfigLoader.LoadTerrain(mapDirectory 
+                    + Constants.PATH_DELIM + blockInfo.TerrainToLoad, blockInfo.Position);
                 if (block != null && terrain != null)
                     world.LoadBlock(blockInfo.Position.X, blockInfo.Position.Y, block, terrain);
                 #endregion

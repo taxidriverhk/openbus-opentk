@@ -9,12 +9,14 @@ namespace OpenBus.WinForm
 {
     public class MainFormStrings
     {
+        public string Map { get; set; }
         public string Title { get; set; }
         public string StartGame { get; set; }
         public string VersionNumber { get; set; }
 
         public MainFormStrings()
         {
+            Map = "Map: ";
             Title = Constants.APPLICATION_NAME;
             StartGame = Constants.START_GAME;
             VersionNumber = Constants.VERSION_NUMBER;

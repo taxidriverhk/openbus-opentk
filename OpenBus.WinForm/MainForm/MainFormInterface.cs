@@ -16,9 +16,10 @@ namespace OpenBus.WinForm
             form = mainForm;
         }
 
-        public void StartGame()
+        public void StartGame(string mapPath)
         {
             form.Hide();
+            MainLoop.SetParameters(mapPath);
             MainLoop.Start();
             form.Show();
         }

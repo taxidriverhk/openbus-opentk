@@ -7,7 +7,12 @@ namespace OpenBus.Common
 {
     public static class EnvironmentVariables
     {
+#if DEBUG
         public static string RootPath = @"D:\Downloads\OpenBus\";
+#else
+        public static string RootPath = System.IO.Directory.GetCurrentDirectory() + "\\";
+#endif
+        public static string MapPath = RootPath + "maps";
     }
 
     public static class Constants

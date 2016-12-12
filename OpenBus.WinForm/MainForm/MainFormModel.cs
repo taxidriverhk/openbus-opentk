@@ -12,20 +12,7 @@ namespace OpenBus.WinForm
 {
     public class MainFormModel
     {
-        private struct MapListItem
-        {
-            public string Name;
-            public string Path;
-            // Other properties can be added here
-
-            public MapListItem(string name, string path)
-            {
-                this.Name = name;
-                this.Path = path;
-            }
-        }
-
-        private List<MapListItem> mapList;
+        private List<MapInfo> mapList;
 
         public string[] MapNameList
         {
@@ -50,7 +37,7 @@ namespace OpenBus.WinForm
 
         private void LoadMapList()
         {
-            mapList = new List<MapListItem>();
+            mapList = new List<MapInfo>();
             // Get all sub-folders under map folder
             string[] mapFolders = Directory.GetDirectories(EnvironmentVariables.MapPath);
             List<string> mapConfigsToShow = new List<string>();
@@ -66,7 +53,7 @@ namespace OpenBus.WinForm
             foreach (string mapConfig in mapConfigsToShow)
             {
                 MapInfo mapInfo = ConfigLoader.LoadMapInfo(mapConfig);
-                mapList.Add(new MapListItem(mapInfo.Name, mapInfo.Path));
+                mapList.Add(mapInfo);
             }
         }
     }

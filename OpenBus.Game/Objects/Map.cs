@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Threading;
 using OpenBus.Common;
 using OpenBus.Engine;
+using OpenBus.Game.Controls;
 
 namespace OpenBus.Game.Objects
 {
@@ -17,17 +18,10 @@ namespace OpenBus.Game.Objects
 
     public class Terrain
     {
-        public class TerrainDisplacement
-        {
-            public int X;
-            public int Y;
-            public float Displacement;
-        }
-
         private string texture;
         private Vector2f textureUV;
         private MapBlockPosition position;
-        private List<TerrainDisplacement> displacements;
+        private float[][] heights;
 
         public string TexturePath
         {
@@ -39,17 +33,22 @@ namespace OpenBus.Game.Objects
             get { return textureUV; }
         }
 
-        public List<TerrainDisplacement> Displacements
+        public MapBlockPosition Position
         {
-            get { return displacements;}
+            get { return position; }
         }
 
-        public Terrain(string texture, Vector2f uv, MapBlockPosition position, List<TerrainDisplacement> displacements)
+        public float[][] Heights
+        {
+            get { return heights; }
+        }
+
+        public Terrain(string texture, Vector2f uv, MapBlockPosition position, float[][] heights)
         {
             this.texture = texture;
             this.textureUV = uv;
             this.position = position;
-            this.displacements = displacements;
+            this.heights = heights;
         }
     }
 
@@ -182,11 +181,13 @@ namespace OpenBus.Game.Objects
         private static readonly int blockSize = Game.Settings.MapDisplaySettings.BlockSize;
         private static readonly string skyBoxMeshPath = EnvironmentVariables.RootPath + @"objects\skies\models\sky.dae";
 
-        private List<Sky> skies;
-        private Sky currentSky;
         private List<MapBlockInfo> blockInfoList;
-        private List<MapBlock> loadedBlocks;
+        private Sky currentSky;
+        private List<Sky> skies;
         private MapBlock currentBlock;
+        private List<MapBlock> loadedBlocks;
+        private Terrain currentTerrain;
+        private List<Terrain> loadedTerrains;
 
         public static int BlockSize
         {
@@ -203,6 +204,18 @@ namespace OpenBus.Game.Objects
             skies = new List<Sky>();
             blockInfoList = new List<MapBlockInfo>();
             loadedBlocks = new List<MapBlock>();
+            loadedTerrains = new List<Terrain>();
+        }
+
+        public void AddBlockAndTerrain(MapBlock block, Terrain terrain)
+        {
+            if (currentBlock == null)
+                currentBlock = block;
+            loadedBlocks.Add(block);
+
+            if (currentTerrain == null)
+                currentTerrain = terrain;
+            loadedTerrains.Add(terrain);
         }
 
         public void AddBlockInfo(MapBlockInfo mapBlockInfo)
@@ -245,24 +258,32 @@ namespace OpenBus.Game.Objects
             return new MapBlockPosition(blockX, blockY);
         }
 
-        public bool IsInMap(Vector3f position)
+        public float GetTerrainHeight(MapBlockPosition blockPosition, Vector3f position)
         {
-            return BlockExists(GetBlockPosition(position));
+            Terrain terrain = loadedTerrains.Find(t => t.Position == blockPosition);
+            if (terrain != null)
+                // TODO: implement a more accurate calculation
+                return terrain.Heights[(int)position.X][(int)position.Z];
+            else
+                return 0;
         }
 
-        public void LoadBlock(int x, int y, MapBlock block, Terrain terrain)
+        public bool IsInMap(Vector3f position)
+        {
+            MapBlockPosition blockPosition = GetBlockPosition(position);
+            float terrainHeight = GetTerrainHeight(blockPosition, position);
+            return BlockExists(blockPosition) && position.Y >= terrainHeight;
+        }
+
+        public void LoadBlock(string mapDirectory, MapBlockInfo blockInfo)
         {
             // Load the static objects to buffer in a separate thread
             Thread loadBlockThread = new Thread(delegate ()
             {
-                MapBlockLoader.StartLoadBlockThread(block, terrain, blockSize);
+                MapBlockLoader.StartLoadBlockThread(mapDirectory, blockInfo);
             });
             loadBlockThread.IsBackground = true;
             loadBlockThread.Start();
-
-            if (currentBlock == null)
-                currentBlock = block;
-            loadedBlocks.Add(block);
         }
 
         public void LoadCurrentSky()
@@ -283,6 +304,11 @@ namespace OpenBus.Game.Objects
                 TextureManager.LoadTexture(EnvironmentVariables.RootPath + currentSky.Texture);
             Renderer.LoadSkyBox(skyBoxMesh, currentSky.Size);
         }
+
+        public void UnloadBlock(MapBlockInfo blockInfo)
+        {
+
+        }
     }
 
     public static class MapBlockLoader
@@ -293,8 +319,8 @@ namespace OpenBus.Game.Objects
         private static double progress;
 
         private static MapBlockPosition blockPosition;
+        private static MapBlock block;
         private static Terrain terrain;
-        private static float[][] terrainHeights;
         private static List<Entity> entities;
         private static HashSet<Mesh> meshes;
 
@@ -321,14 +347,21 @@ namespace OpenBus.Game.Objects
             get { return progress; }
         }
 
-        public static void StartLoadBlockThread(MapBlock block, Terrain terrainToLoad, int blockSize)
+        public static void StartLoadBlockThread(string mapDirectory, MapBlockInfo blockInfo)
         {
-            double numOfObjects = block.Objects.Count;
+            MapBlock blockToLoad = ConfigLoader.LoadMapBlock(mapDirectory
+                    + Constants.PATH_DELIM + blockInfo.MapBlockToLoad, blockInfo.Position);
+            Terrain terrainToLoad = ConfigLoader.LoadTerrain(mapDirectory
+                + Constants.PATH_DELIM + blockInfo.TerrainToLoad, blockInfo.Position);
+            if (blockToLoad == null || terrainToLoad == null)
+                return;
+
+            double numOfObjects = blockToLoad.Objects.Count;
             loadedIntoBuffer = false;
 
             // Static entity loading
-            blockPosition = block.Position;
-            foreach (Object mapObject in block.Objects)
+            blockPosition = blockToLoad.Position;
+            foreach (Object mapObject in blockToLoad.Objects)
             {
                 HashSet<string> alphaTextures = new HashSet<string>();
                 if (mapObject.AlphaTextures != null)
@@ -341,8 +374,8 @@ namespace OpenBus.Game.Objects
                         mapObject.ModelDirectory + Constants.PATH_DELIM + meshPath,
                         EnvironmentVariables.RootPath +
                         mapObject.TextureDirectory, alphaTextures);
-                    Entity entity = new Entity(staticMesh.Name, mapObject.Position.X + block.Position.X * Map.BlockSize,
-                        mapObject.Position.Y, -mapObject.Position.Z - block.Position.Y * Map.BlockSize,
+                    Entity entity = new Entity(staticMesh.Name, mapObject.Position.X + blockToLoad.Position.X * Map.BlockSize,
+                        mapObject.Position.Y, -mapObject.Position.Z - blockToLoad.Position.Y * Map.BlockSize,
                         mapObject.Rotations.X, mapObject.Rotations.Y, mapObject.Rotations.Z);
                     entities.Add(entity);
                     meshes.Add(staticMesh);
@@ -350,22 +383,9 @@ namespace OpenBus.Game.Objects
                 progress += (1 / numOfObjects) * 0.9;
             }
 
-            // Terrain loading
+            // Save the loaded block and terrain
+            block = blockToLoad;
             terrain = terrainToLoad;
-            terrainHeights = new float[blockSize][];
-            for (int i = 0; i < blockSize; i++)
-            {
-                terrainHeights[i] = new float[blockSize];
-                for (int j = 0; j < blockSize; j++)
-                {
-                    Terrain.TerrainDisplacement displacement = terrain.Displacements
-                        .Find(d => d.X == i && d.Y == j);
-                    if (displacement != null)
-                        terrainHeights[i][j] = displacement.Displacement;
-                    else
-                        terrainHeights[i][j] = 0;
-                }
-            }
 
             progress = 1.0;
             loadCompleted = true;
@@ -378,13 +398,14 @@ namespace OpenBus.Game.Objects
 
             TextureManager.LoadAllTexturesInQueue();
             Renderer.LoadStaticEntitiesToScene(entities, meshes);
+            Game.World.AddBlockAndTerrain(block, terrain);
             Renderer.LoadTerrain(blockPosition.X, blockPosition.Y,
-                Map.BlockSize, terrainHeights, EnvironmentVariables.RootPath + terrain.TexturePath,
+                Map.BlockSize, terrain.Heights, EnvironmentVariables.RootPath + terrain.TexturePath,
                 terrain.TextureUV.X, terrain.TextureUV.Y);
 
             blockPosition = MapBlockPosition.Zero;
+            block = null;
             terrain = null;
-            terrainHeights = null;
             entities.Clear();
             meshes.Clear();
 

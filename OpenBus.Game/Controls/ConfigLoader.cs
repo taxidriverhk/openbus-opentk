@@ -103,18 +103,13 @@ namespace OpenBus.Game.Controls
             TerrainEx terrainEx = XmlDeserializeHelper<TerrainEx>.DeserializeFromFile(path);
             if (terrainEx != null)
             {
-                List<Terrain.TerrainDisplacement> displacements = new List<Terrain.TerrainDisplacement>();
+                float[][] heights = new float[Map.BlockSize][];
+                for (int i = 0; i < Map.BlockSize; i++)
+                    heights[i] = new float[Map.BlockSize];
                 foreach (TerrainEx.TerrainDisplacement displacementEx in terrainEx.Displacements)
-                {
-                    Terrain.TerrainDisplacement displacement = new Terrain.TerrainDisplacement();
-                    displacement.X = displacementEx.X;
-                    displacement.Y = displacementEx.Y;
-                    displacement.Displacement = displacementEx.Displacement;
-                    displacements.Add(displacement);
-                }
-
+                    heights[displacementEx.X][displacementEx.Y] = displacementEx.Displacement;
                 return new Terrain(terrainEx.Texture.Path, terrainEx.Texture.UV,
-                    position, displacements);
+                    position, heights);
             }
             else
             {

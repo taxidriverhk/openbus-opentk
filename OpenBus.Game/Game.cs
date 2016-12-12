@@ -123,12 +123,7 @@ namespace OpenBus.Game
                 // TODO: load the starting block according to the config
                 string mapDirectory = Path.GetDirectoryName(path);
                 MapBlockInfo blockInfo = world.BlockInfoList[0];
-                MapBlock block = ConfigLoader.LoadMapBlock(mapDirectory 
-                    + Constants.PATH_DELIM + blockInfo.MapBlockToLoad, blockInfo.Position);
-                Terrain terrain = ConfigLoader.LoadTerrain(mapDirectory 
-                    + Constants.PATH_DELIM + blockInfo.TerrainToLoad, blockInfo.Position);
-                if (block != null && terrain != null)
-                    world.LoadBlock(blockInfo.Position.X, blockInfo.Position.Y, block, terrain);
+                world.LoadBlock(mapDirectory, blockInfo);
                 #endregion
                 world.LoadCurrentSky();
             }

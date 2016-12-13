@@ -89,7 +89,7 @@ namespace OpenBus.Engine
         public static void Zoom(float zoomMultiplier)
         {
             zoomFactor = zoomMultiplier;
-            fieldOfView = (1 / zoomFactor) * MathHelper.PiOver4;
+            fieldOfView = (1 / zoomFactor) * OpenTK.MathHelper.PiOver4;
             UpdateCamera();
         }
 
@@ -159,13 +159,13 @@ namespace OpenBus.Engine
             zFar = 500.0f;
             aspect = (float)Screen.Width / Screen.Height;
             zoomFactor = 1.0f;
-            fieldOfView = zoomFactor * MathHelper.PiOver4;
+            fieldOfView = zoomFactor * OpenTK.MathHelper.PiOver4;
 
             eye = Vector3.Zero;
             front = new Vector3(0, 0, -1.0f);
             right = Vector3.Zero;
             up = Vector3.UnitY;
-            angles = new Vector3(0, MathHelper.Pi, 0);
+            angles = new Vector3(0, OpenTK.MathHelper.Pi, 0);
 
             projectionMatrix = Matrix4.Identity;
             viewMatrix = Matrix4.Identity;

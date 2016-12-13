@@ -35,9 +35,9 @@ namespace OpenBus.Engine
             MeshName = meshName;
             Translation = new Vector3(tx, ty, tz);
             // Conver the angles into radians
-            float rxRadians = MathHelper.DegreesToRadians(rx),
-                  ryRadians = MathHelper.DegreesToRadians(ry),
-                  rzRadians = MathHelper.DegreesToRadians(rz);
+            float rxRadians = Common.MathHelper.DegreesToRadians(rx),
+                  ryRadians = Common.MathHelper.DegreesToRadians(ry),
+                  rzRadians = Common.MathHelper.DegreesToRadians(rz);
             Rotation = new Vector3(rxRadians, ryRadians, rzRadians);
 
             Id = currentId;

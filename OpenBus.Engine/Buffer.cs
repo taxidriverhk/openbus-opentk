@@ -632,7 +632,7 @@ namespace OpenBus.Engine
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
             GL.MatrixMode(MatrixMode.Projection);
             GL.PushMatrix();
-            Matrix4 projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.PiOver4, 
+            Matrix4 projection = Matrix4.CreatePerspectiveFieldOfView(OpenTK.MathHelper.PiOver4, 
                 (float)Screen.Width / Screen.Height, 0.025f, viewableDistance);
             GL.LoadMatrix(ref projection);
 

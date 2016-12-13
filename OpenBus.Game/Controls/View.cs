@@ -53,10 +53,10 @@ namespace OpenBus.Game.Controls
 
         public void ChangeYawAngleBy(float degrees)
         {
-            angleOffsets.Y = Trigonometry.DegreesToRadians(degrees);
+            angleOffsets.Y = MathHelper.DegreesToRadians(degrees);
             angles.Y += angleOffsets.Y;
-            if (angles.Y >= Trigonometry.TWO_PI)
-                angles.Y = angles.Y % Trigonometry.TWO_PI;
+            if (angles.Y >= MathHelper.TWO_PI)
+                angles.Y = angles.Y % MathHelper.TWO_PI;
 
             Vector3f newFront = Vector3f.Zero,
                      newRight = Vector3f.Zero;

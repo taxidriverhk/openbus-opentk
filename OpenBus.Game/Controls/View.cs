@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using OpenBus.Common;
 using OpenBus.Engine;
 
@@ -17,7 +14,7 @@ namespace OpenBus.Game.Controls
         /// </summary>
         FREE = 0,
         /// <summary>
-        /// Rotates about the object (ex. the bus). The camera moves along the direction of the object,
+        /// Rotates about an object (ex. the bus). The camera moves along the direction of the object,
         /// with pitch angle and the rotation about the object applied to the view.
         /// </summary>
         ROTATE_ABOUT_OBJECT = 1
@@ -32,6 +29,7 @@ namespace OpenBus.Game.Controls
         private Vector3f angleOffsets;
         private Vector3f frontDirection;
         private Vector3f rightDirection;
+        private float distanceFromObject;
         private float zoom;
 
         public Vector3f Position
@@ -49,6 +47,7 @@ namespace OpenBus.Game.Controls
             frontDirection = Vector3f.UnitZ;
             rightDirection = Vector3f.UnitX;
             zoom = 1.0f;
+            distanceFromObject = 0.0f;
         }
 
         public void ChangeYawAngleBy(float degrees)
@@ -88,7 +87,9 @@ namespace OpenBus.Game.Controls
                 angleOffsets == Vector3f.Zero)
                 return;
 
-            Camera.SetCamera(position, frontDirection, rightDirection);
+            Camera.SetCamera(position.X, position.Y, position.Z, 
+                frontDirection.X, frontDirection.Y, frontDirection.Z,
+                rightDirection.X, rightDirection.Y, rightDirection.Z);
             Camera.UpdateCamera();
             positionOffsets = Vector3f.Zero;
             angleOffsets = Vector3f.Zero;

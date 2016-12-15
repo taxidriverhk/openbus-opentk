@@ -5,7 +5,6 @@ using System.Text;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
-using OpenBus.Common;
 
 namespace OpenBus.Engine
 {
@@ -49,7 +48,7 @@ namespace OpenBus.Engine
             get { return boundingPlanes; }
         }
 
-        public static Vector3 Eye
+        internal static Vector3 Eye
         {
             get { return eye; }
         }
@@ -78,11 +77,12 @@ namespace OpenBus.Engine
             Renderer.UpdateCurrentBuffer();
         }
 
-        public static void SetCamera(Vector3f uPosition, Vector3f uFront, Vector3f uRight)
+        public static void SetCamera(float posX, float posY, float posZ, float frontX, float frontY, float frontZ,
+            float rightX, float rightY, float rightZ)
         {
-            eye = new Vector3(uPosition.X, uPosition.Y, -uPosition.Z);
-            front = new Vector3(uFront.X, uFront.Y, -uFront.Z);
-            right = new Vector3(uRight.X, uRight.Y, -uRight.Z);
+            eye = new Vector3(posX, posY, -posZ);
+            front = new Vector3(frontX, frontY, -frontZ);
+            right = new Vector3(rightX, rightY, -rightZ);
             up = Vector3.Cross(right, front);
         }
 

@@ -1,18 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 
 namespace OpenBus.Engine
 {
-    public class Ray
+    internal class Ray
     {
-        public Vector3 StartPoint;
-        public Vector3 EndPoint;
+        internal Vector3 StartPoint;
+        internal Vector3 EndPoint;
 
-        public Ray(Vector3 startPoint, Vector3 endPoint)
+        internal Ray(Vector3 startPoint, Vector3 endPoint)
         {
             StartPoint = startPoint;
             EndPoint = endPoint;
@@ -21,14 +18,6 @@ namespace OpenBus.Engine
 
     internal class GraphicsHelper
     {
-        private struct Color
-        {
-            public byte R;
-            public byte G;
-            public byte B;
-            public byte A;
-        }
-
         internal static Matrix4 CreateModelMatrix(Vector3 translation, Vector3 rotation, Vector3 scale)
         {
             Matrix4 modelMatrix = Matrix4.Identity;
@@ -68,9 +57,9 @@ namespace OpenBus.Engine
 
         internal static Vector3 GetColorOfScreen(Vector3 window)
         {
-            Color color = new Color();
+            Vector4 color = new Vector4();
             GL.ReadPixels((int)window.X, (int)(Screen.Height - window.Y), 1, 1, PixelFormat.Rgba, PixelType.UnsignedByte, ref color);
-            return new Vector3(color.R/255f, color.G/255f, color.B/255f);
+            return new Vector3(color.X/255f, color.Y/255f, color.Z/255f);
         }
     }
 }

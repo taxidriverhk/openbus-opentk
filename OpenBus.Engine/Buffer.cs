@@ -193,6 +193,9 @@ namespace OpenBus.Engine
         }
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
     internal static class ShaderProgramHelper
     {
         internal static void UseAndDrawBuffer(ShaderProgram shader, uint bufferId, int vertexCount, int startIndex, int textureId)
@@ -331,7 +334,7 @@ namespace OpenBus.Engine
             bufferIds.Add(bufferId);
             bufferIndexIdMapping.Add(bufferId, indexBufferId);
 
-            uint maxArraySize = UInt32.MaxValue;
+            uint maxArraySize = uint.MaxValue;
             List<Texture> texturesLoaded = new List<Texture>();
             List<Vertex> verticesToBeLoaded = new List<Vertex>();
             List<uint> indicesToBeLoaded = new List<uint>();

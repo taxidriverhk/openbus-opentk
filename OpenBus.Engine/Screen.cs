@@ -50,7 +50,7 @@ namespace OpenBus.Engine
             get { return height; }
         }
 
-        public static Ray MouseRay
+        internal static Ray MouseRay
         {
             get { return mouseRay; }
         }
@@ -59,6 +59,10 @@ namespace OpenBus.Engine
         {
             if (SDL.SDL_InitSubSystem(SDL.SDL_INIT_VIDEO) != 0)
                 return false;
+
+            // Initialize the attributes
+            // TODO: get anti-aliasing level from config
+            SDL.SDL_GL_SetAttribute(SDL.SDL_GLattr.SDL_GL_MULTISAMPLESAMPLES, 8);
 
             // Initialize the window
             SDL.SDL_WindowFlags flags = SDL.SDL_WindowFlags.SDL_WINDOW_OPENGL;

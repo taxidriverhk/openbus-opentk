@@ -37,6 +37,27 @@ namespace OpenBus.Common
         }
     }
 
+    public struct Matrix2f
+    {
+        public Vector2f Row1;
+        public Vector2f Row2;
+
+        public Matrix2f(Vector2f row1, Vector2f row2)
+        {
+            this.Row1 = row1;
+            this.Row2 = row2;
+        }
+
+        public Matrix2f(float a11, float a12,
+            float a21, float a22)
+        {
+            this.Row1 = new Vector2f(a11, a12);
+            this.Row2 = new Vector2f(a21, a22);
+        }
+
+
+    }
+
     public struct Matrix3f
     {
         public Vector3f Row1;
@@ -113,7 +134,20 @@ namespace OpenBus.Common
             set { Row3.Z = value; }
         }
 
-        public float[] Array
+        public float[] ColumnMajorArray
+        {
+            get
+            {
+                return new float[9]
+                {
+                    A11, A21, A31,
+                    A12, A22, A32,
+                    A13, A23, A33
+                };
+            }
+        }
+
+        public float[] RowMajorArray
         {
             get
             {
@@ -249,7 +283,21 @@ namespace OpenBus.Common
             set { Row4.W = value; }
         }
 
-        public float[] Array
+        public float[] ColumnMajorArray
+        {
+            get
+            {
+                return new float[16]
+                {
+                    A11, A21, A31, A41,
+                    A12, A22, A32, A42,
+                    A13, A23, A33, A43,
+                    A14, A24, A34, A44
+                };
+            }
+        }
+
+        public float[] RowMajorArray
         {
             get
             {
@@ -267,15 +315,27 @@ namespace OpenBus.Common
         {
             get
             {
-                return A11 * (A22 * A33 * A44 + A23 * A34 * A42 + A24 * A32 * A43
-                    - A42 * A33 * A24 - A43 * A34 * A22 - A44 * A32 * A23)
-                    - A12 * (A21 * A33 * A44 + A23 * A34 * A41 + A24 * A31 * A43
-                    - A41 * A23 * A24 - A43 * A34 * A21 - A44 * A31 * A23)
-                    + A13 * (A21 * A32 * A44 + A22 * A34 * A41 + A24 * A31 * A42
-                    - A41 * A32 * A24 - A42 * A34 * A21 - A44 * A31 * A22)
-                    - A14 * (A21 * A32 * A43 + A22 * A33 * A41 + A23 * A31 * A41
-                    - A41 * A32 * A23 - A42 * A33 * A21 - A43 * A31 * A22);
+                return A11 * (A22 * A33 * A44 + A23 * A34 * A42 + A24 * A32 * A43)
+                    + A12 * (A21 * A34 * A43 + A23 * A31 * A44 + A24 * A33 * A41)
+                    + A13 * (A21 * A32 * A44 + A22 * A34 * A41 + A24 * A31 * A42)
+                    + A14 * (A21 * A33 * A42 + A22 * A31 * A43 + A23 * A32 * A41)
+                    - A11 * (A22 * A34 * A43 + A23 * A32 * A44 + A24 * A33 * A42)
+                    - A12 * (A21 * A33 * A44 + A23 * A34 * A41 + A24 * A31 * A43)
+                    - A13 * (A21 * A34 * A42 + A22 * A31 * A44 + A24 * A32 * A41)
+                    - A14 * (A21 * A32 * A43 + A22 * A33 * A41 + A23 * A31 * A42);
             }
+        }
+
+        public override string ToString()
+        {
+            return string.Format("[{0} {1} {2} {3}]"
+                + "[{4} {5} {6} {7}]"
+                + "[{8} {9} {10} {11}]"
+                + "[{12} {13} {14} {15}]", 
+                A11, A12, A13, A14,
+                A21, A22, A23, A24,
+                A31, A32, A33, A34,
+                A41, A42, A43, A44);
         }
 
         public static Matrix4f Identity
@@ -289,8 +349,53 @@ namespace OpenBus.Common
 
         public static Matrix4f Inverse(Matrix4f matrix)
         {
-            // TODO: implement me
-            return Identity;
+            // Check if the matrix is non-singular first
+            float determinant = matrix.Determinant;
+            if (determinant == 0.0f)
+                throw new DivideByZeroException("The determinant cannot be zero");
+
+            float a11 = matrix.A11, a12 = matrix.A12, a13 = matrix.A13, a14 = matrix.A14,
+                  a21 = matrix.A21, a22 = matrix.A22, a23 = matrix.A23, a24 = matrix.A24,
+                  a31 = matrix.A31, a32 = matrix.A32, a33 = matrix.A33, a34 = matrix.A34,
+                  a41 = matrix.A41, a42 = matrix.A42, a43 = matrix.A43, a44 = matrix.A44;
+            // Adjunct of the matrix
+            float b11 = a22 * a33 * a44 + a23 * a34 * a42 + a24 * a32 * a43
+                        - a22 * a34 * a43 - a23 * a32 * a44 - a24 * a33 * a42,
+                  b12 = a12 * a34 * a43 + a13 * a32 * a44 + a14 * a33 * a42
+                        - a12 * a33 * a44 - a13 * a34 * a42 - a14 * a32 * a43,
+                  b13 = a12 * a23 * a44 + a13 * a24 * a42 + a14 * a22 * a43
+                        - a12 * a24 * a43 - a13 * a22 * a44 - a14 * a23 * a42,
+                  b14 = a12 * a24 * a33 + a13 * a22 + a34 + a14 * a23 * a32
+                        - a12 * a23 * a34 - a13 * a24 * a32 - a14 * a22 * a33,
+                  b21 = a21 * a34 * a43 + a23 * a31 * a44 + a24 * a33 * a41
+                        - a21 * a33 * a44 - a23 * a34 * a41 - a24 * a31 * a43,
+                  b22 = a11 * a33 * a44 + a13 * a34 * a41 + a14 * a31 * a43
+                        - a11 * a34 * a43 - a13 * a31 * a44 - a14 * a33 * a41,
+                  b23 = a11 * a24 * a43 + a13 * a21 * a44 + a14 * a23 * a41
+                        - a11 * a23 * a44 - a13 * a24 * a41 - a14 * a21 * a43,
+                  b24 = a11 * a23 * a34 + a13 * a24 * a31 + a14 * a21 * a33
+                        - a11 * a24 * a33 - a13 * a21 * a34 - a14 * a23 * a31,
+                  b31 = a21 * a32 * a44 + a22 * a34 * a41 + a24 * a31 * a42
+                        - a21 * a34 * a42 - a22 * a31 * a44 - a24 * a32 * a41,
+                  b32 = a11 * a34 * a42 + a12 * a31 * a44 + a14 * a32 * a41
+                        - a11 * a32 * a44 - a12 * a34 * a41 - a14 * a31 * a42,
+                  b33 = a11 * a22 * a44 + a12 * a24 * a41 + a14 * a21 * a42
+                        - a11 * a24 * a42 - a12 * a21 * a44 - a14 * a22 * a41,
+                  b34 = a11 * a24 * a32 + a12 * a21 * a34 + a14 * a22 * a31
+                        - a11 * a22 * a34 - a12 * a24 * a31 - a14 * a21 * a32,
+                  b41 = a21 * a33 * a42 + a22 * a31 * a43 + a23 * a32 * a41
+                        - a21 * a32 * a43 + a22 * a33 * a41 - a23 * a31 * a42,
+                  b42 = a11 * a32 * a43 + a12 * a33 * a41 + a13 * a31 * a42
+                        - a11 * a33 * a42 - a12 * a31 * a43 - a13 * a32 * a41,
+                  b43 = a11 * a23 * a42 + a12 * a21 * a43 + a13 * a22 * a41
+                        - a11 * a22 * a43 - a12 * a23 * a41 - a13 * a21 * a42,
+                  b44 = a11 * a22 * a33 + a12 * a23 * a31 + a13 * a21 * a32
+                        - a11 * a23 * a32 - a12 * a21 * a33 - a13 * a22 * a31;
+            return (1 / determinant) * 
+                new Matrix4f(b11, b12, b13, b14,
+                             b21, b22, b23, b24,
+                             b31, b32, b33, b34,
+                             b41, b42, b43, b44);
         }
 
         public static Matrix4f operator *(Matrix4f left, Matrix4f right)
@@ -309,17 +414,17 @@ namespace OpenBus.Common
                 a11 * b13 + a12 * b23 + a13 * b33 + a14 * b43,
                 a11 * b14 + a12 * b24 + a13 * b34 + a14 * b44,
                 a21 * b11 + a22 * b22 + a23 * b31 + a24 * b41,
-                a21 * b11 + a22 * b23 + a23 * b32 + a24 * b42,
-                a21 * b11 + a22 * b24 + a23 * b33 + a24 * b43,
-                a21 * b11 + a22 * b21 + a23 * b34 + a24 * b44,
+                a21 * b12 + a22 * b23 + a23 * b32 + a24 * b42,
+                a21 * b13 + a22 * b24 + a23 * b33 + a24 * b43,
+                a21 * b14 + a22 * b21 + a23 * b34 + a24 * b44,
                 a31 * b11 + a32 * b22 + a33 * b31 + a34 * b41,
-                a31 * b11 + a32 * b23 + a33 * b32 + a34 * b42,
-                a31 * b11 + a32 * b24 + a33 * b33 + a34 * b43,
-                a31 * b11 + a32 * b21 + a33 * b34 + a34 * b44,
+                a31 * b12 + a32 * b23 + a33 * b32 + a34 * b42,
+                a31 * b13 + a32 * b24 + a33 * b33 + a34 * b43,
+                a31 * b14 + a32 * b21 + a33 * b34 + a34 * b44,
                 a41 * b11 + a42 * b21 + a43 * b31 + a44 * b41,
-                a41 * b11 + a42 * b22 + a43 * b32 + a44 * b42,
-                a41 * b11 + a42 * b23 + a43 * b33 + a44 * b43,
-                a41 * b11 + a42 * b24 + a43 * b34 + a44 * b44);
+                a41 * b12 + a42 * b22 + a43 * b32 + a44 * b42,
+                a41 * b13 + a42 * b23 + a43 * b33 + a44 * b43,
+                a41 * b14 + a42 * b24 + a43 * b34 + a44 * b44);
         }
 
         public static Matrix4f operator *(float left, Matrix4f right)
@@ -356,6 +461,11 @@ namespace OpenBus.Common
         public float Magnitude
         {
             get { return (float)Math.Sqrt(X * X + Y * Y); }
+        }
+
+        public override string ToString()
+        {
+            return string.Format("({0},{1})", X, Y);
         }
 
         public static Vector2f Zero
@@ -417,6 +527,11 @@ namespace OpenBus.Common
         public float Magnitude
         {
             get { return (float)Math.Sqrt(X * X + Y * Y + Z * Z); }
+        }
+
+        public override string ToString()
+        {
+            return string.Format("({0},{1},{2})", X, Y, Z);
         }
 
         public static Vector3f Zero
@@ -527,6 +642,11 @@ namespace OpenBus.Common
         public float Magnitude
         {
             get { return (float)Math.Sqrt(X * X + Y * Y + Z * Z + W * W); }
+        }
+
+        public override string ToString()
+        {
+            return string.Format("({0},{1},{2},{3})", X, Y, Z, W);
         }
 
         public static Vector4f Zero

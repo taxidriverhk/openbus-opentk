@@ -116,6 +116,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Model\MainWindowModel.cs" />
     <Compile Include="ViewModel\WindowModel.cs" />
     <Page Include="View\MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
@@ -132,7 +133,7 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ViewModel\MainWindowModel.cs" />
+    <Compile Include="ViewModel\MainWindowViewModel.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
@@ -194,9 +195,7 @@
   <ItemGroup>
     <Resource Include="Images\favicon.ico" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Model\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>if "$(PlatformName)" == "x64" (copy "$(SolutionDir)OpenBus.Engine\Referenced Libraries\x64\SDL*.dll" "$(ProjectDir)$(OutDir)") else ( copy "$(SolutionDir)OpenBus.Engine\Referenced Libraries\x86\SDL*.dll" "$(ProjectDir)$(OutDir)")

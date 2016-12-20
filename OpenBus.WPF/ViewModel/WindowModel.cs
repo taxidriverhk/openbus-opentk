@@ -7,7 +7,7 @@ using System.Text;
 
 namespace OpenBus.WPF.ViewModel
 {
-    public abstract class WindowModel : INotifyPropertyChanged
+    public abstract class WindowViewModel : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName]string propertyName = "")

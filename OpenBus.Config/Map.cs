@@ -78,13 +78,13 @@ namespace OpenBus.Config
             public enum SkyTextureMode
             {
                 [XmlEnum("day")]
-                DAY,
+                Day,
                 [XmlEnum("night")]
-                NIGHT,
+                Night,
                 [XmlEnum("dawn")]
-                DAWN,
+                Dawn,
                 [XmlEnum("sunset")]
-                SUNSET
+                Sunset
             }
 
             public class SkyTexture

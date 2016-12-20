@@ -129,7 +129,7 @@ namespace OpenBus.Game
             }
 
             // Load the free camera by default
-            currentView = new View(ViewType.FREE);
+            currentView = new View(ViewType.Free);
             views.Add(currentView);
             Camera.UpdateCamera();
         }
@@ -140,9 +140,9 @@ namespace OpenBus.Game
             views.Clear();
         }
 
-        public static void UpdateCamera()
+        public static void UpdateState()
         {
-
+            currentView.UpdateCamera();
         }
 
         private static void UnloadMap()

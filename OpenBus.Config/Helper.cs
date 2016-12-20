@@ -20,7 +20,7 @@ namespace OpenBus.Config
             }
             catch (Exception ex)
             {
-                Log.Write(LogLevel.ERROR, "Unable to deserialize the file {0}: {1}", path, ex.Message);
+                Log.Write(LogLevel.Error, "Unable to deserialize the file {0}: {1}", path, ex.Message);
                 return default(T);
             }
         }

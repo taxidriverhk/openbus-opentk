@@ -8,15 +8,16 @@ namespace OpenBus.Common
 {
     public enum LogLevel
     {
-        ERROR,
-        WARN,
-        INFO,
-        DEBUG,
-        TRACE
+        Error,
+        Warn,
+        Info,
+        Trace,
+        Debug
     }
 
     public static class Log
     {
+        private static LogLevel lowestLevel;
         private static string logFilePath;
         private static readonly string logLineFormat = "{0} - {1} - {2}{3}";
 

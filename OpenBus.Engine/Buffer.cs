@@ -11,10 +11,10 @@ namespace OpenBus.Engine
 {
     internal enum BufferObjectDrawingMode
     {
-        ALL = 0,
-        COLOR_ONLY = 1,
-        ALPHA_ONLY = 2,
-        NON_ALPHA_ONLY = 3
+        All = 0,
+        ColorOnly = 1,
+        AlphaOnly = 2,
+        NonAlphaOnly = 3
     }
 
     internal delegate void ShaderProgramSetUniformsDelegate();
@@ -210,13 +210,13 @@ namespace OpenBus.Engine
             shader.UseProgram();
             GL.BindBuffer(BufferTarget.ArrayBuffer, bufferId);
 
-            shader.BindVertexAttribPointer(ShaderAttribute.POSITION);
-            shader.BindVertexAttribPointer(ShaderAttribute.NORMAL);
-            shader.BindVertexAttribPointer(ShaderAttribute.TEXCOORD);
+            shader.BindVertexAttribPointer(ShaderAttribute.Position);
+            shader.BindVertexAttribPointer(ShaderAttribute.Normal);
+            shader.BindVertexAttribPointer(ShaderAttribute.TexCoord);
 
-            shader.SetUniform(ShaderUniform.VIEW_MATRIX, viewMatrix);
-            shader.SetUniform(ShaderUniform.PROJECTION_MATRIX, projectionMatrix);
-            shader.SetUniform(ShaderUniform.MODEL_MATRIX, modelMatrix);
+            shader.SetUniform(ShaderUniform.ViewMatrix, viewMatrix);
+            shader.SetUniform(ShaderUniform.ProjectionMatrix, projectionMatrix);
+            shader.SetUniform(ShaderUniform.ModelMatrix, modelMatrix);
             setUniforms();
 
             for (int i = 0; i < textureIds.Length && i < 32; i++)
@@ -258,13 +258,13 @@ namespace OpenBus.Engine
             shader.UseProgram();
             GL.BindBuffer(BufferTarget.ArrayBuffer, bufferId);
 
-            shader.BindVertexAttribPointer(ShaderAttribute.POSITION);
-            shader.BindVertexAttribPointer(ShaderAttribute.NORMAL);
-            shader.BindVertexAttribPointer(ShaderAttribute.TEXCOORD);
+            shader.BindVertexAttribPointer(ShaderAttribute.Position);
+            shader.BindVertexAttribPointer(ShaderAttribute.Normal);
+            shader.BindVertexAttribPointer(ShaderAttribute.TexCoord);
 
-            shader.SetUniform(ShaderUniform.VIEW_MATRIX, viewMatrix);
-            shader.SetUniform(ShaderUniform.PROJECTION_MATRIX, projectionMatrix);
-            shader.SetUniform(ShaderUniform.MODEL_MATRIX, modelMatrix);
+            shader.SetUniform(ShaderUniform.ViewMatrix, viewMatrix);
+            shader.SetUniform(ShaderUniform.ProjectionMatrix, projectionMatrix);
+            shader.SetUniform(ShaderUniform.ModelMatrix, modelMatrix);
             setUniforms();
 
             for (int i = 0; i < textureIds.Length && i < 32; i++)
@@ -384,7 +384,7 @@ namespace OpenBus.Engine
         /// </summary>
         internal void DrawEntities()
         {
-            DrawEntities(BufferObjectDrawingMode.ALL);   
+            DrawEntities(BufferObjectDrawingMode.All);   
         }
 
         /// <summary>
@@ -403,10 +403,10 @@ namespace OpenBus.Engine
                 List<Texture> textures = meshTextureMapping[entity.MeshName];
                 foreach (Texture texture in textures)
                 {
-                    if (mode == BufferObjectDrawingMode.ALPHA_ONLY
+                    if (mode == BufferObjectDrawingMode.AlphaOnly
                         && !texture.HasAlpha)
                         continue;
-                    else if (mode == BufferObjectDrawingMode.NON_ALPHA_ONLY
+                    else if (mode == BufferObjectDrawingMode.NonAlphaOnly
                         && texture.HasAlpha)
                         continue;
 
@@ -414,7 +414,7 @@ namespace OpenBus.Engine
                          indexArrayId = bufferIndexIdMapping[bufferId];
                     int indexArrayOffset = textureIndexMapping[texture].Key,
                         indexArrayLength = textureIndexMapping[texture].Value;
-                    if (mode == BufferObjectDrawingMode.COLOR_ONLY)
+                    if (mode == BufferObjectDrawingMode.ColorOnly)
                         BufferHelper.BindAndDrawBuffer(bufferId, indexArrayId,
                             indexArrayOffset, indexArrayLength, entity.Color,
                             entity.Translation, entity.Rotation, Vector3.One);

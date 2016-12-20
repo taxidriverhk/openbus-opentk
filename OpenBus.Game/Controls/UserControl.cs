@@ -9,20 +9,20 @@ namespace OpenBus.Game.Controls
 {
     public enum ControlCommand
     {
-        INVALID,
-        CAMERA_MOVE_LEFT,
-        CAMERA_MOVE_RIGHT,
-        CAMERA_MOVE_FRONT,
-        CAMERA_MOVE_BACK,
-        CAMERA_MOVE_UP,
-        CAMERA_MOVE_DOWN,
-        CAMERA_ROTATE_Y_LEFT,
-        CAMERA_ROTATE_Y_RIGHT,
-        CAMERA_ROTATE_X_UP,
-        CAMERA_ROTATE_X_DOWN,
-        CAMERA_ZOOM_IN,
-        CAMERA_ZOOM_OUT,
-        TOGGLE_FPS
+        Invalid,
+        CameraMoveLeft,
+        CameraMoveRight,
+        CameraMoveFront,
+        CameraMoveBack,
+        CameraMoveUp,
+        CameraMoveDown,
+        CameraRotateYawLeft,
+        CameraRotateYawRight,
+        CameraRotatePitchUp,
+        CameraRotatePitchDown,
+        CameraZoomIn,
+        CameraZoomOut,
+        ToggleFPSDisplay
     }
 
     public class UserControl
@@ -32,7 +32,7 @@ namespace OpenBus.Game.Controls
 
         public UserControl()
         {
-            this.Command = ControlCommand.INVALID;
+            this.Command = ControlCommand.Invalid;
             this.ConfiguredControl = new Control();
         }
 
@@ -52,32 +52,32 @@ namespace OpenBus.Game.Controls
             // TODO: load from a config file
             userControls = new UserControl[]
             {
-                new UserControl(ControlCommand.CAMERA_MOVE_LEFT, 
-                    new Control(ControlType.CONTINUOUS, ControlSource.KEYBOARD, KeyCode.KEY_A)),
-                new UserControl(ControlCommand.CAMERA_MOVE_RIGHT, 
-                    new Control(ControlType.CONTINUOUS, ControlSource.KEYBOARD, KeyCode.KEY_D)),
-                new UserControl(ControlCommand.CAMERA_MOVE_FRONT, 
-                    new Control(ControlType.CONTINUOUS, ControlSource.KEYBOARD, KeyCode.KEY_W)),
-                new UserControl(ControlCommand.CAMERA_MOVE_BACK, 
-                    new Control(ControlType.CONTINUOUS, ControlSource.KEYBOARD, KeyCode.KEY_S)),
-                new UserControl(ControlCommand.CAMERA_MOVE_UP, 
-                    new Control(ControlType.CONTINUOUS, ControlSource.KEYBOARD, KeyCode.KEY_Q)),
-                new UserControl(ControlCommand.CAMERA_MOVE_DOWN, 
-                    new Control(ControlType.CONTINUOUS, ControlSource.KEYBOARD, KeyCode.KEY_E)),
-                new UserControl(ControlCommand.CAMERA_ROTATE_Y_LEFT,
-                    new Control(ControlType.CONTINUOUS, ControlSource.KEYBOARD, KeyCode.KEY_LEFT)),
-                new UserControl(ControlCommand.CAMERA_ROTATE_Y_RIGHT,
-                    new Control(ControlType.CONTINUOUS, ControlSource.KEYBOARD, KeyCode.KEY_RIGHT)),
-                new UserControl(ControlCommand.CAMERA_ROTATE_X_DOWN,
-                    new Control(ControlType.CONTINUOUS, ControlSource.KEYBOARD, KeyCode.KEY_DOWN)),
-                new UserControl(ControlCommand.CAMERA_ROTATE_X_UP,
-                    new Control(ControlType.CONTINUOUS, ControlSource.KEYBOARD, KeyCode.KEY_UP)),
-                new UserControl(ControlCommand.CAMERA_ZOOM_IN,
-                    new Control(ControlType.CONTINUOUS, ControlSource.KEYBOARD, KeyCode.KEY_NUMPAD_PLUS)),
-                new UserControl(ControlCommand.CAMERA_ZOOM_OUT,
-                    new Control(ControlType.CONTINUOUS, ControlSource.KEYBOARD, KeyCode.KEY_NUMPAD_MINUS)),
-                new UserControl(ControlCommand.TOGGLE_FPS, 
-                    new Control(ControlType.DISCRETE, ControlSource.KEYBOARD, KeyCode.KEY_F))
+                new UserControl(ControlCommand.CameraMoveLeft, 
+                    new Control(ControlType.Continuous, ControlSource.Keyboard, KeyCode.KeyA)),
+                new UserControl(ControlCommand.CameraMoveRight, 
+                    new Control(ControlType.Continuous, ControlSource.Keyboard, KeyCode.KeyD)),
+                new UserControl(ControlCommand.CameraMoveFront, 
+                    new Control(ControlType.Continuous, ControlSource.Keyboard, KeyCode.KeyW)),
+                new UserControl(ControlCommand.CameraMoveBack, 
+                    new Control(ControlType.Continuous, ControlSource.Keyboard, KeyCode.KeyS)),
+                new UserControl(ControlCommand.CameraMoveUp, 
+                    new Control(ControlType.Continuous, ControlSource.Keyboard, KeyCode.KeyQ)),
+                new UserControl(ControlCommand.CameraMoveDown, 
+                    new Control(ControlType.Continuous, ControlSource.Keyboard, KeyCode.KeyE)),
+                new UserControl(ControlCommand.CameraRotateYawLeft,
+                    new Control(ControlType.Continuous, ControlSource.Keyboard, KeyCode.KeyLeft)),
+                new UserControl(ControlCommand.CameraRotateYawRight,
+                    new Control(ControlType.Continuous, ControlSource.Keyboard, KeyCode.KeyRight)),
+                new UserControl(ControlCommand.CameraRotatePitchDown,
+                    new Control(ControlType.Continuous, ControlSource.Keyboard, KeyCode.KeyDown)),
+                new UserControl(ControlCommand.CameraRotatePitchUp,
+                    new Control(ControlType.Continuous, ControlSource.Keyboard, KeyCode.KeyUp)),
+                new UserControl(ControlCommand.CameraZoomIn,
+                    new Control(ControlType.Continuous, ControlSource.Keyboard, KeyCode.KeyNumpadPlus)),
+                new UserControl(ControlCommand.CameraZoomOut,
+                    new Control(ControlType.Continuous, ControlSource.Keyboard, KeyCode.KeyNumpadMinus)),
+                new UserControl(ControlCommand.ToggleFPSDisplay, 
+                    new Control(ControlType.Discrete, ControlSource.Keyboard, KeyCode.KeyF))
             };
         }
 
@@ -89,53 +89,53 @@ namespace OpenBus.Game.Controls
                 Control configuredControl = userControl.ConfiguredControl;
                 control.Type = configuredControl.Type;
 
-                if (control.Type == ControlType.DISCRETE)
+                if (control.Type == ControlType.Discrete)
                 {
-                    if (control.DiscreteState == ControlState.PRESSED)
-                        control.DiscreteState = ControlState.ALREADY_PRESSED;
+                    if (control.DiscreteState == ControlState.Pressed)
+                        control.DiscreteState = ControlState.AlreadyPressed;
                     else
                         continue;
                 }
 
                 switch (userControl.Command)
                 {
-                    case ControlCommand.INVALID:
+                    case ControlCommand.Invalid:
                         break;
-                    case ControlCommand.CAMERA_MOVE_LEFT:
+                    case ControlCommand.CameraMoveLeft:
                         Game.CurrentView.MoveBy(-0.5f, 0, 0);
                         break;
-                    case ControlCommand.CAMERA_MOVE_RIGHT:
+                    case ControlCommand.CameraMoveRight:
                         Game.CurrentView.MoveBy(0.5f, 0, 0);
                         break;
-                    case ControlCommand.CAMERA_MOVE_FRONT:
+                    case ControlCommand.CameraMoveFront:
                         Game.CurrentView.MoveBy(0, 0, 0.5f);
                         break;
-                    case ControlCommand.CAMERA_MOVE_BACK:
+                    case ControlCommand.CameraMoveBack:
                         Game.CurrentView.MoveBy(0, 0, -0.5f);
                         break;
-                    case ControlCommand.CAMERA_MOVE_UP:
+                    case ControlCommand.CameraMoveUp:
                         Game.CurrentView.MoveBy(0, 0.5f, 0);
                         break;
-                    case ControlCommand.CAMERA_MOVE_DOWN:
+                    case ControlCommand.CameraMoveDown:
                         Game.CurrentView.MoveBy(0, -0.5f, 0);
                         break;
-                    case ControlCommand.CAMERA_ROTATE_Y_LEFT:
+                    case ControlCommand.CameraRotateYawLeft:
                         Game.CurrentView.ChangeYawAngleBy(1.0f);
                         break;
-                    case ControlCommand.CAMERA_ROTATE_Y_RIGHT:
+                    case ControlCommand.CameraRotateYawRight:
                         Game.CurrentView.ChangeYawAngleBy(-1.0f);
                         break;
-                    case ControlCommand.CAMERA_ROTATE_X_DOWN:
+                    case ControlCommand.CameraRotatePitchDown:
                         break;
-                    case ControlCommand.CAMERA_ROTATE_X_UP:
+                    case ControlCommand.CameraRotatePitchUp:
                         break;
-                    case ControlCommand.CAMERA_ZOOM_IN:
+                    case ControlCommand.CameraZoomIn:
                         Game.CurrentView.ZoomBy(0.1f);
                         break;
-                    case ControlCommand.CAMERA_ZOOM_OUT:
+                    case ControlCommand.CameraZoomOut:
                         Game.CurrentView.ZoomBy(-0.1f);
                         break;
-                    case ControlCommand.TOGGLE_FPS:
+                    case ControlCommand.ToggleFPSDisplay:
                         Game.Settings.ScreenDisplaySettings.ToggleFrameRateDisplay();
                         break;
                 }

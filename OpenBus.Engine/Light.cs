@@ -8,9 +8,9 @@ namespace OpenBus.Engine
 {
     public enum LightType
     {
-        DIRECTIONAL = 1,
-        POINT = 2,
-        SPOTLIGHT = 3
+        Directional = 1,
+        Point = 2,
+        Spotlight = 3
     }
 
     public struct Light

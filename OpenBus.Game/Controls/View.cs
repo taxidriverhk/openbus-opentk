@@ -12,12 +12,12 @@ namespace OpenBus.Game.Controls
         /// <summary>
         /// Free moving mode, the camera moves along all of the yaw, pitch and roll angles
         /// </summary>
-        FREE = 0,
+        Free = 0,
         /// <summary>
         /// Rotates about an object (ex. the bus). The camera moves along the direction of the object,
         /// with pitch angle and the rotation about the object applied to the view.
         /// </summary>
-        ROTATE_ABOUT_OBJECT = 1
+        RotateAboutObject = 1
     }
 
     public class View
@@ -54,8 +54,8 @@ namespace OpenBus.Game.Controls
         {
             angleOffsets.Y = MathHelper.DegreesToRadians(degrees);
             angles.Y += angleOffsets.Y;
-            if (angles.Y >= MathHelper.TWO_PI)
-                angles.Y = angles.Y % MathHelper.TWO_PI;
+            if (angles.Y >= MathHelper.TwoPi)
+                angles.Y = angles.Y % MathHelper.TwoPi;
 
             Vector3f newFront = Vector3f.Zero,
                      newRight = Vector3f.Zero;
@@ -72,7 +72,7 @@ namespace OpenBus.Game.Controls
             newPosition += frontDirection * z;
             newPosition.Y += y;
             // If the move will cause it get out of the map, then don't move
-            if (viewType == ViewType.FREE && !Game.World.IsInMap(newPosition))
+            if (viewType == ViewType.Free && !Game.World.IsInMap(newPosition))
                 positionOffsets = Vector3f.Zero;
             else
             {

@@ -5,12 +5,12 @@ namespace OpenBus.Common
 {
     public static class MathHelper
     {
-        public const float PI_OVER_4 = PI / 4;
-        public const float PI_OVER_2 = PI / 2;
-        public const float PI = 3.1415926535897931f;
-        public const float TWO_PI = 2 * PI;
-        public const int HALF_CIRCLE_DEGREES = 180;
-        public const int CIRCLE_DEGREES = 360;
+        public const float PiOver4 = Pi / 4;
+        public const float PiOver2 = Pi / 2;
+        public const float Pi = 3.1415926535897931f;
+        public const float TwoPi = 2 * Pi;
+        public const int HalfCircleDegrees = 180;
+        public const int CircleDegrees = 360;
 
         /// <summary>
         /// Calculates the plane equation given the three points
@@ -33,7 +33,7 @@ namespace OpenBus.Common
 
         public static float DegreesToRadians(float degrees)
         {
-            return degrees * PI / HALF_CIRCLE_DEGREES;
+            return degrees * Pi / HalfCircleDegrees;
         }
     }
 

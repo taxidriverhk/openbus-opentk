@@ -117,7 +117,7 @@ namespace OpenBus.Engine.Assets
                             i < vectorArray.Length && j < floatStrArray.Length;
                             i++, j += Collada.Geometry.THREED_ARRAY_SIZE)
                         {
-                            if (collada.Metadata.UpDirection == Collada.Asset.UpAxis.Z_UP)
+                            if (collada.Metadata.UpDirection == Collada.Asset.UpAxis.ZAxisUp)
                                 vectorArray[i] = new Vector3(Convert.ToSingle(floatStrArray[j]),
                                     Convert.ToSingle(floatStrArray[j + 2]),
                                     -Convert.ToSingle(floatStrArray[j + 1]));
@@ -165,9 +165,9 @@ namespace OpenBus.Engine.Assets
             public enum UpAxis
             {
                 [XmlEnum(Name = "Y_UP")]
-                Y_UP,
+                YAxisUp,
                 [XmlEnum(Name = "Z_UP")]
-                Z_UP
+                ZAxisUp
             }
 
             public class Unit

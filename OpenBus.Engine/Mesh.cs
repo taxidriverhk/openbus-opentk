@@ -70,8 +70,8 @@ namespace OpenBus.Engine
             }
             catch (Exception ex)
             {
-                Log.Write(LogLevel.ERROR, "Unable to read Collada file {0}.", path);
-                Log.Write(LogLevel.DEBUG, "The exception thrown was {0}:\n {1}", ex.Message, ex.StackTrace);
+                Log.Write(LogLevel.Error, "Unable to read Collada file {0}.", path);
+                Log.Write(LogLevel.Debug, "The exception thrown was {0}:\n {1}", ex.Message, ex.StackTrace);
                 return null;
             }
             

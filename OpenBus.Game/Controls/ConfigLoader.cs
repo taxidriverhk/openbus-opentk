@@ -29,16 +29,16 @@ namespace OpenBus.Game.Controls
                 {
                     switch (texture.Mode)
                     {
-                        case MapEx.SkyInfo.SkyTextureMode.DAY:
+                        case MapEx.SkyInfo.SkyTextureMode.Day:
                             map.AddSky(new Sky(skyInfoEx.Size, SkyMode.DAY, texture.Path));
                             break;
-                        case MapEx.SkyInfo.SkyTextureMode.NIGHT:
+                        case MapEx.SkyInfo.SkyTextureMode.Night:
                             map.AddSky(new Sky(skyInfoEx.Size, SkyMode.NIGHT, texture.Path));
                             break;
-                        case MapEx.SkyInfo.SkyTextureMode.DAWN:
+                        case MapEx.SkyInfo.SkyTextureMode.Dawn:
                             map.AddSky(new Sky(skyInfoEx.Size, SkyMode.DAWN, texture.Path));
                             break;
-                        case MapEx.SkyInfo.SkyTextureMode.SUNSET:
+                        case MapEx.SkyInfo.SkyTextureMode.Sunset:
                             map.AddSky(new Sky(skyInfoEx.Size, SkyMode.SUNSET, texture.Path));
                             break;
                     }
@@ -47,7 +47,7 @@ namespace OpenBus.Game.Controls
             }
             else
             {
-                Log.Write(LogLevel.ERROR, "Unable to load the map config file {0}.", path);
+                Log.Write(LogLevel.Error, "Unable to load the map config file {0}.", path);
                 return null;
             }
         }
@@ -81,7 +81,7 @@ namespace OpenBus.Game.Controls
             }
             else
             {
-                Log.Write(LogLevel.ERROR, "Unable to load the map block config file {0}.", path);
+                Log.Write(LogLevel.Error, "Unable to load the map block config file {0}.", path);
                 return null;
             }
         }
@@ -113,7 +113,7 @@ namespace OpenBus.Game.Controls
             }
             else
             {
-                Log.Write(LogLevel.ERROR, "Unable to load the terrain config file {0}.", path);
+                Log.Write(LogLevel.Error, "Unable to load the terrain config file {0}.", path);
                 return null;
             }
         }
@@ -137,7 +137,7 @@ namespace OpenBus.Game.Controls
             }
             else
             {
-                Log.Write(LogLevel.ERROR, "Unable to load the object config file {0}.", path);
+                Log.Write(LogLevel.Error, "Unable to load the object config file {0}.", path);
                 return null;
             }
         }

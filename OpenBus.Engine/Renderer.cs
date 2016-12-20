@@ -41,7 +41,7 @@ namespace OpenBus.Engine
             mirrorBuffers = new List<MirrorBuffer>();
             skyBox = new SkyBoxBuffer();
             
-            sun = new Light(SUN_POSITION, SUN_COLOR, LightType.DIRECTIONAL);
+            sun = new Light(SUN_POSITION, SUN_COLOR, LightType.Directional);
         }
 
         /// <summary>
@@ -125,7 +125,7 @@ namespace OpenBus.Engine
             GL.ClearColor(Color.White);
             GL.Clear(ClearBufferMask.ColorBufferBit);
             GL.Disable(EnableCap.DepthTest);
-            currentStaticBuffer.DrawEntities(BufferObjectDrawingMode.COLOR_ONLY);
+            currentStaticBuffer.DrawEntities(BufferObjectDrawingMode.ColorOnly);
             Vector3 color = GraphicsHelper.GetColorOfScreen(new Vector3(mouseLocation.X, mouseLocation.Y, 0.0f));
             GL.Enable(EnableCap.DepthTest);
             return currentEntityList.Find(e => e.Color == color);

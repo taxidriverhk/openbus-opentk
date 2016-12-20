@@ -294,7 +294,7 @@ namespace OpenBus.Game.Objects
             Mesh skyBoxMesh = Mesh.LoadFromCollada(skyBoxMeshPath);
             if (skyBoxMesh == null)
             {
-                Log.Write(LogLevel.ERROR, "Failed to load the sky box from {0}", skyBoxMeshPath);
+                Log.Write(LogLevel.Error, "Failed to load the sky box from {0}", skyBoxMeshPath);
                 return;
             }
 

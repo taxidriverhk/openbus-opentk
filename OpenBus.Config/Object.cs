@@ -27,9 +27,9 @@ namespace OpenBus.Config
             public enum AlphaTextureMode
             {
                 [XmlEnum("0")]
-                FULL = 0,
+                Full = 0,
                 [XmlEnum("1")]
-                ALPHA = 1
+                Alpha = 1
             }
 
             [XmlElement("path")]

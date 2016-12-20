@@ -106,7 +106,7 @@ namespace OpenBus.Game
         private static void UpdateState()
         {
             ControlHandler.ProcessControls();
-            Game.CurrentView.UpdateCamera();
+            Game.UpdateState();
         }
     }
 }

@@ -11,16 +11,16 @@ namespace OpenBus.Engine
 {
     internal enum ShaderAttribute
     {
-        POSITION = 0,
-        NORMAL = 1,
-        TEXCOORD = 2
+        Position = 0,
+        Normal = 1,
+        TexCoord = 2
     }
 
     internal enum ShaderUniform
     {
-        PROJECTION_MATRIX = 0,
-        VIEW_MATRIX = 1,
-        MODEL_MATRIX = 2
+        ProjectionMatrix = 0,
+        ViewMatrix = 1,
+        ModelMatrix = 2
     }
 
     internal class ShaderProgram
@@ -45,9 +45,9 @@ namespace OpenBus.Engine
         private const int MAX_VAR_LENGTH = 256;
         private static readonly Dictionary<ShaderAttribute, string> attributeVarNameMap = new Dictionary<ShaderAttribute, string>()
         {
-            { ShaderAttribute.POSITION, "vPosition" },
-            { ShaderAttribute.NORMAL, "vNormal" },
-            { ShaderAttribute.TEXCOORD, "vTexCoord" }
+            { ShaderAttribute.Position, "vPosition" },
+            { ShaderAttribute.Normal, "vNormal" },
+            { ShaderAttribute.TexCoord, "vTexCoord" }
         };
 
         private int programId;
@@ -74,15 +74,15 @@ namespace OpenBus.Engine
                     size = 3;
                 switch (attributeType)
                 {
-                    case ShaderAttribute.POSITION:
+                    case ShaderAttribute.Position:
                         offset = 0;
                         size = 3;
                         break;
-                    case ShaderAttribute.NORMAL:
+                    case ShaderAttribute.Normal:
                         offset = Vector3.SizeInBytes;
                         size = 3;
                         break;
-                    case ShaderAttribute.TEXCOORD:
+                    case ShaderAttribute.TexCoord:
                         offset = 2 * Vector3.SizeInBytes;
                         size = 2;
                         break;
@@ -138,7 +138,7 @@ namespace OpenBus.Engine
             {
                 string errorInfo;
                 GL.GetProgramInfoLog(programId, out errorInfo);
-                Log.Write(LogLevel.ERROR, "Failed to link the shaders to the program: {0}", errorInfo);
+                Log.Write(LogLevel.Error, "Failed to link the shaders to the program: {0}", errorInfo);
                 return false;
             }
 
@@ -149,7 +149,7 @@ namespace OpenBus.Engine
             {
                 string errorInfo;
                 GL.GetProgramInfoLog(programId, out errorInfo);
-                Log.Write(LogLevel.ERROR, "Shader program validation failed: {0}", errorInfo);
+                Log.Write(LogLevel.Error, "Shader program validation failed: {0}", errorInfo);
                 return false;
             }
 
@@ -167,14 +167,14 @@ namespace OpenBus.Engine
             {
                 AttributeVariable aVar = new AttributeVariable();
                 int location = 0;
-                if (attribPair.Key == ShaderAttribute.NORMAL)
+                if (attribPair.Key == ShaderAttribute.Normal)
                     location = 1;
-                else if (attribPair.Key == ShaderAttribute.TEXCOORD)
+                else if (attribPair.Key == ShaderAttribute.TexCoord)
                     location = 2;
                 GL.BindAttribLocation(programId, location, attribPair.Value);
                 aVar.Name = attribPair.Value;
                 aVar.Location = location;
-                aVar.Type = attribPair.Key == ShaderAttribute.TEXCOORD 
+                aVar.Type = attribPair.Key == ShaderAttribute.TexCoord 
                     ? ActiveAttribType.FloatVec2 : ActiveAttribType.FloatVec3;
                 attributes.Add(attribPair.Value, aVar);
             }
@@ -244,13 +244,13 @@ namespace OpenBus.Engine
         {
             switch (varName)
             {
-                case ShaderUniform.PROJECTION_MATRIX:
+                case ShaderUniform.ProjectionMatrix:
                     SetUniform("projectionMatrix", value);
                     break;
-                case ShaderUniform.VIEW_MATRIX:
+                case ShaderUniform.ViewMatrix:
                     SetUniform("viewMatrix", value);
                     break;
-                case ShaderUniform.MODEL_MATRIX:
+                case ShaderUniform.ModelMatrix:
                     SetUniform("modelMatrix", value);
                     break;
             }
@@ -332,7 +332,7 @@ namespace OpenBus.Engine
             {
                 string errorInfo;
                 GL.GetShaderInfoLog(shaderHandle, out errorInfo);
-                Log.Write(LogLevel.ERROR, "Failed to compile the shader: {0}", errorInfo);
+                Log.Write(LogLevel.Error, "Failed to compile the shader: {0}", errorInfo);
                 return 0;
             }
             return shaderHandle;

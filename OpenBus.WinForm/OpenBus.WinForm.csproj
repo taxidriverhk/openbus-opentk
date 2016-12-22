@@ -123,8 +123,7 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>if "$(PlatformName)" == "x64" (copy "$(SolutionDir)OpenBus.Engine\Referenced Libraries\x64\SDL*.dll" "$(ProjectDir)$(OutDir)") else ( copy "$(SolutionDir)OpenBus.Engine\Referenced Libraries\x86\SDL*.dll" "$(ProjectDir)$(OutDir)")
-copy "$(ProjectDir)Images\favicon.ico" "$(ProjectDir)$(OutDir)"</PostBuildEvent>
+    <PostBuildEvent>$(SolutionDir)\Scripts\post-build.cmd $(SolutionDir) $(ProjectDir) $(OutDir) $(PlatformName) $(ConfigurationName)</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

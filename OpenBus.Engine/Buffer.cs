@@ -88,7 +88,8 @@ namespace OpenBus.Engine
             GL.EnableClientState(ArrayCap.NormalArray);
             GL.EnableClientState(ArrayCap.TextureCoordArray);
 
-            GL.BindTexture(TextureTarget.Texture2D, textureId);
+            if (textureId > 0)
+                GL.BindTexture(TextureTarget.Texture2D, textureId);
             GL.VertexPointer(3, VertexPointerType.Float, Vertex.Size, 0);
             GL.NormalPointer(NormalPointerType.Float, Vertex.Size, Vector3.SizeInBytes);
             GL.TexCoordPointer(2, TexCoordPointerType.Float, Vertex.Size, Vector3.SizeInBytes * 2);
@@ -131,7 +132,8 @@ namespace OpenBus.Engine
             GL.EnableClientState(ArrayCap.NormalArray);
             GL.EnableClientState(ArrayCap.TextureCoordArray);
 
-            GL.BindTexture(TextureTarget.Texture2D, textureId);
+            if (textureId > 0)
+                GL.BindTexture(TextureTarget.Texture2D, textureId);
             GL.VertexPointer(3, VertexPointerType.Float, Vertex.Size, 0);
             GL.NormalPointer(NormalPointerType.Float, Vertex.Size, Vector3.SizeInBytes);
             GL.TexCoordPointer(2, TexCoordPointerType.Float, Vertex.Size, Vector3.SizeInBytes * 2);
@@ -221,6 +223,8 @@ namespace OpenBus.Engine
 
             for (int i = 0; i < textureIds.Length && i < 32; i++)
             {
+                if (textureIds[i] <= 0)
+                    continue;
                 GL.ActiveTexture(TextureUnit.Texture0 + i);
                 GL.BindTexture(TextureTarget.Texture2D, textureIds[i]);
             }
@@ -269,6 +273,8 @@ namespace OpenBus.Engine
 
             for (int i = 0; i < textureIds.Length && i < 32; i++)
             {
+                if (textureIds[i] <= 0)
+                    continue;
                 GL.ActiveTexture(TextureUnit.Texture0 + i);
                 GL.BindTexture(TextureTarget.Texture2D, textureIds[i]);
             }

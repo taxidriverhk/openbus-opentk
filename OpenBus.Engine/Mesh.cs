@@ -9,6 +9,14 @@ using OpenBus.Engine.Assets;
 
 namespace OpenBus.Engine
 {
+    public enum MeshFormat
+    {
+        Collada,
+        Wavefront,
+        DirectX,
+        Autodesk3ds
+    }
+
     public struct Entity
     {
         private static int currentId = 0;
@@ -56,12 +64,29 @@ namespace OpenBus.Engine
         public Vertex[][] Vertices; 
         public uint[][] Indices;
 
-        public static Mesh LoadFromCollada(string path)
+        public static Mesh Load(MeshFormat format, string path)
         {
-            return LoadFromCollada(path, Path.GetDirectoryName(path) + @"\..\textures", null);
+            return Load(format, path, Path.GetDirectoryName(path) + @"\..\textures", null);
         }
 
-        public static Mesh LoadFromCollada(string path, string textureDir, ISet<string> alphaTextures)
+        public static Mesh Load(MeshFormat format, string path, string textureDir, ISet<string> alphaTextures)
+        {
+            switch (format)
+            {
+                case MeshFormat.Autodesk3ds:
+                    throw new NotImplementedException();
+                case MeshFormat.Collada:
+                    return LoadFromCollada(path, textureDir, alphaTextures);
+                case MeshFormat.DirectX:
+                    throw new NotImplementedException();
+                case MeshFormat.Wavefront:
+                    throw new NotImplementedException();
+                default:
+                    return null;
+            }
+        }
+
+        private static Mesh LoadFromCollada(string path, string textureDir, ISet<string> alphaTextures)
         {
             Collada collada = null;
             try

@@ -9,9 +9,9 @@ using OpenTK;
 
 namespace OpenBus.Engine.Assets
 {
-    public static class ColladaXmlSerializer
+    internal static class ColladaXmlSerializer
     {
-        public static Collada DeserializeFromXml(string path)
+        internal static Collada DeserializeFromXml(string path)
         {
             // Serialize part of the file with XmlSerializer first
             XmlSerializer serializer = new XmlSerializer(typeof(Collada));

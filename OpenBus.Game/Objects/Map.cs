@@ -291,7 +291,7 @@ namespace OpenBus.Game.Objects
             if (currentSky == null)
                 return;
 
-            Mesh skyBoxMesh = Mesh.LoadFromCollada(skyBoxMeshPath);
+            Mesh skyBoxMesh = Mesh.Load(MeshFormat.Collada, skyBoxMeshPath);
             if (skyBoxMesh == null)
             {
                 Log.Write(LogLevel.Error, "Failed to load the sky box from {0}", skyBoxMeshPath);
@@ -370,10 +370,15 @@ namespace OpenBus.Game.Objects
 
                 foreach (string meshPath in mapObject.Meshes)
                 {
-                    Mesh staticMesh = Mesh.LoadFromCollada(EnvironmentVariables.RootPath + 
+                    Mesh staticMesh = Mesh.Load(MeshFormat.Collada, EnvironmentVariables.RootPath + 
                         mapObject.ModelDirectory + Constants.PATH_DELIM + meshPath,
                         EnvironmentVariables.RootPath +
                         mapObject.TextureDirectory, alphaTextures);
+                    if (staticMesh == null || !staticMesh.Validate())
+                    {
+                        Log.Write(LogLevel.Error, "{0} is not a valid mesh.", meshPath);
+                        continue;
+                    }
                     Entity entity = new Entity(staticMesh.Name, mapObject.Position.X + blockToLoad.Position.X * Map.BlockSize,
                         mapObject.Position.Y, -mapObject.Position.Z - blockToLoad.Position.Y * Map.BlockSize,
                         mapObject.Rotations.X, mapObject.Rotations.Y, mapObject.Rotations.Z);

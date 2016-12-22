@@ -209,6 +209,7 @@ namespace OpenBus.Engine
         {
             foreach (Texture texture in textures)
                 GL.DeleteTexture(texture.TextureId);
+            textures.Clear();
         }
 
         private static Bitmap GetAlphaBitmap(Bitmap bitmap)

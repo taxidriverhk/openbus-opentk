@@ -200,6 +200,9 @@
   <PropertyGroup>
     <PostBuildEvent>$(SolutionDir)\Scripts\post-build.cmd $(SolutionDir) $(ProjectDir) $(OutDir) $(PlatformName) $(ConfigurationName)</PostBuildEvent>
   </PropertyGroup>
+  <PropertyGroup>
+    <PreBuildEvent>$(SolutionDir)\Scripts\pre-build.cmd $(TargetName) $(ProjectDir) $(SolutionDir)</PreBuildEvent>
+  </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

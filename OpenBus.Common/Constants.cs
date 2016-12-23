@@ -24,7 +24,19 @@ namespace OpenBus.Common
 
         public const string APPLICATION_NAME = "Open Bus Driving Simulator (OpenBus)";
         public const string APPLICATION_ICON = "favicon.ico";
-        public static readonly string VERSION_NUMBER = System.Reflection.Assembly.GetEntryAssembly().GetName().Version.ToString();
+        public static string VERSION_NUMBER
+        {
+            get
+            {
+                Version version = System.Reflection.Assembly.GetEntryAssembly().GetName().Version;
+                string versionString = string.Format("{0}.{1:00}.{2}.{3:00000}", 
+                    version.Major, version.Minor, version.Build, version.Revision);
+#if DEBUG
+                versionString += " Debug Version";
+#endif
+                return versionString;
+            }
+        }
 
         public const string START_GAME = "Start Game";
     }

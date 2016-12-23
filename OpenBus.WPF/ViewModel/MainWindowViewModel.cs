@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Collections.ObjectModel;
 using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using OpenBus.Common;
 using OpenBus.Game;
 using OpenBus.Game.Objects;
 using OpenBus.WPF.Model;
-using System.Collections.ObjectModel;
 
 namespace OpenBus.WPF.ViewModel
 {
@@ -43,11 +45,15 @@ namespace OpenBus.WPF.ViewModel
         private MainWindowSize size;
         private MainWindowModel model;
 
+        private ICommand startGameCommand;
+        private BitmapFrame icon;
+
         public MainWindowViewModel()
         {
             strings = new MainWindowModelStrings();
             size = new MainWindowSize();
             model = new MainWindowModel();
+            icon = BitmapFrame.Create(new Uri(Constants.APPLICATION_ICON, UriKind.Relative));
             selectedMapListIndex = 0;
         }
         
@@ -79,7 +85,24 @@ namespace OpenBus.WPF.ViewModel
             set { selectedMapListIndex = value; }
         }
 
-        private ICommand startGameCommand;
+        public BitmapFrame Icon
+        {
+            get { return icon; }
+        }  
+
+        public SolidColorBrush VersionLabelColor
+        {
+            get
+            {
+                if (strings.VersionNumber.Contains("Debug"))
+                    return new SolidColorBrush(Color.FromRgb(230, 255, 60));
+                else if (strings.VersionNumber.Contains("Development"))
+                    return new SolidColorBrush(Color.FromRgb(255, 50, 50));
+                else
+                    return new SolidColorBrush(Color.FromRgb(200, 200, 200));
+            }
+        }
+
         public ICommand StartGameCommand
         {
             get 

@@ -4,7 +4,7 @@
         xmlns:model="clr-namespace:OpenBus.WPF.ViewModel"
         Title="{Binding Strings.Title}"  Width="{Binding ScreenSize.Width}" Height="{Binding ScreenSize.Height}"
         Visibility="{Binding IsVisible, Mode=TwoWay, Converter={StaticResource boolToVisibilityConverter}}"
-        WindowStartupLocation="CenterScreen" ResizeMode="CanMinimize">
+        WindowStartupLocation="CenterScreen" ResizeMode="CanMinimize" Icon="{Binding Icon}">
     <Window.DataContext>
         <model:MainWindowViewModel />
     </Window.DataContext>
@@ -16,6 +16,6 @@
         <Button Content="{Binding Strings.StartGame}" Command="{Binding StartGameCommand}" HorizontalAlignment="Right" 
                 Margin="10,10,10,10" VerticalAlignment="Bottom" Width="119" Height="53"/>
         <Label Content="{Binding Strings.VersionNumber}" HorizontalAlignment="Left" VerticalAlignment="Bottom" 
-               Margin="10,0,0,10" Width="149" Background="Red" Foreground="White"/>
+               Margin="10,0,0,10" MinWidth="200" Width="Auto" Background="{Binding VersionLabelColor}" Foreground="Black"/>
     </Grid>
 </Window>

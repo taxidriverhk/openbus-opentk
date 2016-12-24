@@ -778,31 +778,31 @@ namespace OpenBus.Engine
         internal void InitializeTerrain(Vector2 grid, int terrainSize, float[][] heights, int textureId, Vector2 uv, Light sunLight)
         {
             sun = sunLight;
-            position = new Vector2(grid.X * size, -grid.Y * size);
             size = terrainSize;
+            position = new Vector2((int)grid.X * size, -(int)grid.Y * size);
             terrainTextureId = textureId;
             // Generate the vertices for the terrain based on the inputs
             float sliceU = uv.X / size,
                   sliceV = uv.Y / size;
-            Vertex[] vertices = new Vertex[size * size];
-            for (int i = 0; i < size; i++)
-                for (int j = 0; j < size; j++)
+            Vertex[] vertices = new Vertex[(size + 1) * (size + 1)];
+            for (int i = 0; i <= size; i++)
+                for (int j = 0; j <= size; j++)
                 {
-                    int currentIndex = i * size + j;
+                    int currentIndex = i * (size + 1) + j;
                     vertices[currentIndex] = new Vertex(
-                        new Vector3(i, heights[i][j], -j),
+                        new Vector3(position.X + i, heights[i][j], position.Y - j),
                         new Vector3(0.0f, 1.0f, 0.0f),
                         new Vector2(i * sliceU, j * sliceV));
                 }
 
-            uint[] indices = new uint[6 * (size-1) * (size-1)];
+            uint[] indices = new uint[6 * size * size];
             int pointIndex = 0;
-            for (uint i = 0; i < size - 1; i++)
-                for (uint j = 0; j < size - 1; j++)
+            for (uint i = 0; i < size; i++)
+                for (uint j = 0; j < size; j++)
                 {
-                    uint topLeft = (i + 1) * (uint)size + j,
+                    uint topLeft = (i + 1) * (uint)(size + 1) + j,
                          topRight = topLeft + 1,
-                         bottomLeft = i * (uint)size + j,
+                         bottomLeft = i * (uint)(size + 1) + j,
                          bottomRight = bottomLeft + 1;
                     indices[pointIndex++] = bottomLeft;
                     indices[pointIndex++] = topLeft;
@@ -824,7 +824,7 @@ namespace OpenBus.Engine
             GL.Enable(EnableCap.CullFace);
             GL.CullFace(CullFaceMode.Back);
             ShaderProgramHelper.UseAndDrawBuffer(shader, bufferId, indexArrayId, indexArrayLength, 
-                0, terrainTextureId, new Vector3(position.X, 0, position.Y), Vector3.Zero, Vector3.One,
+                0, terrainTextureId, Vector3.Zero, Vector3.Zero, Vector3.One,
                 () => 
                 {
                     shader.SetLight("lightPos", "lightColor", "lightType", sun);

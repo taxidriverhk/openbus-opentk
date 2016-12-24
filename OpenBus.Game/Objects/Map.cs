@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using System.Threading;
 using OpenBus.Common;
 using OpenBus.Engine;
@@ -181,10 +182,12 @@ namespace OpenBus.Game.Objects
         private static readonly int blockSize = Game.Settings.MapDisplaySettings.BlockSize;
         private static readonly string skyBoxMeshPath = EnvironmentVariables.RootPath + @"objects\skies\models\sky.dae";
 
+        private string mapDirectory;
         private List<MapBlockInfo> blockInfoList;
         private Sky currentSky;
         private List<Sky> skies;
         private MapBlock currentBlock;
+        private List<MapBlockInfo> blocksToLoad;
         private List<MapBlock> loadedBlocks;
         private Terrain currentTerrain;
         private List<Terrain> loadedTerrains;
@@ -199,10 +202,12 @@ namespace OpenBus.Game.Objects
             get { return blockInfoList; }
         }
 
-        public Map()
+        public Map(string path)
         {
+            mapDirectory = Path.GetDirectoryName(path);
             skies = new List<Sky>();
             blockInfoList = new List<MapBlockInfo>();
+            blocksToLoad = new List<MapBlockInfo>();
             loadedBlocks = new List<MapBlock>();
             loadedTerrains = new List<Terrain>();
         }
@@ -221,6 +226,12 @@ namespace OpenBus.Game.Objects
         public void AddBlockInfo(MapBlockInfo mapBlockInfo)
         {
             blockInfoList.Add(mapBlockInfo);
+        }
+
+        public void AddBlockToLoad(MapBlockInfo blockInfo)
+        {
+            if (!BlockExists(blockInfo.Position))
+                blocksToLoad.Add(blockInfo);
         }
 
         public void AddSky(Sky sky)
@@ -263,7 +274,8 @@ namespace OpenBus.Game.Objects
             Terrain terrain = loadedTerrains.Find(t => t.Position == blockPosition);
             if (terrain != null)
                 // TODO: implement a more accurate calculation
-                return terrain.Heights[(int)position.X][(int)position.Z];
+                return terrain.Heights[(int)position.X % BlockSize]
+                    [(int)position.Z % BlockSize];
             else
                 return 0;
         }
@@ -275,15 +287,28 @@ namespace OpenBus.Game.Objects
             return BlockExists(blockPosition) && position.Y >= terrainHeight;
         }
 
-        public void LoadBlock(string mapDirectory, MapBlockInfo blockInfo)
+        public void LoadBlocksInQueue()
         {
-            // Load the static objects to buffer in a separate thread
-            Thread loadBlockThread = new Thread(delegate ()
+            List<MapBlockInfo> blocksToRemove = new List<MapBlockInfo>();
+            foreach (MapBlockInfo blockInfo in blocksToLoad)
             {
-                MapBlockLoader.StartLoadBlockThread(mapDirectory, blockInfo);
-            });
-            loadBlockThread.IsBackground = true;
-            loadBlockThread.Start();
+                // If the loader is in use by other thread, then check again in the next main loop
+                if (MapBlockLoader.LoaderInUse)
+                    continue;
+                // Load the static objects to buffer in a separate thread
+                MapBlockLoader.LoaderInUse = true;
+                Thread loadBlockThread = new Thread(delegate ()
+                {
+                    MapBlockLoader.StartLoadBlockThread(mapDirectory, blockInfo);
+                });
+                loadBlockThread.IsBackground = true;
+                loadBlockThread.Start();
+                blocksToRemove.Add(blockInfo);
+            }
+
+            // If the thread for loading the block has started, then remove it from the to-load list
+            foreach (MapBlockInfo blockInfo in blocksToRemove)
+                blocksToLoad.Remove(blockInfo);
         }
 
         public void LoadCurrentSky()
@@ -313,6 +338,7 @@ namespace OpenBus.Game.Objects
 
     public static class MapBlockLoader
     {
+        private static bool loaderInUse;
         private static bool loadedIntoBuffer;
         private static bool loadCompleted;
 
@@ -326,6 +352,7 @@ namespace OpenBus.Game.Objects
 
         static MapBlockLoader()
         {
+            loaderInUse = false;
             loadedIntoBuffer = false;
             loadCompleted = false;
             entities = new List<Entity>();
@@ -342,6 +369,12 @@ namespace OpenBus.Game.Objects
             get { return loadCompleted; }
         }
 
+        public static bool LoaderInUse
+        {
+            get { return loaderInUse; }
+            set { loaderInUse = value; }
+        }
+
         public static double Progress
         {
             get { return progress; }
@@ -349,6 +382,7 @@ namespace OpenBus.Game.Objects
 
         public static void StartLoadBlockThread(string mapDirectory, MapBlockInfo blockInfo)
         {
+            loadedIntoBuffer = false;
             MapBlock blockToLoad = ConfigLoader.LoadMapBlock(mapDirectory
                     + Constants.PATH_DELIM + blockInfo.MapBlockToLoad, blockInfo.Position);
             Terrain terrainToLoad = ConfigLoader.LoadTerrain(mapDirectory
@@ -357,8 +391,6 @@ namespace OpenBus.Game.Objects
                 return;
 
             double numOfObjects = blockToLoad.Objects.Count;
-            loadedIntoBuffer = false;
-
             // Static entity loading
             blockPosition = blockToLoad.Position;
             foreach (Object mapObject in blockToLoad.Objects)
@@ -416,6 +448,7 @@ namespace OpenBus.Game.Objects
 
             loadedIntoBuffer = true;
             loadCompleted = false;
+            loaderInUse = false;
             progress = 0;
         }
     }

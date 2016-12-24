@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.IO;
 using System.Text;
+using System.Threading;
 using OpenBus.Common;
 using OpenBus.Config;
 using OpenBus.Engine;
@@ -57,6 +58,9 @@ namespace OpenBus.Game
 
     public static class Game
     {
+        #region Test field
+        private static bool testDataLoaded = false;
+        #endregion
         private static GameSettings gameSettings;
         private static Map world;
         private static List<Bus> buses;
@@ -96,7 +100,8 @@ namespace OpenBus.Game
         /// </summary>
         public static void LoadIntoBuffers()
         {
-            MapBlockLoader.LoadIntoBuffer();
+            if (MapBlockLoader.LoadCompleted && !MapBlockLoader.LoadedInfoBuffer)
+                MapBlockLoader.LoadIntoBuffer();
         }
 
         /// <summary>
@@ -107,7 +112,15 @@ namespace OpenBus.Game
 
             // If the current block position is to be changed, then determine which
             // blocks should be loaded
-
+            #region Test Code
+            if (!testDataLoaded)
+            {
+                world.AddBlockToLoad(world.BlockInfoList[0]);
+                world.AddBlockToLoad(world.BlockInfoList[1]);
+                testDataLoaded = true;
+            }
+            #endregion
+            world.LoadBlocksInQueue();
         }
 
         /// <summary>
@@ -116,18 +129,10 @@ namespace OpenBus.Game
         /// <param name="path"></param>
         public static void LoadMap(string path)
         {
+            // Load the selected map
             world = ConfigLoader.LoadMap(path);
             if (world != null)
-            {
-                #region Test Code
-                // TODO: load the starting block according to the config
-                string mapDirectory = Path.GetDirectoryName(path);
-                MapBlockInfo blockInfo = world.BlockInfoList[0];
-                world.LoadBlock(mapDirectory, blockInfo);
-                #endregion
                 world.LoadCurrentSky();
-            }
-
             // Load the free camera by default
             currentView = new View(ViewType.Free);
             views.Add(currentView);
@@ -138,6 +143,10 @@ namespace OpenBus.Game
         {
             buses.Clear();
             views.Clear();
+            world = null;
+            #region Test Code
+            testDataLoaded = false;
+            #endregion
         }
 
         public static void UpdateState()

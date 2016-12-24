@@ -12,7 +12,7 @@ namespace OpenBus.Game.Controls
     {
         public static Map LoadMap(string path)
         {
-            Map map = new Map();
+            Map map = new Map(path);
             MapEx mapEx = XmlDeserializeHelper<MapEx>.DeserializeFromFile(path);
             if (mapEx != null)
             {
@@ -58,6 +58,7 @@ namespace OpenBus.Game.Controls
             if (blockEx != null)
             {
                 MapBlock block = new MapBlock();
+                block.Position = position;
                 foreach (ObjectInfo objectInfo in blockEx.Objects)
                 {
                     ObjectEx objectEx = XmlDeserializeHelper<ObjectEx>
@@ -103,9 +104,9 @@ namespace OpenBus.Game.Controls
             TerrainEx terrainEx = XmlDeserializeHelper<TerrainEx>.DeserializeFromFile(path);
             if (terrainEx != null)
             {
-                float[][] heights = new float[Map.BlockSize][];
-                for (int i = 0; i < Map.BlockSize; i++)
-                    heights[i] = new float[Map.BlockSize];
+                float[][] heights = new float[Map.BlockSize + 1][];
+                for (int i = 0; i <= Map.BlockSize; i++)
+                    heights[i] = new float[Map.BlockSize + 1];
                 foreach (TerrainEx.TerrainDisplacement displacementEx in terrainEx.Displacements)
                     heights[displacementEx.X][displacementEx.Y] = displacementEx.Displacement;
                 return new Terrain(terrainEx.Texture.Path, terrainEx.Texture.UV,

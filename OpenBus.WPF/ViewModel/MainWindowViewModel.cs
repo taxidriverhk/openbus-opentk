@@ -21,7 +21,7 @@ namespace OpenBus.WPF.ViewModel
         {
             Title = Constants.APPLICATION_NAME;
             Map = "Map: ";
-            StartGame = Constants.START_GAME;
+            StartGame = "Start Game";
             VersionNumber = Constants.VERSION_NUMBER;
         }
     }

@@ -17,11 +17,14 @@ namespace OpenBus.Common
 
     public static class Constants
     {
+        // GUI constants
         public const int DEFAULT_SCREEN_WIDTH = 1280;
         public const int DEFAULT_SCREEN_HEIGHT = 720;
 
+        // Config constants
         public const char PATH_DELIM = '\\';
 
+        // System-wide constants
         public const string APPLICATION_NAME = "Open Bus Driving Simulator (OpenBus)";
         public const string APPLICATION_ICON = "favicon.ico";
         public static string VERSION_NUMBER
@@ -37,7 +40,5 @@ namespace OpenBus.Common
                 return versionString;
             }
         }
-
-        public const string START_GAME = "Start Game";
     }
 }

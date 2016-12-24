@@ -174,7 +174,7 @@ namespace OpenBus.Engine
 
         public override int GetHashCode()
         {
-            return 0;
+            return this.Name.GetHashCode();
         }
 
         private Mesh()

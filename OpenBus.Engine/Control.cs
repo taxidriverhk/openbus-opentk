@@ -215,7 +215,7 @@ namespace OpenBus.Engine.Controls
 
         public override int GetHashCode()
         {
-            return 0;
+            return (int)this.KeyCode;
         }
     }
 

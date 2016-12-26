@@ -155,14 +155,44 @@ namespace OpenBus.Game.Objects
         {
             return left.X != right.X || left.Y != right.Y;
         }
+
+        public override bool Equals(object obj)
+        {
+            MapBlockPosition other = (MapBlockPosition)obj;
+            return this.X == other.X && this.Y == other.Y;
+        }
+
+        public override int GetHashCode()
+        {
+            return this.X * 10000 + this.Y;
+        }
     }
 
+    /// <summary>
+    /// Contains information about a map block including its position and corresponding paths to the 
+    /// block and terrain configuration files.
+    /// </summary>
     public struct MapBlockInfo
     {
+        /// <summary>
+        /// Position of the map block
+        /// </summary>
         public MapBlockPosition Position;
+        /// <summary>
+        /// Path to the .block file to be loaded, relative to the map directory.
+        /// </summary>
         public string MapBlockToLoad;
+        /// <summary>
+        /// Path to the .terrain file to be loaded, relative to the map directory.
+        /// </summary>
         public string TerrainToLoad;
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="position">Map block position.</param>
+        /// <param name="mapBlockToLoad">Path to the .block file, relative to the map directory.</param>
+        /// <param name="terrainToLoad">Path to the .terrain file, relative to the map directory.</param>
         public MapBlockInfo(MapBlockPosition position, string mapBlockToLoad, string terrainToLoad)
         {
             Position = position;
@@ -184,10 +214,12 @@ namespace OpenBus.Game.Objects
 
         private string mapDirectory;
         private List<MapBlockInfo> blockInfoList;
-        private Sky currentSky;
-        private List<Sky> skies;
-        private MapBlock currentBlock;
         private List<MapBlockInfo> blocksToLoad;
+
+        private Sky currentSky;
+        private List<Sky> loadedSkies;
+
+        private MapBlock currentBlock;
         private List<MapBlock> loadedBlocks;
         private Terrain currentTerrain;
         private List<Terrain> loadedTerrains;
@@ -202,10 +234,21 @@ namespace OpenBus.Game.Objects
             get { return blockInfoList; }
         }
 
+        public int NumberOfBlocksLoaded
+        {
+            get
+            {
+                if (loadedBlocks == null)
+                    return 0;
+                else
+                    return loadedBlocks.Count;
+            }
+        }
+
         public Map(string path)
         {
             mapDirectory = Path.GetDirectoryName(path);
-            skies = new List<Sky>();
+            loadedSkies = new List<Sky>();
             blockInfoList = new List<MapBlockInfo>();
             blocksToLoad = new List<MapBlockInfo>();
             loadedBlocks = new List<MapBlock>();
@@ -236,7 +279,7 @@ namespace OpenBus.Game.Objects
 
         public void AddSky(Sky sky)
         {
-            skies.Add(sky);
+            loadedSkies.Add(sky);
             if (currentSky == null)
                 currentSky = sky;
         }
@@ -248,7 +291,7 @@ namespace OpenBus.Game.Objects
 
         public bool ChangeSky(SkyMode mode)
         {
-            Sky sky = skies.Find(s => s.Mode == mode);
+            Sky sky = loadedSkies.Find(s => s.Mode == mode);
             if (sky != null)
             {
                 currentSky = sky;
@@ -433,10 +476,11 @@ namespace OpenBus.Game.Objects
             if (loadedIntoBuffer || !loadCompleted)
                 return;
 
+            int identifier = Game.World.NumberOfBlocksLoaded + 1;
             TextureManager.LoadAllTexturesInQueue();
-            Renderer.LoadStaticEntitiesToScene(entities, meshes);
+            Renderer.LoadStaticEntitiesToScene(identifier, entities, meshes);
             Game.World.AddBlockAndTerrain(block, terrain);
-            Renderer.LoadTerrain(blockPosition.X, blockPosition.Y,
+            Renderer.LoadTerrain(identifier, blockPosition.X, blockPosition.Y,
                 Map.BlockSize, terrain.Heights, EnvironmentVariables.RootPath + terrain.TexturePath,
                 terrain.TextureUV.X, terrain.TextureUV.Y);
 

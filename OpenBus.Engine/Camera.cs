@@ -74,7 +74,7 @@ namespace OpenBus.Engine
 
             // Update the boundaries as well
             CalculateBoundingBox();
-            Renderer.UpdateCurrentBuffer();
+            Renderer.UpdateCurrentBufferIdentifier();
         }
 
         public static void SetCamera(float posX, float posY, float posZ, float frontX, float frontY, float frontZ,

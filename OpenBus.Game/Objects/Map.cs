@@ -407,7 +407,7 @@ namespace OpenBus.Game.Objects
         /// <summary>
         /// Initializes a map that uses the specified map path.
         /// </summary>
-        /// <param name="path">Directory of the map's configuration file, relative to the game's root path.</param>
+        /// <param name="path">Absolute path to the map's main configuration file, which should have .map extension.</param>
         public Map(string path)
         {
             mapDirectory = Path.GetDirectoryName(path);
@@ -510,15 +510,20 @@ namespace OpenBus.Game.Objects
         }
 
         /// <summary>
-        /// 
+        /// Adds a map block to the load queue. So the map loading thread will be able to pick it up,
+        /// and then loads the block to the graphics buffer.
         /// </summary>
-        /// <param name="blockInfo"></param>
+        /// <param name="blockInfo">Map block's information, including the map block position and paths to the configuration files.</param>
         internal void AddBlockToLoad(MapBlockInfo blockInfo)
         {
             if (!BlockExists(blockInfo.Position))
                 blocksToLoad.Add(blockInfo);
         }
 
+        /// <summary>
+        /// Adds a sky object to the map. This will also set the current sky to this sky if none has been specified yet.
+        /// </summary>
+        /// <param name="sky">Sky object to add.</param>
         internal void AddSky(Sky sky)
         {
             loadedSkies.Add(sky);
@@ -527,10 +532,10 @@ namespace OpenBus.Game.Objects
         }
 
         /// <summary>
-        /// 
+        /// Changes the sky to a different one, with the mode specified.
         /// </summary>
-        /// <param name="mode"></param>
-        /// <returns></returns>
+        /// <param name="mode">Mode of the sky to switch to.</param>
+        /// <returns>True if the switch was successful. False if not, because the sky with specified mode does not exist.</returns>
         internal bool ChangeSky(SkyMode mode)
         {
             Sky sky = loadedSkies.Find(s => s.Mode == mode);
@@ -543,6 +548,17 @@ namespace OpenBus.Game.Objects
                 return false;
         }
 
+        /// <summary>
+        /// Calls the map block loading thread to load the blocks in queue.
+        /// Only one block will be loaded by the thread at a time.
+        /// The blocks will not be loaded until the thread has completed the loading job.
+        /// If the block has been successfully put to the thread for loading, 
+        /// then it will be removed from the queue.
+        /// </summary>
+        /// <notes>
+        /// This method should be called only if the current block position is changed, and
+        /// blocks are going to be added and/or removed.
+        /// </notes>
         internal void LoadBlocksInQueue()
         {
             List<MapBlockInfo> blocksToRemove = new List<MapBlockInfo>();
@@ -567,6 +583,9 @@ namespace OpenBus.Game.Objects
                 blocksToLoad.Remove(blockInfo);
         }
 
+        /// <summary>
+        /// Loads the current sky into the graphics buffer. If no Sky object exists, then it will simply do nothing.
+        /// </summary>
         internal void LoadCurrentSky()
         {
             if (currentSky == null)
@@ -587,15 +606,18 @@ namespace OpenBus.Game.Objects
         }
 
         /// <summary>
-        /// 
+        /// Unloads a block from the graphics buffer.
         /// </summary>
-        /// <param name="blockInfo"></param>
+        /// <param name="blockInfo">Map block's info with map block position, which is the target block to be unloaded.</param>
         internal void UnloadBlock(MapBlockInfo blockInfo)
         {
 
         }
     }
 
+    /// <summary>
+    /// Represents an interface used by a separate thread to load the objects and the terrain of a map block.
+    /// </summary>
     public static class MapBlockLoader
     {
         private static bool loaderInUse;
@@ -619,27 +641,47 @@ namespace OpenBus.Game.Objects
             meshes = new HashSet<Mesh>();
         }
 
+        /// <summary>
+        /// Gets whether the current map block has been loaded into the graphics buffer or not.
+        /// </summary>
         public static bool LoadedInfoBuffer
         {
             get { return loadedIntoBuffer; }
         }
 
+        /// <summary>
+        /// Gets whether loading of the objects and terrain of the map block has been completed or not.
+        /// </summary>
         public static bool LoadCompleted
         {
             get { return loadCompleted; }
         }
 
+        /// <summary>
+        /// Gets or sets whether this loader is in use. So the current loading job won't be interfered.
+        /// </summary>
         public static bool LoaderInUse
         {
             get { return loaderInUse; }
             set { loaderInUse = value; }
         }
 
+        /// <summary>
+        /// Gets the progress of the current loading job.
+        /// </summary>
         public static double Progress
         {
             get { return progress; }
         }
 
+        /// <summary>
+        /// Starts to load the objects and terrain of the specified map block.
+        /// </summary>
+        /// <param name="mapDirectory">The directory where the map configuration files are stored.</param>
+        /// <param name="blockInfo">The info of the map block to be loaded, including the position and paths to the configuration files.</param>
+        /// <notes>
+        /// This method must be called by a separate thread, or the main thread will wait for it that makes the UI frozen.
+        /// </notes>
         public static void StartLoadBlockThread(string mapDirectory, MapBlockInfo blockInfo)
         {
             loadedIntoBuffer = false;
@@ -688,6 +730,13 @@ namespace OpenBus.Game.Objects
             loadCompleted = true;
         }
 
+        /// <summary>
+        /// Loads the loaded objects and terrain into the graphics buffer, only if the loading has been completed.
+        /// </summary>
+        /// <notes>
+        /// This must be called by the main thread, or the thread that contains the graphics context.
+        /// If not, then the objects and textures will not be able to load into the graphics buffers.
+        /// </notes>
         public static void LoadIntoBuffer()
         {
             if (loadedIntoBuffer || !loadCompleted)

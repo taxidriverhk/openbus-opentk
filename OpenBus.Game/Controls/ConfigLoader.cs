@@ -13,33 +13,33 @@ namespace OpenBus.Game.Controls
         public static Map LoadMap(string path)
         {
             Map map = new Map(path);
-            MapEx mapEx = XmlDeserializeHelper<MapEx>.DeserializeFromFile(path);
-            if (mapEx != null)
+            MapConfig mapConfig = XmlDeserializeHelper<MapConfig>.DeserializeFromFile(path);
+            if (mapConfig != null)
             {
-                foreach (MapEx.BlockInfo blockInfoEx in mapEx.Blocks)
+                foreach (MapConfig.BlockInfo blockInfoConfig in mapConfig.Blocks)
                 {
                     MapBlockInfo blockInfo = new MapBlockInfo(
-                        new MapBlockPosition(blockInfoEx.Position.X, blockInfoEx.Position.Y),
-                        blockInfoEx.Path, blockInfoEx.TerrainPath);
-                    map.AddBlockInfo(blockInfo);
+                        new MapBlockPosition(blockInfoConfig.Position.X, blockInfoConfig.Position.Y),
+                        blockInfoConfig.Path, blockInfoConfig.TerrainPath);
+                    map.BlockInfoList.Add(blockInfo);
                 }
 
-                MapEx.SkyInfo skyInfoEx = mapEx.Sky;
-                foreach (MapEx.SkyInfo.SkyTexture texture in skyInfoEx.Textures)
+                MapConfig.SkyInfo skyInfoConfig = mapConfig.Sky;
+                foreach (MapConfig.SkyInfo.SkyTexture texture in skyInfoConfig.Textures)
                 {
                     switch (texture.Mode)
                     {
-                        case MapEx.SkyInfo.SkyTextureMode.Day:
-                            map.AddSky(new Sky(skyInfoEx.Size, SkyMode.DAY, texture.Path));
+                        case MapConfig.SkyInfo.SkyTextureMode.Day:
+                            map.AddSky(new Sky(skyInfoConfig.Size, SkyMode.DAY, texture.Path));
                             break;
-                        case MapEx.SkyInfo.SkyTextureMode.Night:
-                            map.AddSky(new Sky(skyInfoEx.Size, SkyMode.NIGHT, texture.Path));
+                        case MapConfig.SkyInfo.SkyTextureMode.Night:
+                            map.AddSky(new Sky(skyInfoConfig.Size, SkyMode.NIGHT, texture.Path));
                             break;
-                        case MapEx.SkyInfo.SkyTextureMode.Dawn:
-                            map.AddSky(new Sky(skyInfoEx.Size, SkyMode.DAWN, texture.Path));
+                        case MapConfig.SkyInfo.SkyTextureMode.Dawn:
+                            map.AddSky(new Sky(skyInfoConfig.Size, SkyMode.DAWN, texture.Path));
                             break;
-                        case MapEx.SkyInfo.SkyTextureMode.Sunset:
-                            map.AddSky(new Sky(skyInfoEx.Size, SkyMode.SUNSET, texture.Path));
+                        case MapConfig.SkyInfo.SkyTextureMode.Sunset:
+                            map.AddSky(new Sky(skyInfoConfig.Size, SkyMode.SUNSET, texture.Path));
                             break;
                     }
                 }
@@ -54,29 +54,28 @@ namespace OpenBus.Game.Controls
 
         public static MapBlock LoadMapBlock(string path, MapBlockPosition position)
         {
-            MapBlockEx blockEx = XmlDeserializeHelper<MapBlockEx>.DeserializeFromFile(path);
-            if (blockEx != null)
+            MapBlockConfig blockConfig = XmlDeserializeHelper<MapBlockConfig>.DeserializeFromFile(path);
+            if (blockConfig != null)
             {
-                MapBlock block = new MapBlock();
-                block.Position = position;
-                foreach (ObjectInfo objectInfo in blockEx.Objects)
+                MapBlock block = new MapBlock(position);
+                foreach (ObjectInfo objectInfo in blockConfig.Objects)
                 {
-                    ObjectEx objectEx = XmlDeserializeHelper<ObjectEx>
+                    ObjectConfig objectConfig = XmlDeserializeHelper<ObjectConfig>
                         .DeserializeFromFile(EnvironmentVariables.RootPath + objectInfo.Path);
-                    string[] meshPaths = new string[objectEx.Meshes.Length];
+                    string[] meshPaths = new string[objectConfig.Meshes.Length];
                     ObjectTexture[] alphaTextures = null;
-                    if (objectEx.AlphaTextures != null)
-                        alphaTextures = new ObjectTexture[objectEx.AlphaTextures.Length];
-                    for (int i = 0; i < objectEx.Meshes.Length; i++)
-                        meshPaths[i] = objectEx.Meshes[i].Path;
+                    if (objectConfig.AlphaTextures != null)
+                        alphaTextures = new ObjectTexture[objectConfig.AlphaTextures.Length];
+                    for (int i = 0; i < objectConfig.Meshes.Length; i++)
+                        meshPaths[i] = objectConfig.Meshes[i].Path;
                     if (alphaTextures != null)
-                        for (int i = 0; i < objectEx.AlphaTextures.Length; i++)
-                            alphaTextures[i] = new ObjectTexture(objectEx.AlphaTextures[i].Path,
-                                (ObjectTextureAlphaMode)objectEx.AlphaTextures[i].Mode);
-                    block.AddObject(new Objects.Object(objectInfo.Position,
+                        for (int i = 0; i < objectConfig.AlphaTextures.Length; i++)
+                            alphaTextures[i] = new ObjectTexture(objectConfig.AlphaTextures[i].Path,
+                                (ObjectTextureAlphaMode)objectConfig.AlphaTextures[i].Mode);
+                    block.Objects.Add(new Objects.Object(objectInfo.Position,
                         objectInfo.Rotations, meshPaths, objectInfo.Path,
-                        objectEx.Info.ModelDirectory,
-                        objectEx.Info.TextureDirectory, alphaTextures));
+                        objectConfig.Info.ModelDirectory,
+                        objectConfig.Info.TextureDirectory, alphaTextures));
                 }
                 return block;
             }
@@ -90,10 +89,10 @@ namespace OpenBus.Game.Controls
         public static MapInfo LoadMapInfo(string path)
         {
             MapInfo mapInfo = new MapInfo();
-            MapEx mapEx = XmlDeserializeHelper<MapEx>.DeserializeFromFile(path);
-            if (mapEx != null)
+            MapConfig mapConfig = XmlDeserializeHelper<MapConfig>.DeserializeFromFile(path);
+            if (mapConfig != null)
             {
-                mapInfo.Name = mapEx.Info.Name;
+                mapInfo.Name = mapConfig.Info.Name;
                 mapInfo.Path = path;
             }
             return mapInfo;
@@ -101,15 +100,15 @@ namespace OpenBus.Game.Controls
 
         public static Terrain LoadTerrain(string path, MapBlockPosition position)
         {
-            TerrainEx terrainEx = XmlDeserializeHelper<TerrainEx>.DeserializeFromFile(path);
-            if (terrainEx != null)
+            TerrainConfig terrainConfig = XmlDeserializeHelper<TerrainConfig>.DeserializeFromFile(path);
+            if (terrainConfig != null)
             {
                 float[][] heights = new float[Map.BlockSize + 1][];
                 for (int i = 0; i <= Map.BlockSize; i++)
                     heights[i] = new float[Map.BlockSize + 1];
-                foreach (TerrainEx.TerrainDisplacement displacementEx in terrainEx.Displacements)
-                    heights[displacementEx.X][displacementEx.Y] = displacementEx.Displacement;
-                return new Terrain(terrainEx.Texture.Path, terrainEx.Texture.UV,
+                foreach (TerrainConfig.TerrainDisplacement displacementConfig in terrainConfig.Displacements)
+                    heights[displacementConfig.X][displacementConfig.Y] = displacementConfig.Displacement;
+                return new Terrain(terrainConfig.Texture.Path, terrainConfig.Texture.UV,
                     position, heights);
             }
             else
@@ -121,20 +120,20 @@ namespace OpenBus.Game.Controls
 
         public static Objects.Object LoadObject(string path, Vector3f position, Vector3f rotations)
         {
-            ObjectEx objectEx = XmlDeserializeHelper<ObjectEx>.DeserializeFromFile(path);
-            if (objectEx != null)
+            ObjectConfig objectConfig = XmlDeserializeHelper<ObjectConfig>.DeserializeFromFile(path);
+            if (objectConfig != null)
             {
-                ObjectTexture[] textures = new ObjectTexture[objectEx.AlphaTextures.Length];
-                string[] meshPaths = new string[objectEx.Meshes.Length];
+                ObjectTexture[] textures = new ObjectTexture[objectConfig.AlphaTextures.Length];
+                string[] meshPaths = new string[objectConfig.Meshes.Length];
 
                 for (int i = 0; i < textures.Length; i++)
-                    textures[i] = new ObjectTexture(objectEx.AlphaTextures[i].Path, 
-                        (ObjectTextureAlphaMode)objectEx.AlphaTextures[i].Mode);
+                    textures[i] = new ObjectTexture(objectConfig.AlphaTextures[i].Path, 
+                        (ObjectTextureAlphaMode)objectConfig.AlphaTextures[i].Mode);
                 for (int i = 0; i < meshPaths.Length; i++)
-                    meshPaths[i] = objectEx.Meshes[i].Path;
+                    meshPaths[i] = objectConfig.Meshes[i].Path;
 
-                return new Objects.Object(position, rotations, meshPaths, path, objectEx.Info.ModelDirectory,
-                    objectEx.Info.TextureDirectory, textures);
+                return new Objects.Object(position, rotations, meshPaths, path, objectConfig.Info.ModelDirectory,
+                    objectConfig.Info.TextureDirectory, textures);
             }
             else
             {

@@ -64,6 +64,12 @@ namespace OpenBus.Engine
         public Vertex[][] Vertices; 
         public uint[][] Indices;
 
+        public static Mesh CreateSpline(SplineInputParameters input)
+        {
+            Mesh mesh = new Mesh();
+            return mesh;
+        }
+
         public static Mesh Load(MeshFormat format, string path)
         {
             return Load(format, path, Path.GetDirectoryName(path) + @"\..\textures", null);
@@ -86,6 +92,26 @@ namespace OpenBus.Engine
             }
         }
 
+        public bool Validate()
+        {
+            // TODO: implement this function
+            return true;
+        }
+
+        public override bool Equals(object obj)
+        {
+            Mesh other = obj as Mesh;
+            if (other == null)
+                return false;
+            else
+                return this.Name == other.Name;
+        }
+
+        public override int GetHashCode()
+        {
+            return this.Name.GetHashCode();
+        }
+
         private static Mesh LoadFromCollada(string path, string textureDir, ISet<string> alphaTextures)
         {
             Collada collada = null;
@@ -99,7 +125,7 @@ namespace OpenBus.Engine
                 Log.Write(LogLevel.Debug, "The exception thrown was {0}:\n {1}", ex.Message, ex.StackTrace);
                 return null;
             }
-            
+
             Mesh resultMesh = new Mesh();
             // Get the name of the mesh (which is the path in this case)
             resultMesh.Name = path;
@@ -157,28 +183,27 @@ namespace OpenBus.Engine
             return resultMesh;
         }
 
-        public bool Validate()
-        {
-            // TODO: implement this function
-            return true;
-        }
-
-        public override bool Equals(object obj)
-        {
-            Mesh other = obj as Mesh;
-            if (other == null)
-                return false;
-            else
-                return this.Name == other.Name;
-        }
-
-        public override int GetHashCode()
-        {
-            return this.Name.GetHashCode();
-        }
-
         private Mesh()
         {
+        }
+    }
+
+    public struct SplineInputParameters
+    {
+        public Dictionary<string, List<Vertex>> TextureHeightMapping;
+        public float Radius;
+        public float Length;
+        public KeyValuePair<float, float> Elevations;
+        public KeyValuePair<float, float> Cants;
+
+        public SplineInputParameters(Dictionary<string, List<Vertex>> textureHeights, float radius, float length, float startElevation,
+            float endElevation, float startCant, float endCant)
+        {
+            this.TextureHeightMapping = textureHeights;
+            this.Radius = radius;
+            this.Length = length;
+            this.Elevations = new KeyValuePair<float, float>(startElevation, endElevation);
+            this.Cants = new KeyValuePair<float, float>(startCant, endCant);
         }
     }
 }

@@ -9,14 +9,34 @@ using OpenBus.Game.Controls;
 
 namespace OpenBus.Game.Objects
 {
+    /// <summary>
+    /// Defines when should a sky object be displayed
+    /// (during daytime or night, etc.).
+    /// </summary>
     public enum SkyMode
     {
+        /// <summary>
+        /// The sky will be displayed during daytime.
+        /// This is also the default value used for a Sky object.
+        /// </summary>
         DAY = 0,
+        /// <summary>
+        /// The sky will be displayed during night.
+        /// </summary>
         NIGHT = 1,
+        /// <summary>
+        /// The sky will be displayed during dawn (or sunrise).
+        /// </summary>
         DAWN = 2,
+        /// <summary>
+        /// The sky will be displayed during sunset (or evening).
+        /// </summary>
         SUNSET = 3
     }
 
+    /// <summary>
+    /// Contains the terrain information of a map block.
+    /// </summary>
     public class Terrain
     {
         private string texture;
@@ -24,26 +44,49 @@ namespace OpenBus.Game.Objects
         private MapBlockPosition position;
         private float[][] heights;
 
+        /// <summary>
+        /// Path to the texture used for the surface of the terrain, relative to the game's root path.
+        /// </summary>
         public string TexturePath
         {
             get { return texture; }
         }
 
+        /// <summary>
+        /// Defines the texture coordinates (i.e. UV) applied to the surface of the terrain with the texture.
+        /// </summary>
         public Vector2f TextureUV
         {
             get { return textureUV; }
         }
 
+        /// <summary>
+        /// Defines the map block position, 
+        /// for which there should be a map block with the same map block position in the same map.
+        /// </summary>
         public MapBlockPosition Position
         {
             get { return position; }
         }
 
+        /// <summary>
+        /// Defines the heights for each vertex of the terrain.
+        /// For example, Heights[x][y] defines the height at (x, 0, y), relative to the starting position of the map block.
+        /// The dimension is expected to be (BlockSize + 1) x (BlockSize + 1), where BlockSize of the size of a map block.
+        /// </summary>
         public float[][] Heights
         {
             get { return heights; }
         }
 
+        /// <summary>
+        /// Initializes a Terrain object that uses the specified texture, its coordinates, 
+        /// map block position and heights.
+        /// </summary>
+        /// <param name="texture">Path to the texture used, relative to the game's root path.</param>
+        /// <param name="uv">The texture coordinates being applied to the terrain.</param>
+        /// <param name="position">Map block position.</param>
+        /// <param name="heights">Heights for each vertex of the terrain.</param>
         public Terrain(string texture, Vector2f uv, MapBlockPosition position, float[][] heights)
         {
             this.texture = texture;
@@ -53,27 +96,46 @@ namespace OpenBus.Game.Objects
         }
     }
 
+    /// <summary>
+    /// Defines the sky box of a map.
+    /// </summary>
     public class Sky
     {
         private int size;
         private SkyMode mode;
         private string texture;
 
+        /// <summary>
+        /// Defines how large the sky box should be.
+        /// So the volume would be Size ^ 3.
+        /// </summary>
         public int Size
         {
             get { return size; }
         }
 
+        /// <summary>
+        /// Defines when should this sky box be used.
+        /// </summary>
         public SkyMode Mode
         {
             get { return mode; }
         }
 
+        /// <summary>
+        /// Defines the path to the texture being used, relative to the game's root path.
+        /// </summary>
         public string Texture
         {
             get { return texture; }
         }
 
+        /// <summary>
+        /// Constructs a Sky object that uses the specified size, mode and texture path.
+        /// </summary>
+        /// <param name="size">Dimensions of the sky box.</param>
+        /// <param name="mode">When should this sky box be used.</param>
+        /// <param name="texture">Path to the texture being used for this skybox, relative to the game's root path.</param>
         public Sky(int size, SkyMode mode, string texture)
         {
             this.size = size;
@@ -81,6 +143,14 @@ namespace OpenBus.Game.Objects
             this.texture = texture;
         }
 
+        /// <summary>
+        /// Constructs a Sky object that uses the specified size, mode (in string format) and texture path.
+        /// If the mode in string format passed in is invalid, then DAY mode will be used, so the sky will
+        /// be displayed during daytime.
+        /// </summary>
+        /// <param name="size">Dimensions of the sky box.</param>
+        /// <param name="mode">When should this sky box be used, in string format.</param>
+        /// <param name="texture">Path to the texture being used for this skybox, relative to the game's root path.</param>
         public Sky(int size, string mode, string texture)
         {
             this.size = size;
@@ -89,6 +159,10 @@ namespace OpenBus.Game.Objects
             this.texture = texture;
         }
 
+        /// <summary>
+        /// Constructs a Sky object that uses the specified texture path, with daylight mode and size of 450m.
+        /// </summary>
+        /// <param name="texture">Path to the texture being used for this skybox, relative to the game's root path.</param>
         public Sky(string texture)
         {
             this.size = 450;
@@ -97,71 +171,131 @@ namespace OpenBus.Game.Objects
         }
     }
 
+    /// <summary>
+    /// Defines a map block that contains the information about the objects and splines within the block.
+    /// And also the position and whether it has been loaded to the graphics buffer.
+    /// </summary>
     public class MapBlock
     {
         private bool loaded;
         private MapBlockPosition position;
         private List<Object> objects;
 
+        /// <summary>
+        /// Gets whether this map block has been loaded to the graphics buffer.
+        /// </summary>
         public bool Loaded
         {
             get { return loaded; }
         }
 
+        /// <summary>
+        /// Gets the list of objects that this map block contains.
+        /// </summary>
         public List<Object> Objects
         {
             get { return objects; }
         }
 
+        /// <summary>
+        /// Gets the position of the map block so its starting world position would be
+        /// (Position.X * BlockSize, 0, Position.Y * BlockSize).
+        /// </summary>
         public MapBlockPosition Position
         {
             get { return position; }
-            set { position = value; }
         }
 
-        public MapBlock()
+        /// <summary>
+        /// Constructs a MapBlock object that has the specified position.
+        /// </summary>
+        /// <param name="position"></param>
+        public MapBlock(MapBlockPosition position)
         {
-            objects = new List<Object>();
-            loaded = false;
-        }
-
-        public void AddObject(Object objectItem)
-        {
-            objects.Add(objectItem);
+            this.position = position;
+            this.objects = new List<Object>();
+            this.loaded = false;
         }
     }
 
+    /// <summary>
+    /// Represents the starting position of a map block.
+    /// So its X and Y would make a map block's start position (X * BlockSize, 0, Y * BlockSize).
+    /// </summary>
     public struct MapBlockPosition
     {
+        /// <summary>
+        /// X-coordinate.
+        /// </summary>
         public int X;
+        /// <summary>
+        /// Y-coordinate, which will be the z-coordinates in world position.
+        /// </summary>
         public int Y;
 
+        /// <summary>
+        /// Constructs a MapBlockPosition object that uses the specified x- and y-coordinates.
+        /// </summary>
+        /// <param name="x">X-coordinate of the map block position.</param>
+        /// <param name="y">Y-coordinate of the map block position.</param>
         public MapBlockPosition(int x, int y)
         {
             X = x; Y = y;
         }
 
+        /// <summary>
+        /// Constructs an invalid MapBlockPosition object.
+        /// </summary>
+        public static MapBlockPosition Invalid
+        {
+            get { return new MapBlockPosition(int.MaxValue, int.MaxValue); }
+        }
+
+        /// <summary>
+        /// Constructs a MapBlockPosition object with both x- and y-coordinates zeros.
+        /// </summary>
         public static MapBlockPosition Zero
         {
             get { return new MapBlockPosition(0, 0); }
         }
 
+        /// <summary>
+        /// An overloadeded operator to compare the equality of two MapBlockPosition objects.
+        /// </summary>
+        /// <param name="left"></param>
+        /// <param name="right"></param>
+        /// <returns></returns>
         public static bool operator ==(MapBlockPosition left, MapBlockPosition right)
         {
             return left.X == right.X && left.Y == right.Y;
         }
 
+        /// <summary>
+        /// An overloaded operator to compare the inequality of two MapBlockPosition objects.
+        /// </summary>
+        /// <param name="left"></param>
+        /// <param name="right"></param>
+        /// <returns></returns>
         public static bool operator !=(MapBlockPosition left, MapBlockPosition right)
         {
             return left.X != right.X || left.Y != right.Y;
         }
 
+        /// <summary>
+        /// Checks if the current MapBlockPosition object is equal to the other passed in.
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <returns></returns>
         public override bool Equals(object obj)
         {
             MapBlockPosition other = (MapBlockPosition)obj;
             return this.X == other.X && this.Y == other.Y;
         }
 
+        /// <summary>
+        /// Gets the hash code of the current MapBlockPosition object.
+        /// </summary>
+        /// <returns></returns>
         public override int GetHashCode()
         {
             return this.X * 10000 + this.Y;
@@ -201,12 +335,24 @@ namespace OpenBus.Game.Objects
         }
     }
 
+    /// <summary>
+    /// Contains the information of a map, that could be used to display on the GUI.
+    /// </summary>
     public class MapInfo
     {
+        /// <summary>
+        /// Path to the map configuration file, relative to the game's root path.
+        /// </summary>
         public string Path;
+        /// <summary>
+        /// Name of the map defined in the configuration file.
+        /// </summary>
         public string Name;
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
     public class Map
     {
         private static readonly int blockSize = Game.Settings.MapDisplaySettings.BlockSize;
@@ -224,16 +370,29 @@ namespace OpenBus.Game.Objects
         private Terrain currentTerrain;
         private List<Terrain> loadedTerrains;
 
+        /// <summary>
+        /// Gets the dimension of a map block.
+        /// </summary>
+        /// <remarks>
+        /// Although this can be changed at map display settings configuration.
+        /// Changing this could cause issues with displaying the map.
+        /// </remarks>
         public static int BlockSize
         {
             get { return blockSize; }
         }
 
+        /// <summary>
+        /// Gets a list of info (ex. position) of each map block.
+        /// </summary>
         public List<MapBlockInfo> BlockInfoList
         {
             get { return blockInfoList; }
         }
 
+        /// <summary>
+        /// Gets the number of map blocks loaded to the graphics buffer.
+        /// </summary>
         public int NumberOfBlocksLoaded
         {
             get
@@ -245,6 +404,10 @@ namespace OpenBus.Game.Objects
             }
         }
 
+        /// <summary>
+        /// Initializes a map that uses the specified map path.
+        /// </summary>
+        /// <param name="path">Directory of the map's configuration file, relative to the game's root path.</param>
         public Map(string path)
         {
             mapDirectory = Path.GetDirectoryName(path);
@@ -255,8 +418,86 @@ namespace OpenBus.Game.Objects
             loadedTerrains = new List<Terrain>();
         }
 
-        public void AddBlockAndTerrain(MapBlock block, Terrain terrain)
+        /// <summary>
+        /// Checks if a map block of the specified position exists in the map.
+        /// </summary>
+        /// <param name="position">Map block position to check.</param>
+        /// <returns></returns>
+        public bool BlockExists(MapBlockPosition position)
         {
+            return loadedBlocks.Find(b => b.Position == position) != null;
+        }
+
+        /// <summary>
+        /// Gets the map block position of the map block a world position belongs to.
+        /// </summary>
+        /// <param name="position">World position of the map.</param>
+        /// <returns>
+        /// The corresponding map block position if one is found.
+        /// If not, then an invalid position will be returned.
+        /// </returns>
+        public MapBlockPosition GetBlockPosition(Vector3f position)
+        {
+            int blockX = (int)(position.X / blockSize),
+                blockY = (int)(position.Z / blockSize);
+            if (position.X < 0)
+                blockX -= 1;
+            if (position.Z < 0)
+                blockY -= 1;
+            MapBlockPosition result = new MapBlockPosition(blockX, blockY);
+            if (BlockExists(result))
+                return result;
+            else
+                return MapBlockPosition.Invalid;
+        }
+
+        /// <summary>
+        /// Gets the height of the terrain at specified map block position and position.
+        /// </summary>
+        /// <param name="blockPosition">Map block position of the map block.</param>
+        /// <param name="position">Position, relative to the map block's starting position.</param>
+        /// <returns>
+        /// The terrain's height at the specified point if one is found.
+        /// If not, a zero will be returned.
+        /// </returns>
+        public float GetTerrainHeight(MapBlockPosition blockPosition, Vector3f position)
+        {
+            Terrain terrain = loadedTerrains.Find(t => t.Position == blockPosition);
+            int x = (int)position.X % BlockSize,
+                y = (int)position.Z % BlockSize;
+            if (terrain != null && x >= 0 && x <= BlockSize && y >= 0 && y <= BlockSize)
+                // TODO: implement a more accurate calculation
+                return terrain.Heights[x][y];
+            else
+                return 0;
+        }
+
+        /// <summary>
+        /// Checks if a world position specified falls within the map.
+        /// </summary>
+        /// <param name="position">World position to check.</param>
+        /// <returns></returns>
+        public bool IsInMap(Vector3f position)
+        {
+            MapBlockPosition blockPosition = GetBlockPosition(position);
+            if (blockPosition == MapBlockPosition.Invalid)
+                return false;
+            float terrainHeight = GetTerrainHeight(blockPosition, position);
+            return position.Y >= terrainHeight;
+        }
+
+        /// <summary>
+        /// Adds a map block and a terrain to the map, both should have the same map block position.
+        /// If they don't, then none of them will be added to the map.
+        /// </summary>
+        /// <param name="block">Map block that contains the defintions of the objects.</param>
+        /// <param name="terrain">Terrain that contains the definitions of the heights at each vertex.</param>
+        /// <returns></returns>
+        internal bool AddBlockAndTerrain(MapBlock block, Terrain terrain)
+        {
+            if (block.Position != terrain.Position)
+                return false;
+
             if (currentBlock == null)
                 currentBlock = block;
             loadedBlocks.Add(block);
@@ -264,32 +505,33 @@ namespace OpenBus.Game.Objects
             if (currentTerrain == null)
                 currentTerrain = terrain;
             loadedTerrains.Add(terrain);
+
+            return true;
         }
 
-        public void AddBlockInfo(MapBlockInfo mapBlockInfo)
-        {
-            blockInfoList.Add(mapBlockInfo);
-        }
-
-        public void AddBlockToLoad(MapBlockInfo blockInfo)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="blockInfo"></param>
+        internal void AddBlockToLoad(MapBlockInfo blockInfo)
         {
             if (!BlockExists(blockInfo.Position))
                 blocksToLoad.Add(blockInfo);
         }
 
-        public void AddSky(Sky sky)
+        internal void AddSky(Sky sky)
         {
             loadedSkies.Add(sky);
             if (currentSky == null)
                 currentSky = sky;
         }
 
-        public bool BlockExists(MapBlockPosition position)
-        {
-            return loadedBlocks.Find(b => b.Position == position) != null;
-        }
-
-        public bool ChangeSky(SkyMode mode)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="mode"></param>
+        /// <returns></returns>
+        internal bool ChangeSky(SkyMode mode)
         {
             Sky sky = loadedSkies.Find(s => s.Mode == mode);
             if (sky != null)
@@ -301,36 +543,7 @@ namespace OpenBus.Game.Objects
                 return false;
         }
 
-        public MapBlockPosition GetBlockPosition(Vector3f position)
-        {
-            int blockX = (int)(position.X / blockSize),
-                blockY = (int)(position.Z / blockSize);
-            if (position.X < 0)
-                blockX -= 1;
-            if (position.Z < 0)
-                blockY -= 1;
-            return new MapBlockPosition(blockX, blockY);
-        }
-
-        public float GetTerrainHeight(MapBlockPosition blockPosition, Vector3f position)
-        {
-            Terrain terrain = loadedTerrains.Find(t => t.Position == blockPosition);
-            if (terrain != null)
-                // TODO: implement a more accurate calculation
-                return terrain.Heights[(int)position.X % BlockSize]
-                    [(int)position.Z % BlockSize];
-            else
-                return 0;
-        }
-
-        public bool IsInMap(Vector3f position)
-        {
-            MapBlockPosition blockPosition = GetBlockPosition(position);
-            float terrainHeight = GetTerrainHeight(blockPosition, position);
-            return BlockExists(blockPosition) && position.Y >= terrainHeight;
-        }
-
-        public void LoadBlocksInQueue()
+        internal void LoadBlocksInQueue()
         {
             List<MapBlockInfo> blocksToRemove = new List<MapBlockInfo>();
             foreach (MapBlockInfo blockInfo in blocksToLoad)
@@ -354,7 +567,7 @@ namespace OpenBus.Game.Objects
                 blocksToLoad.Remove(blockInfo);
         }
 
-        public void LoadCurrentSky()
+        internal void LoadCurrentSky()
         {
             if (currentSky == null)
                 return;
@@ -368,12 +581,16 @@ namespace OpenBus.Game.Objects
 
             skyBoxMesh.Materials[0].Texture.Path = currentSky.Texture;
             TextureManager.UnloadTexture(skyBoxMesh.Materials[0].Texture.TextureId);
-            skyBoxMesh.Materials[0].Texture.TextureId = 
+            skyBoxMesh.Materials[0].Texture.TextureId =
                 TextureManager.LoadTexture(EnvironmentVariables.RootPath + currentSky.Texture);
             Renderer.LoadSkyBox(skyBoxMesh, currentSky.Size);
         }
 
-        public void UnloadBlock(MapBlockInfo blockInfo)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="blockInfo"></param>
+        internal void UnloadBlock(MapBlockInfo blockInfo)
         {
 
         }

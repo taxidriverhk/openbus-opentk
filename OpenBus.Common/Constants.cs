@@ -7,11 +7,11 @@ namespace OpenBus.Common
 {
     public static class EnvironmentVariables
     {
-#if DEBUG
+        #if DEBUG
         public static string RootPath = @"D:\Downloads\OpenBus\";
-#else
+        #else
         public static string RootPath = System.IO.Directory.GetCurrentDirectory() + "\\";
-#endif
+        #endif
         public static string MapPath = RootPath + "maps";
     }
 
@@ -34,9 +34,9 @@ namespace OpenBus.Common
                 Version version = System.Reflection.Assembly.GetEntryAssembly().GetName().Version;
                 string versionString = string.Format("{0}.{1:00}.{2}.{3:00000}", 
                     version.Major, version.Minor, version.Build, version.Revision);
-#if DEBUG
+                #if DEBUG
                 versionString += " Debug Version";
-#endif
+                #endif
                 return versionString;
             }
         }

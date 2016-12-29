@@ -10,7 +10,7 @@ using OpenBus.Common;
 namespace OpenBus.Config
 {
     [XmlRoot("object")]
-    public class ObjectEx
+    public class ObjectConfig
     {
         public class ObjectInfo
         {

@@ -22,6 +22,23 @@ namespace OpenBus.Game
         /// <summary>
         /// 
         /// </summary>
+        public static void ReadProgramArgs(string[] args)
+        {
+            for (int i = 0; i < args.Length; i++)
+            {
+                string arg = args[i].ToLower();
+                switch (arg)
+                {
+                    case "map":
+
+                        break;
+                }
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
         /// <param name="mapPath"></param>
         public static void SetParameters(string mapPath)
         {

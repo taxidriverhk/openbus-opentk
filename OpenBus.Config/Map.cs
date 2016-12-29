@@ -10,7 +10,7 @@ using OpenBus.Common;
 namespace OpenBus.Config
 {
     [XmlRoot("terrain")]
-    public class TerrainEx
+    public class TerrainConfig
     {
         public class TerrainDisplacement
         {
@@ -38,7 +38,7 @@ namespace OpenBus.Config
     }
 
     [XmlRoot("block")]
-    public class MapBlockEx
+    public class MapBlockConfig
     {
         [XmlArray("objects")]
         [XmlArrayItem("object")]
@@ -47,7 +47,7 @@ namespace OpenBus.Config
     }
 
     [XmlRoot("map")]
-    public class MapEx
+    public class MapConfig
     {
         public class BlockInfo
         {

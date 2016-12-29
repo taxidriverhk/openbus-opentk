@@ -35,6 +35,11 @@ namespace OpenBus.Common
         {
             return degrees * Pi / HalfCircleDegrees;
         }
+
+        public static float RadiansToDegrees(float radians)
+        {
+            return radians * HalfCircleDegrees / Pi;
+        }
     }
 
     public struct Matrix2f

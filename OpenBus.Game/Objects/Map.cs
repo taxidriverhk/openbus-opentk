@@ -180,6 +180,7 @@ namespace OpenBus.Game.Objects
         private bool loaded;
         private MapBlockPosition position;
         private List<Object> objects;
+        private List<Spline> splines;
 
         /// <summary>
         /// Gets whether this map block has been loaded to the graphics buffer.
@@ -721,6 +722,9 @@ namespace OpenBus.Game.Objects
                 }
                 progress += (1 / numOfObjects) * 0.9;
             }
+
+            // Spline loading as well
+
 
             // Save the loaded block and terrain
             block = blockToLoad;

@@ -48,6 +48,7 @@ namespace OpenBus.Engine
                   rzRadians = Common.MathHelper.DegreesToRadians(rz);
             Rotation = new Vector3(rxRadians, ryRadians, rzRadians);
 
+            // The color is determined by getting the three least significant bytes of the ID.
             Id = currentId;
             int r = (Id & 0x000000FF) >> 0,
                 g = (Id & 0x0000FF00) >> 8,

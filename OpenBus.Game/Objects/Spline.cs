@@ -13,15 +13,6 @@ namespace OpenBus.Game.Objects
     public struct SplineCrossSection
     {
         /// <summary>
-        /// The v-coordinate (along the z-axis) of the texture coordinates applied 
-        /// for each vertex of each meter of the spline's surface.
-        /// </summary>
-        /// <example>
-        /// Draw a figure to explain how this works.
-        /// </example>
-        public const float TEXTURE_V_COORDINATE_PER_METER = 0.1f;
-
-        /// <summary>
         /// The texture paths used, relative to the game's root path.
         /// </summary>
         public string[] Textures;
@@ -61,8 +52,6 @@ namespace OpenBus.Game.Objects
     /// </summary>
     public struct Spline
     {
-        private const float DEGREES_PER_SEGMENT = 0.5f;
-
         /// <summary>
         /// Starting position of the curve.
         /// </summary>
@@ -84,43 +73,6 @@ namespace OpenBus.Game.Objects
         /// </summary>
         public SplineCrossSection CrossSection;
 
-        private int sign;
-        private float centralAngle;
-        private float chord;
-        private int segments;
-
-        /// <summary>
-        /// Whether the curve goes to the left, or to the right.
-        /// </summary>
-        public int Sign
-        {
-            get { return sign; }
-        }
-
-        /// <summary>
-        /// Central angle of the arc (or the curve).
-        /// </summary>
-        public float CentralAngle
-        {
-            get { return centralAngle; }
-        }
-
-        /// <summary>
-        /// Chord of the curve.
-        /// </summary>
-        public float Chord
-        {
-            get { return chord; }
-        }
-
-        /// <summary>
-        /// Number of straight line segments used to construct the curve.
-        /// </summary>
-        public int Segments
-        {
-            get { return segments; }
-        }
-
         /// <summary>
         /// Initializes a Spline object that uses the specified starting position, direction (in radians), curve radius,
         /// length and width (all in meters). If a straight is to be constructed, then specify the radius with zero.
@@ -137,23 +89,6 @@ namespace OpenBus.Game.Objects
             this.CurveRadius = radius;
             this.Length = length;
             this.CrossSection = crossSection;
-
-            // Calculate other needed info
-            this.sign = Math.Sign(radius);
-            if (radius == 0.0)
-            {
-                this.centralAngle = float.PositiveInfinity;
-                this.chord = length;
-                this.segments = 1;
-            }
-            else
-            {
-                this.centralAngle = length / radius;
-                this.chord = 2 * radius * (float)Math.Sin(centralAngle / 2);
-                this.segments = (int)Math.Ceiling(
-                    MathHelper.RadiansToDegrees(centralAngle) / DEGREES_PER_SEGMENT);
-            }
-            
         }
     }
 }

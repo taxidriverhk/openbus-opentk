@@ -715,7 +715,7 @@ namespace OpenBus.Game.Objects
                         continue;
                     }
                     Entity entity = new Entity(staticMesh.Name, mapObject.Position.X + blockToLoad.Position.X * Map.BlockSize,
-                        mapObject.Position.Y, -mapObject.Position.Z - blockToLoad.Position.Y * Map.BlockSize,
+                        mapObject.Position.Y, mapObject.Position.Z + blockToLoad.Position.Y * Map.BlockSize,
                         mapObject.Rotations.X, mapObject.Rotations.Y, mapObject.Rotations.Z);
                     entities.Add(entity);
                     meshes.Add(staticMesh);

@@ -30,16 +30,16 @@ namespace OpenBus.Game.Controls
                     switch (texture.Mode)
                     {
                         case MapConfig.SkyInfo.SkyTextureMode.Day:
-                            map.AddSky(new Sky(skyInfoConfig.Size, SkyMode.DAY, texture.Path));
+                            map.AddSky(new Sky(skyInfoConfig.Size, SkyMode.Day, texture.Path));
                             break;
                         case MapConfig.SkyInfo.SkyTextureMode.Night:
-                            map.AddSky(new Sky(skyInfoConfig.Size, SkyMode.NIGHT, texture.Path));
+                            map.AddSky(new Sky(skyInfoConfig.Size, SkyMode.Night, texture.Path));
                             break;
                         case MapConfig.SkyInfo.SkyTextureMode.Dawn:
-                            map.AddSky(new Sky(skyInfoConfig.Size, SkyMode.DAWN, texture.Path));
+                            map.AddSky(new Sky(skyInfoConfig.Size, SkyMode.Dawn, texture.Path));
                             break;
                         case MapConfig.SkyInfo.SkyTextureMode.Sunset:
-                            map.AddSky(new Sky(skyInfoConfig.Size, SkyMode.SUNSET, texture.Path));
+                            map.AddSky(new Sky(skyInfoConfig.Size, SkyMode.Sunset, texture.Path));
                             break;
                     }
                 }

@@ -19,19 +19,19 @@ namespace OpenBus.Game.Objects
         /// The sky will be displayed during daytime.
         /// This is also the default value used for a Sky object.
         /// </summary>
-        DAY = 0,
+        Day = 0,
         /// <summary>
         /// The sky will be displayed during night.
         /// </summary>
-        NIGHT = 1,
+        Night = 1,
         /// <summary>
         /// The sky will be displayed during dawn (or sunrise).
         /// </summary>
-        DAWN = 2,
+        Dawn = 2,
         /// <summary>
         /// The sky will be displayed during sunset (or evening).
         /// </summary>
-        SUNSET = 3
+        Sunset = 3
     }
 
     /// <summary>
@@ -155,7 +155,7 @@ namespace OpenBus.Game.Objects
         {
             this.size = size;
             if (!Enum.TryParse(mode, out this.mode))
-                this.mode = SkyMode.DAY;
+                this.mode = SkyMode.Day;
             this.texture = texture;
         }
 
@@ -166,7 +166,7 @@ namespace OpenBus.Game.Objects
         public Sky(string texture)
         {
             this.size = 450;
-            this.mode = SkyMode.DAY;
+            this.mode = SkyMode.Day;
             this.texture = texture;
         }
     }

@@ -26,21 +26,21 @@ namespace OpenBus.Config
         {
             public enum AlphaTextureMode
             {
-                [XmlEnum("0")]
+                [XmlEnum("full")]
                 Full = 0,
-                [XmlEnum("1")]
+                [XmlEnum("alpha")]
                 Alpha = 1
             }
 
-            [XmlElement("path")]
+            [XmlAttribute("path")]
             public string Path;
-            [XmlElement("mode")]
+            [XmlAttribute("mode")]
             public AlphaTextureMode Mode;
         }
 
         public class MeshInfo
         {
-            [XmlElement("path")]
+            [XmlAttribute("path")]
             public string Path;
         }
 

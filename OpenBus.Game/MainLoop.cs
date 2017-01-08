@@ -18,6 +18,7 @@ namespace OpenBus.Game
     {
         private static string currentMapPath;
         private static double frameRate;
+        private static double deltaTime;
 
         /// <summary>
         /// 
@@ -51,7 +52,7 @@ namespace OpenBus.Game
         /// </summary>
         public static void Start()
         {
-            double totalTimeElapsedForHud = 0.0;
+            double deltaTimeForHud = 0.0;
 
             Initialize();
             Game.LoadMap(currentMapPath);
@@ -59,12 +60,12 @@ namespace OpenBus.Game
             while (true)
             {
                 // Timing calculation
-                double timeElapsed = Timer.TimeElapsed;
-                totalTimeElapsedForHud += timeElapsed;
-                if (totalTimeElapsedForHud >= 0.2)
+                deltaTime = Timer.DeltaTime;
+                deltaTimeForHud += deltaTime;
+                if (deltaTimeForHud >= 0.2)
                 {
-                    frameRate = 1 / timeElapsed;
-                    totalTimeElapsedForHud = 0;
+                    frameRate = 1 / deltaTime;
+                    deltaTimeForHud = 0;
                 }
 
                 // Process inputs and update states
@@ -122,7 +123,7 @@ namespace OpenBus.Game
 
         private static void UpdateState()
         {
-            ControlHandler.ProcessControls();
+            ControlHandler.ProcessControls(deltaTime);
             Game.UpdateState();
         }
     }

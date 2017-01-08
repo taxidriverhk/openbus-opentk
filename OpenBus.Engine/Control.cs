@@ -50,18 +50,18 @@ namespace OpenBus.Engine.Controls
         /// </summary>
         Pressed,
         /// <summary>
-        /// The key has already been pressed and its command has already been done.
+        /// The key has already been pressed and its command has already been handled.
         /// This is usually used for a discrete control so the command won't be invoked again.
         /// </summary>
-        AlreadyPressed,
+        PressHandled,
         /// <summary>
         /// The user has already released the key or button.
         /// </summary>
         Released,
         /// <summary>
-        /// The key has already been released and its command has already been done.
+        /// The key has already been released and its command has already been handled.
         /// </summary>
-        AlreadyReleased
+        ReleaseHandled
     }
 
     /// <summary>

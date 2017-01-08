@@ -81,8 +81,9 @@ namespace OpenBus.Game.Controls
             };
         }
 
-        public static void ProcessControls()
+        public static void ProcessControls(double deltaTime)
         {
+            float movement = (float)deltaTime * 20;
             foreach (Control control in Controller.ControlSequence)
             {
                 UserControl userControl = FindUserControlByControl(control);
@@ -92,7 +93,7 @@ namespace OpenBus.Game.Controls
                 if (control.Type == ControlType.Discrete)
                 {
                     if (control.DiscreteState == ControlState.Pressed)
-                        control.DiscreteState = ControlState.AlreadyPressed;
+                        control.DiscreteState = ControlState.PressHandled;
                     else
                         continue;
                 }
@@ -102,38 +103,38 @@ namespace OpenBus.Game.Controls
                     case ControlCommand.Invalid:
                         break;
                     case ControlCommand.CameraMoveLeft:
-                        Game.CurrentView.MoveBy(-0.5f, 0, 0);
+                        Game.CurrentView.MoveBy(-movement, 0, 0);
                         break;
                     case ControlCommand.CameraMoveRight:
-                        Game.CurrentView.MoveBy(0.5f, 0, 0);
+                        Game.CurrentView.MoveBy(movement, 0, 0);
                         break;
                     case ControlCommand.CameraMoveFront:
-                        Game.CurrentView.MoveBy(0, 0, 0.5f);
+                        Game.CurrentView.MoveBy(0, 0, movement);
                         break;
                     case ControlCommand.CameraMoveBack:
-                        Game.CurrentView.MoveBy(0, 0, -0.5f);
+                        Game.CurrentView.MoveBy(0, 0, -movement);
                         break;
                     case ControlCommand.CameraMoveUp:
-                        Game.CurrentView.MoveBy(0, 0.5f, 0);
+                        Game.CurrentView.MoveBy(0, movement, 0);
                         break;
                     case ControlCommand.CameraMoveDown:
-                        Game.CurrentView.MoveBy(0, -0.5f, 0);
+                        Game.CurrentView.MoveBy(0, -movement, 0);
                         break;
                     case ControlCommand.CameraRotateYawLeft:
-                        Game.CurrentView.ChangeYawAngleBy(1.0f);
+                        Game.CurrentView.ChangeYawAngleBy(movement);
                         break;
                     case ControlCommand.CameraRotateYawRight:
-                        Game.CurrentView.ChangeYawAngleBy(-1.0f);
+                        Game.CurrentView.ChangeYawAngleBy(-movement);
                         break;
                     case ControlCommand.CameraRotatePitchDown:
                         break;
                     case ControlCommand.CameraRotatePitchUp:
                         break;
                     case ControlCommand.CameraZoomIn:
-                        Game.CurrentView.ZoomBy(0.1f);
+                        Game.CurrentView.ZoomBy(movement);
                         break;
                     case ControlCommand.CameraZoomOut:
-                        Game.CurrentView.ZoomBy(-0.1f);
+                        Game.CurrentView.ZoomBy(-movement);
                         break;
                     case ControlCommand.ToggleFPSDisplay:
                         Game.Settings.ScreenDisplaySettings.ToggleFrameRateDisplay();

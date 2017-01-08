@@ -15,7 +15,7 @@ namespace OpenBus.Common
             lastTime = stopWatch.ElapsedMilliseconds;
         }
 
-        public static double TimeElapsed
+        public static double DeltaTime
         {
             get
             {

@@ -9,6 +9,11 @@ SET PLATFORM=%4
 @rem Configuration (Debug or Release)
 SET CONFIG=%5
 
+@rem Remove the beginning and ending quotes of the three directories
+SET SLNDIR=%SLNDIR:~1,-1%
+SET OUTDIR=%OUTDIR:~1,-1%
+SET PROJDIR=%PROJDIR:~1,-1%
+
 @rem Copy the corresponding depending binaries
 copy "%SLNDIR%Referenced Libraries\SDL2-CS.dll" "%PROJDIR%%OUTDIR%"
 if "%PLATFORM%" == "x64" (

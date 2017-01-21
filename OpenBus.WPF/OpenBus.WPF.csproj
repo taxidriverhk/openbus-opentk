@@ -8,7 +8,7 @@
     <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>OpenBus.WPF</RootNamespace>
-    <AssemblyName>OpenBus.WPF</AssemblyName>
+    <AssemblyName>OpenBus</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -40,7 +40,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
-    <DocumentationFile>bin\Debug\OpenBus.WPF.XML</DocumentationFile>
+    <DocumentationFile>bin\Debug\OpenBus.xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -198,10 +198,10 @@
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>$(SolutionDir)\Scripts\post-build.cmd $(SolutionDir) $(ProjectDir) $(OutDir) $(PlatformName) $(ConfigurationName)</PostBuildEvent>
+    <PostBuildEvent>"$(SolutionDir)\Scripts\post-build.cmd" "$(SolutionDir)" "$(ProjectDir)" "$(OutDir)" $(PlatformName) $(ConfigurationName)</PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
-    <PreBuildEvent>$(SolutionDir)\Scripts\pre-build.cmd $(TargetName) $(ProjectDir) $(SolutionDir)</PreBuildEvent>
+    <PreBuildEvent>"$(SolutionDir)\Scripts\pre-build.cmd" $(TargetName) "$(ProjectDir)" "$(SolutionDir)"</PreBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

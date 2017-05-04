@@ -29,18 +29,22 @@ namespace OpenBus.Engine
             Path = path;
         }
 
-        public Texture(int textureId, bool hasAlpha)
-        {
-            TextureId = textureId;
-            HasAlpha = hasAlpha;
-            Path = string.Empty;
-        }
-
         public Texture(int textureId, bool hasAlpha, string path)
         {
             TextureId = textureId;
             HasAlpha = hasAlpha;
             Path = path;
+        }
+
+        /// <summary>
+        /// Checks whether this Texture object has been loaded info graphics buffer or not.
+        /// </summary>
+        public bool Loaded
+        {
+            get
+            {
+                return this.TextureId > 0 && TextureManager.Textures.Contains(this);
+            }
         }
 
         public override bool Equals(object obj)
@@ -106,15 +110,15 @@ namespace OpenBus.Engine
             return 0;
         }
 
-        public static int LoadTexture(Bitmap bitmap)
+        public static int LoadTexture(string texturePath, Bitmap bitmap)
         {
-            int textureId = LoadTexture(bitmap, true);
+            int textureId = LoadTexture(texturePath, bitmap, true);
             return textureId;
         }
 
-        public static int LoadTexture(Bitmap bitmap, bool disposeBitmap)
+        public static int LoadTexture(string texturePath, Bitmap bitmap, bool disposeBitmap)
         {
-            int textureId = LoadTexture(bitmap, false, true, disposeBitmap);
+            int textureId = LoadTexture(texturePath, bitmap, false, true, disposeBitmap);
             return textureId;
         }
 
@@ -145,7 +149,7 @@ namespace OpenBus.Engine
                 return -1;
 
             Bitmap bitmap = new Bitmap(fullPath);
-            int textureId = LoadTexture(bitmap, hasAlpha, false, true);
+            int textureId = LoadTexture(path, bitmap, hasAlpha, false, true);
             textures.Add(new Texture(textureId, hasAlpha, path));
             return textureId;
         }
@@ -166,7 +170,7 @@ namespace OpenBus.Engine
         {
             foreach (TextureLoadQueueItem item in textureLoadQueue)
             {
-                int textureId = LoadTexture(item.Bitmap, item.Texture.HasAlpha, false, true);
+                int textureId = LoadTexture(item.Texture.Path, item.Bitmap, item.Texture.HasAlpha, false, true);
                 Texture loadedTexture = new Texture(item.Texture.Path, item.Texture.HasAlpha);
                 loadedTexture.TextureId = textureId;
                 textures.Add(loadedTexture);
@@ -229,7 +233,7 @@ namespace OpenBus.Engine
                 return bitmap;
         }
 
-        private static int LoadTexture(Bitmap bitmap, bool hasAlpha, bool addToList, bool disposeBitmap)
+        private static int LoadTexture(string texturePath, Bitmap bitmap, bool hasAlpha, bool addToList, bool disposeBitmap)
         {
             if (bitmap == null)
                 return -1;
@@ -251,7 +255,7 @@ namespace OpenBus.Engine
             if (disposeBitmap)
                 bitmap.Dispose();
 
-            Texture texture = new Texture(id, hasAlpha);
+            Texture texture = new Texture(id, hasAlpha, texturePath);
             // Either let this function add the texture to the hash set
             // Or let the caller (which should be a TextureManager method too) do it
             if (addToList)

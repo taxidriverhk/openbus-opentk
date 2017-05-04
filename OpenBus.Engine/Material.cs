@@ -13,7 +13,7 @@ namespace OpenBus.Engine
         public PhongShading Shading;
     }
 
-    public struct PhongShading
+    public class PhongShading
     {
         public Vector4 Emission;
         public Vector4 Ambient;

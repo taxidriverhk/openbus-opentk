@@ -55,7 +55,10 @@ namespace OpenBus.Game
             double deltaTimeForHud = 0.0;
 
             Initialize();
+
+            Log.Write(LogLevel.Info, "Start to load map {0}.", currentMapPath);
             Game.LoadMap(currentMapPath);
+
             Screen.Show();
             while (true)
             {
@@ -81,13 +84,15 @@ namespace OpenBus.Game
                 // Update the screen with the new drawing
                 Screen.SwapBuffers();
             }
-            Cleanup();
+
+            CleanUp();
+            Log.Write(LogLevel.Info, "Session on map {0} is ended.", true, currentMapPath);
         }
 
-        private static void Cleanup()
+        private static void CleanUp()
         {
             Game.SaveAndClean();
-            Renderer.Cleanup();
+            Renderer.CleanUp();
             TextureManager.UnloadAllTextures();
             Screen.Destroy();
         }

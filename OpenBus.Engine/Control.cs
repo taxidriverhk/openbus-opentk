@@ -158,18 +158,6 @@ namespace OpenBus.Engine.Controls
         public double ContinuousState;
         public double RepeatInterval;
 
-        public Control()
-        {
-            // This creates an invalid default control
-            this.Source = ControlSource.Invalid;
-            this.KeyCode = KeyCode.Invalid;
-            this.KeyModifierMask = KeyModifier.None;
-            this.Type = ControlType.Discrete;
-            this.DiscreteState = ControlState.Released;
-            this.ContinuousState = 0.0;
-            this.RepeatInterval = 0.0;
-        }
-
         public Control(ControlSource source, KeyCode keyCode)
         {
             this.Source = source;

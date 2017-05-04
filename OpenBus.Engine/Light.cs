@@ -13,7 +13,7 @@ namespace OpenBus.Engine
         Spotlight = 3
     }
 
-    public struct Light
+    public class Light
     {
         public Vector3 Position;
         public Vector3 Color;

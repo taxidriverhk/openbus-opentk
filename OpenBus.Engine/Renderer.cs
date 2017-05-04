@@ -27,7 +27,7 @@ namespace OpenBus.Engine
 
         /// <summary>
         /// Initialize the components of the renderer, should be called before the main loop.
-        /// Cleanup function must also be called after the main loop to cleanup everything.
+        /// CleanUp function must also be called after the main loop to cleanup everything.
         /// </summary>
         public static void Initialize()
         {
@@ -46,21 +46,21 @@ namespace OpenBus.Engine
         /// Cleans up the memory and components associated to this renderer.
         /// Must be called after the main loop to cleanup everything.
         /// </summary>
-        public static void Cleanup()
+        public static void CleanUp()
         {
             foreach (int bufferIdentifier in loadedEntities.Keys)
             {
                 loadedEntities[bufferIdentifier].Clear();
-                staticBuffers[bufferIdentifier].Cleanup();
-                terrainBuffers[bufferIdentifier].Cleanup();
+                staticBuffers[bufferIdentifier].CleanUp();
+                terrainBuffers[bufferIdentifier].CleanUp();
             }
             loadedEntities.Clear();
             staticBuffers.Clear();
             terrainBuffers.Clear();
 
             foreach (MirrorBuffer mirrorBuffer in mirrorBuffers)
-                mirrorBuffer.Cleanup();
-            skyBox.Cleanup();
+                mirrorBuffer.CleanUp();
+            skyBox.CleanUp();
         }
 
         /// <summary>

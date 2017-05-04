@@ -441,7 +441,7 @@ namespace OpenBus.Engine
         /// <summary>
         /// 
         /// </summary>
-        internal void Cleanup()
+        internal void CleanUp()
         {
             for (int i = 0; i < bufferIds.Count; i++)
             {
@@ -485,6 +485,7 @@ namespace OpenBus.Engine
     /// </summary>
     internal class OverlayTextBuffer
     {
+        private const string OVERLAY_TEXT_TEXTURE_PATH = @"overlay.bmp";
         private Bitmap textBmp;
 
         internal OverlayTextBuffer()
@@ -514,7 +515,7 @@ namespace OpenBus.Engine
                 gfx.Clear(Color.Transparent);
                 gfx.DrawString(text, font, brush, new PointF(screenLeft, screenTop));
             }
-            int textTextureId = TextureManager.LoadTexture(textBmp, false);
+            int textTextureId = TextureManager.LoadTexture(OVERLAY_TEXT_TEXTURE_PATH, textBmp, false);
 
             GL.Disable(EnableCap.DepthTest);
             GL.BlendFunc(BlendingFactorSrc.One, BlendingFactorDest.OneMinusSrcAlpha);
@@ -668,7 +669,7 @@ namespace OpenBus.Engine
         /// <summary>
         /// 
         /// </summary>
-        internal void Cleanup()
+        internal void CleanUp()
         {
             BufferHelper.DeleteBuffers(mirrorBufferId, mirrorIndexId);
             GL.DeleteRenderbuffers(1, ref rendererBufferId);
@@ -732,7 +733,7 @@ namespace OpenBus.Engine
             GL.Enable(EnableCap.DepthTest);
         }
 
-        internal void Cleanup()
+        internal void CleanUp()
         {
             TextureManager.UnloadTexture(texture.TextureId);
             BufferHelper.DeleteBuffers(bufferId);
@@ -832,7 +833,7 @@ namespace OpenBus.Engine
             GL.Disable(EnableCap.CullFace);
         }
 
-        internal void Cleanup()
+        internal void CleanUp()
         {
             TextureManager.UnloadTexture(terrainTextureId);
             BufferHelper.DeleteBuffers(bufferId);

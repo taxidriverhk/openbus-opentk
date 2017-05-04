@@ -30,12 +30,6 @@ namespace OpenBus.Game.Controls
         public ControlCommand Command;
         public Control ConfiguredControl;
 
-        public UserControl()
-        {
-            this.Command = ControlCommand.Invalid;
-            this.ConfiguredControl = new Control();
-        }
-
         public UserControl(ControlCommand command, Control configuredControl)
         {
             this.Command = command;
@@ -87,7 +81,11 @@ namespace OpenBus.Game.Controls
             foreach (Control control in Controller.ControlSequence)
             {
                 UserControl userControl = FindUserControlByControl(control);
+                if (userControl == null)
+                    continue;
                 Control configuredControl = userControl.ConfiguredControl;
+                if (configuredControl == null)
+                    continue;
                 control.Type = configuredControl.Type;
 
                 if (control.Type == ControlType.Discrete)
@@ -149,7 +147,7 @@ namespace OpenBus.Game.Controls
                 if (userControls[i].ConfiguredControl.Equals(control))
                     return userControls[i];
 
-            return new UserControl();
+            return null;
         }
     }
 }

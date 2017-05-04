@@ -100,8 +100,8 @@ namespace OpenBus.Game.Controls
             zoom += factor;
             if (zoom >= 4.0f)
                 zoom = 3.99f;
-            else if (zoom <= 0.5f)
-                zoom = 0.51f;
+            else if (zoom < 1.0f)
+                zoom = 1.0f;
             Camera.Zoom(zoom);
         }
 

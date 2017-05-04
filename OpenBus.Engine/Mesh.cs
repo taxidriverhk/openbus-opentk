@@ -14,13 +14,14 @@ namespace OpenBus.Engine
         Collada,
         Wavefront,
         DirectX,
-        Autodesk3ds
+        Autodesk3ds,
+        OpenBusModel
     }
 
     /// <summary>
     /// Defines a mesh with an identifier, translation and rotation applied.
     /// </summary>
-    public struct Entity
+    public class Entity
     {
         private static int currentId = 0;
 

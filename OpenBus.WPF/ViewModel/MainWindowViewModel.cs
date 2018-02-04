@@ -119,8 +119,15 @@ namespace OpenBus.WPF.ViewModel
         private void StartGame()
         {
             IsVisible = false;
-            MainLoop.SetParameters(MapList[selectedMapListIndex].Path);
+
+            MainLoopStartParameter startParam = 
+                MainLoopStartParameter.ReadProgramArgs(Environment.GetCommandLineArgs());
+            if (string.IsNullOrEmpty(startParam.MapPath))
+                startParam.MapPath = MapList[selectedMapListIndex].Path;
+
+            MainLoop.SetParameters(startParam);
             MainLoop.Start();
+
             IsVisible = true;
         }
     }

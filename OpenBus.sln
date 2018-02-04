@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.26228.4
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenBus.WPF", "OpenBus.WPF\OpenBus.WPF.csproj", "{7BA39C8A-2A9C-4008-830F-38AC1A0D4CD9}"
 	ProjectSection(ProjectDependencies) = postProject

@@ -11,20 +11,22 @@ using OpenBus.Game.Controls;
 namespace OpenBus.Game
 {
     /// <summary>
-    /// Controls the main loop of a game.
-    /// This includes receiving inputs from the player, updating the game state, and drawing the scene.
+    /// Defines the start parameters of the main game loop.
     /// </summary>
-    public static class MainLoop
+    public class MainLoopStartParameter
     {
-        private static string currentMapPath;
-        private static double frameRate;
-        private static double deltaTime;
+        /// <summary>
+        /// Full path to the map's main directory.
+        /// </summary>
+        public string MapPath;
 
         /// <summary>
         /// 
         /// </summary>
-        public static void ReadProgramArgs(string[] args)
+        public static MainLoopStartParameter ReadProgramArgs(string[] args)
         {
+            MainLoopStartParameter parameter = new MainLoopStartParameter();
+
             for (int i = 0; i < args.Length; i++)
             {
                 string arg = args[i].ToLower();
@@ -35,16 +37,30 @@ namespace OpenBus.Game
                         break;
                 }
             }
+
+            return parameter;
         }
+    }
+
+    /// <summary>
+    /// Controls the main loop of a game.
+    /// This includes receiving inputs from the player, updating the game state, and drawing the scene.
+    /// </summary>
+    public static class MainLoop
+    {
+        private static string currentMapPath;
+        private static double frameRate;
+        private static double deltaTime;
+        private static MainLoopStartParameter startParameter;
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="mapPath"></param>
-        public static void SetParameters(string mapPath)
+        public static void SetParameters(MainLoopStartParameter parameter)
         {
             // TODO: add more parameters as we can
-            currentMapPath = mapPath;
+            currentMapPath = parameter.MapPath;
         }
 
         /// <summary>

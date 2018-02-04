@@ -12,7 +12,6 @@ namespace OpenBus.WPF
         [STAThread]
         static void Main(string[] args)
         {
-            MainLoop.ReadProgramArgs(args);
             App game = new App();
             game.InitializeComponent();
             game.Run();

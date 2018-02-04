@@ -20,7 +20,8 @@ namespace OpenBus.Common
     {
         private const int LOG_WRITE_INTERVAL = 10;
         private const int LOG_LIST_THRESHOLD = 100;
-        private const string LOG_FILE_FORMAT = @"logs\OpenBDS_Log_{0}.txt";
+        private const string LOG_FILE_DIR = @"logs\";
+        private const string LOG_FILE_FORMAT = @"OpenBDS_Log_{0}.txt";
         private const string LOG_LINE_FORMAT = "{0} - {1} - {2}";
 
         private static double lastLogWriteTime;
@@ -34,7 +35,7 @@ namespace OpenBus.Common
         {
             lastLogWriteTime = -1;
             lowestLevel = LogLevel.Debug;
-            logFilePath = EnvironmentVariables.RootPath 
+            logFilePath = EnvironmentVariables.RootPath + LOG_FILE_DIR
                 + string.Format(LOG_FILE_FORMAT, DateTime.Now.ToString("yyyy-MM-dd"));
             logs = new List<string>();
         }

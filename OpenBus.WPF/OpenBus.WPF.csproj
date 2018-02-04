@@ -198,10 +198,29 @@
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>"$(SolutionDir)\Scripts\post-build.cmd" "$(SolutionDir)" "$(ProjectDir)" "$(OutDir)" $(PlatformName) $(ConfigurationName)</PostBuildEvent>
+    <PostBuildEvent>copy /Y "$(SolutionDir)Referenced Libraries\SDL2-CS.dll" "$(ProjectDir)$(OutDir)"
+if "$(PlatformName)" == "x64" (
+    copy /Y "$(SolutionDir)Referenced Libraries\x64\SDL2.dll" "$(ProjectDir)$(OutDir)"
+) else (
+    copy /Y "$(SolutionDir)Referenced Libraries\x86\SDL2.dll" "$(ProjectDir)$(OutDir)"
+)
+copy /Y "$(ProjectDir)Images\favicon.ico" "$(ProjectDir)$(OutDir)"
+
+for /f %25%25i in ('git rev-list --count HEAD') do set REVISION=%25%25i
+SET PVERSION="1.0.0.%25REVISION%25"
+SET FVERSION=%25PVERSION%25
+SET PRODUCT="Open Bus Driving Simulator"
+SET AUTHOR="Alex Leung"
+SET COPYRIGHT="Alex Leung (c) 2018"
+
+SET BINARYLIST=OpenBus.exe OpenBus.Common.dll OpenBus.Game.dll OpenBus.Engine.dll OpenBus.Config.dll
+(for %25%25b in (%25BINARYLIST%25) do ( 
+    "$(SolutionDir)Tools\verpatch.exe" "$(ProjectDir)$(OutDir)%25%25b" "%25FVERSION%25" /va /pv "%25PVERSION%25" /s desc %25PRODUCT%25 /s pb %25AUTHOR%25 /s copyright %25COPYRIGHT%25 /s product %25PRODUCT%25
+))</PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
-    <PreBuildEvent>"$(SolutionDir)\Scripts\pre-build.cmd" $(TargetName) "$(ProjectDir)" "$(SolutionDir)"</PreBuildEvent>
+    <PreBuildEvent>
+    </PreBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

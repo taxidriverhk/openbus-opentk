@@ -123,7 +123,13 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>"$(SolutionDir)\Scripts\post-build.cmd" "$(SolutionDir)" "$(ProjectDir)" "$(OutDir)" $(PlatformName) $(ConfigurationName)</PostBuildEvent>
+    <PostBuildEvent>copy "$(SolutionDir)Referenced Libraries\SDL2-CS.dll" "$(ProjectDir)$(OutDir)" /y
+if "$(PlatformName)" == "x64" (
+    copy "$(SolutionDir)Referenced Libraries\x64\SDL2.dll" "$(ProjectDir)$(OutDir)" /y
+) else (
+    copy "$(SolutionDir)Referenced Libraries\x86\SDL2.dll" "$(ProjectDir)$(OutDir)" /y
+)
+copy "$(ProjectDir)Images\favicon.ico" "$(ProjectDir)$(OutDir)" /y</PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
     <PreBuildEvent>"$(SolutionDir)\Scripts\pre-build.cmd" $(TargetName) "$(ProjectDir)" "$(SolutionDir)"</PreBuildEvent>

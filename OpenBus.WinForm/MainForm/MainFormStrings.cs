@@ -18,7 +18,7 @@ namespace OpenBus.WinForm
         {
             Map = "Map: ";
             Title = Constants.APPLICATION_NAME;
-            StartGame = Constants.START_GAME;
+            StartGame = "Start Game";
             VersionNumber = Constants.VERSION_NUMBER;
         }
     }
